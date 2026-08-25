@@ -11,12 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OttRouteImport } from './routes/ott'
+import { Route as PoliciesRouteImport } from './routes/policies'
 import { Route as PsPlusRouteImport } from './routes/ps-plus'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminGamesRouteImport } from './routes/admin/games'
@@ -35,9 +39,19 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -48,6 +62,11 @@ const LoginRoute = LoginRouteImport.update({
 const OttRoute = OttRouteImport.update({
   id: '/ott',
   path: '/ott',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliciesRoute = PoliciesRouteImport.update({
+  id: '/policies',
+  path: '/policies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PsPlusRoute = PsPlusRouteImport.update({
@@ -63,6 +82,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WishlistRoute = WishlistRouteImport.update({
@@ -104,12 +128,16 @@ const GamesSlugRoute = GamesSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/ott': typeof OttRoute
+  '/policies': typeof PoliciesRoute
   '/ps-plus': typeof PsPlusRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/login': typeof AdminLoginRoute
@@ -121,12 +149,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/ott': typeof OttRoute
+  '/policies': typeof PoliciesRoute
   '/ps-plus': typeof PsPlusRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/login': typeof AdminLoginRoute
@@ -139,12 +171,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/ott': typeof OttRoute
+  '/policies': typeof PoliciesRoute
   '/ps-plus': typeof PsPlusRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/login': typeof AdminLoginRoute
@@ -158,12 +194,16 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/contact'
     | '/forgot-password'
+    | '/how-it-works'
     | '/login'
     | '/ott'
+    | '/policies'
     | '/ps-plus'
     | '/register'
     | '/reset-password'
+    | '/reviews'
     | '/wishlist'
     | '/admin/games'
     | '/admin/login'
@@ -175,12 +215,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/contact'
     | '/forgot-password'
+    | '/how-it-works'
     | '/login'
     | '/ott'
+    | '/policies'
     | '/ps-plus'
     | '/register'
     | '/reset-password'
+    | '/reviews'
     | '/wishlist'
     | '/admin/games'
     | '/admin/login'
@@ -192,12 +236,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/contact'
     | '/forgot-password'
+    | '/how-it-works'
     | '/login'
     | '/ott'
+    | '/policies'
     | '/ps-plus'
     | '/register'
     | '/reset-password'
+    | '/reviews'
     | '/wishlist'
     | '/admin/games'
     | '/admin/login'
@@ -210,12 +258,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  ContactRoute: typeof ContactRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   OttRoute: typeof OttRoute
+  PoliciesRoute: typeof PoliciesRoute
   PsPlusRoute: typeof PsPlusRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ReviewsRoute: typeof ReviewsRoute
   WishlistRoute: typeof WishlistRoute
   AdminGamesRoute: typeof AdminGamesRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -241,11 +293,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -260,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/ott'
       fullPath: '/ott'
       preLoaderRoute: typeof OttRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies': {
+      id: '/policies'
+      path: '/policies'
+      fullPath: '/policies'
+      preLoaderRoute: typeof PoliciesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ps-plus': {
@@ -281,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wishlist': {
@@ -338,12 +418,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  ContactRoute: ContactRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   OttRoute: OttRoute,
+  PoliciesRoute: PoliciesRoute,
   PsPlusRoute: PsPlusRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ReviewsRoute: ReviewsRoute,
   WishlistRoute: WishlistRoute,
   AdminGamesRoute: AdminGamesRoute,
   AdminLoginRoute: AdminLoginRoute,
