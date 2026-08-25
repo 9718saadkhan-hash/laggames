@@ -1,0 +1,541 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Plus, Pencil, Copy, Trash2, Gamepad2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
+import { supabase } from "@/integrations/supabase/client";
+import { gamesQuery } from "@/lib/queries";
+import { money, discountPercent, PLATFORMS, type Game } from "@/lib/lag";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+export const Route = createFileRoute("/admin/games")({
+  head: () => ({
+    meta: [
+      { title: "Manage Games — LAG Admin" },
+      { name: "description", content: "Add, edit and manage PlayStation games in the LAG catalog." },
+      { property: "og:title", content: "Manage Games — LAG Admin" },
+      { property: "og:description", content: "Add, edit and manage PlayStation games in the LAG catalog." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: AdminGamesPage,
+});
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+type GameForm = {
+  id?: string;
+  slug: string;
+  title: string;
+  short_description: string;
+  description: string;
+  cover_url: string;
+  banner_url: string;
+  gallery: string;
+  trailer_url: string;
+  platform: string;
+  genre: string;
+  developer: string;
+  publisher: string;
+  release_date: string;
+  game_size: string;
+  rating: string;
+  primary_available: boolean;
+  secondary_available: boolean;
+  primary_description: string;
+  secondary_description: string;
+  price_30: string;
+  price_60: string;
+  price_permanent: string;
+  old_price: string;
+  availability: string;
+  featured: boolean;
+  trending: boolean;
+  hot_deal: boolean;
+  new_release: boolean;
+  visible: boolean;
+  display_order: string;
+};
+
+const EMPTY_FORM: GameForm = {
+  slug: "",
+  title: "",
+  short_description: "",
+  description: "",
+  cover_url: "",
+  banner_url: "",
+  gallery: "",
+  trailer_url: "",
+  platform: "PS5",
+  genre: "",
+  developer: "",
+  publisher: "",
+  release_date: "",
+  game_size: "",
+  rating: "",
+  primary_available: true,
+  secondary_available: false,
+  primary_description: "",
+  secondary_description: "",
+  price_30: "",
+  price_60: "",
+  price_permanent: "",
+  old_price: "",
+  availability: "In Stock",
+  featured: false,
+  trending: false,
+  hot_deal: false,
+  new_release: false,
+  visible: true,
+  display_order: "0",
+};
+
+function gameToForm(g: Game): GameForm {
+  return {
+    id: g.id,
+    slug: g.slug,
+    title: g.title,
+    short_description: g.short_description ?? "",
+    description: g.description ?? "",
+    cover_url: g.cover_url ?? "",
+    banner_url: g.banner_url ?? "",
+    gallery: (g.gallery ?? []).join("\n"),
+    trailer_url: g.trailer_url ?? "",
+    platform: g.platform,
+    genre: g.genre ?? "",
+    developer: g.developer ?? "",
+    publisher: g.publisher ?? "",
+    release_date: g.release_date ?? "",
+    game_size: g.game_size ?? "",
+    rating: g.rating?.toString() ?? "",
+    primary_available: g.primary_available,
+    secondary_available: g.secondary_available,
+    primary_description: g.primary_description ?? "",
+    secondary_description: g.secondary_description ?? "",
+    price_30: g.price_30?.toString() ?? "",
+    price_60: g.price_60?.toString() ?? "",
+    price_permanent: g.price_permanent?.toString() ?? "",
+    old_price: g.old_price?.toString() ?? "",
+    availability: g.availability,
+    featured: g.featured,
+    trending: g.trending,
+    hot_deal: g.hot_deal,
+    new_release: g.new_release,
+    visible: g.visible,
+    display_order: g.display_order?.toString() ?? "0",
+  };
+}
+
+function formToPayload(f: GameForm) {
+  const num = (v: string) => (v.trim() === "" ? null : Number(v));
+  if (!f.title.trim()) throw new Error("Title is required.");
+  if (!f.slug.trim()) throw new Error("Slug is required.");
+  return {
+    slug: slugify(f.slug),
+    title: f.title.trim(),
+    short_description: f.short_description || null,
+    description: f.description || null,
+    cover_url: f.cover_url || null,
+    banner_url: f.banner_url || null,
+    gallery: f.gallery
+      .split(/[\n,]/)
+      .map((s) => s.trim())
+      .filter(Boolean),
+    trailer_url: f.trailer_url || null,
+    platform: f.platform,
+    genre: f.genre || null,
+    developer: f.developer || null,
+    publisher: f.publisher || null,
+    release_date: f.release_date || null,
+    game_size: f.game_size || null,
+    rating: num(f.rating),
+    primary_available: f.primary_available,
+    secondary_available: f.secondary_available,
+    primary_description: f.primary_description || null,
+    secondary_description: f.secondary_description || null,
+    price_30: num(f.price_30),
+    price_60: num(f.price_60),
+    price_permanent: num(f.price_permanent),
+    old_price: num(f.old_price),
+    availability: f.availability || "In Stock",
+    featured: f.featured,
+    trending: f.trending,
+    hot_deal: f.hot_deal,
+    new_release: f.new_release,
+    visible: f.visible,
+    display_order: num(f.display_order) ?? 0,
+  };
+}
+
+function AdminGamesPage() {
+  const { data: games = [], isLoading } = useQuery(gamesQuery({ admin: true }));
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<GameForm>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  function invalidate() {
+    queryClient.invalidateQueries({ queryKey: ["games"] });
+  }
+
+  function openCreate() {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setOpen(true);
+  }
+
+  function openEdit(g: Game) {
+    setEditingId(g.id);
+    setForm(gameToForm(g));
+    setOpen(true);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const payload = formToPayload(form);
+      if (editingId) {
+        const { error } = await supabase.from("games").update(payload).eq("id", editingId);
+        if (error) throw error;
+        toast.success("Product updated successfully.");
+      } else {
+        const { error } = await supabase.from("games").insert(payload);
+        if (error) throw error;
+        toast.success("Game added successfully.");
+      }
+      invalidate();
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDuplicate(g: Game) {
+    const { id, created_at, ...rest } = g;
+    const { error } = await supabase.from("games").insert({ ...rest, slug: `${g.slug}-copy`, title: `${g.title} (Copy)` });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Game duplicated.");
+      invalidate();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const { error } = await supabase.from("games").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Game deleted.");
+      invalidate();
+    }
+  }
+
+  async function toggleField(g: Game, field: keyof Game) {
+    const { error } = await supabase
+      .from("games")
+      .update({ [field]: !g[field] })
+      .eq("id", g.id);
+    if (error) toast.error(error.message);
+    else invalidate();
+  }
+
+  const discount = discountPercent(Number(form.old_price) || null, Number(form.price_permanent || form.price_60 || form.price_30) || null);
+
+  return (
+    <AdminGate>
+      <AdminShell>
+        <SectionHeading
+          eyebrow="Catalog"
+          title="Manage Games"
+          subtitle="Add, edit and organize PlayStation game listings."
+          action={
+            <Button variant="hero" onClick={openCreate}>
+              <Plus className="h-4 w-4" /> Add Game
+            </Button>
+          }
+        />
+
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading games…</p>
+        ) : games.length === 0 ? (
+          <EmptyState icon={Gamepad2} title="No games yet" body="Add your first game to get started." />
+        ) : (
+          <div className="grid gap-3">
+            {games.map((g) => (
+              <div key={g.id} className="glass flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center">
+                <img
+                  src={g.cover_url ?? undefined}
+                  alt={g.title}
+                  className="h-20 w-20 shrink-0 rounded-xl object-cover bg-surface-2"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-display font-bold">{g.title}</h3>
+                    <Badge tone="blue">{g.platform}</Badge>
+                    {g.old_price && discountPercent(g.old_price, g.price_permanent ?? g.price_60 ?? g.price_30) && (
+                      <Badge tone="red">
+                        -{discountPercent(g.old_price, g.price_permanent ?? g.price_60 ?? g.price_30)}%
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    30d {money(g.price_30)} · 60d {money(g.price_60)} · Permanent {money(g.price_permanent)}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                    <label className="flex items-center gap-1.5">
+                      <Switch checked={g.visible} onCheckedChange={() => toggleField(g, "visible")} /> Visible
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <Switch checked={g.trending} onCheckedChange={() => toggleField(g, "trending")} /> Trending
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <Switch checked={g.hot_deal} onCheckedChange={() => toggleField(g, "hot_deal")} /> Hot Deal
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <Switch checked={g.new_release} onCheckedChange={() => toggleField(g, "new_release")} /> New
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <Switch checked={g.featured} onCheckedChange={() => toggleField(g, "featured")} /> Featured
+                    </label>
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Button variant="glass" size="sm" onClick={() => openEdit(g)} aria-label={`Edit ${g.title}`}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="glass" size="sm" onClick={() => handleDuplicate(g)} aria-label={`Duplicate ${g.title}`}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="glass" size="sm" aria-label={`Delete ${g.title}`}>
+                        <Trash2 className="h-4 w-4 text-lag-red" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete "{g.title}"?</AlertDialogTitle>
+                        <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(g.id)}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingId ? "Edit Game" : "Add Game"}</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-title">Title</Label>
+                  <Input
+                    id="g-title"
+                    value={form.title}
+                    onChange={(e) => {
+                      const title = e.target.value;
+                      setForm((f) => ({
+                        ...f,
+                        title,
+                        slug: editingId ? f.slug : slugify(title),
+                      }));
+                    }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-slug">Slug</Label>
+                  <Input id="g-slug" value={form.slug} onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="g-short">Short Description</Label>
+                <Input id="g-short" value={form.short_description} onChange={(e) => setForm((f) => ({ ...f, short_description: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="g-desc">Description</Label>
+                <Textarea id="g-desc" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-cover">Cover URL</Label>
+                  <Input id="g-cover" value={form.cover_url} onChange={(e) => setForm((f) => ({ ...f, cover_url: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-banner">Banner URL</Label>
+                  <Input id="g-banner" value={form.banner_url} onChange={(e) => setForm((f) => ({ ...f, banner_url: e.target.value }))} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="g-gallery">Gallery (comma or newline separated URLs)</Label>
+                <Textarea id="g-gallery" rows={3} value={form.gallery} onChange={(e) => setForm((f) => ({ ...f, gallery: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="g-trailer">Trailer URL</Label>
+                <Input id="g-trailer" value={form.trailer_url} onChange={(e) => setForm((f) => ({ ...f, trailer_url: e.target.value }))} />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-platform">Platform</Label>
+                  <Select value={form.platform} onValueChange={(v) => setForm((f) => ({ ...f, platform: v }))}>
+                    <SelectTrigger id="g-platform"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {PLATFORMS.map((p) => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-genre">Genre</Label>
+                  <Input id="g-genre" value={form.genre} onChange={(e) => setForm((f) => ({ ...f, genre: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-size">Game Size</Label>
+                  <Input id="g-size" value={form.game_size} onChange={(e) => setForm((f) => ({ ...f, game_size: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-dev">Developer</Label>
+                  <Input id="g-dev" value={form.developer} onChange={(e) => setForm((f) => ({ ...f, developer: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-pub">Publisher</Label>
+                  <Input id="g-pub" value={form.publisher} onChange={(e) => setForm((f) => ({ ...f, publisher: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-rating">Rating</Label>
+                  <Input id="g-rating" type="number" step="0.1" min="0" max="5" value={form.rating} onChange={(e) => setForm((f) => ({ ...f, rating: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-release">Release Date</Label>
+                  <Input id="g-release" type="date" value={form.release_date} onChange={(e) => setForm((f) => ({ ...f, release_date: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-avail">Availability</Label>
+                  <Input id="g-avail" value={form.availability} onChange={(e) => setForm((f) => ({ ...f, availability: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="grid gap-3 rounded-xl bg-surface-2 p-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold">
+                    <Switch checked={form.primary_available} onCheckedChange={(v) => setForm((f) => ({ ...f, primary_available: v }))} />
+                    Primary Available
+                  </label>
+                  <Input placeholder="Primary description" value={form.primary_description} onChange={(e) => setForm((f) => ({ ...f, primary_description: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold">
+                    <Switch checked={form.secondary_available} onCheckedChange={(v) => setForm((f) => ({ ...f, secondary_available: v }))} />
+                    Secondary Available
+                  </label>
+                  <Input placeholder="Secondary description" value={form.secondary_description} onChange={(e) => setForm((f) => ({ ...f, secondary_description: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-p30">Price 30d</Label>
+                  <Input id="g-p30" type="number" value={form.price_30} onChange={(e) => setForm((f) => ({ ...f, price_30: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-p60">Price 60d</Label>
+                  <Input id="g-p60" type="number" value={form.price_60} onChange={(e) => setForm((f) => ({ ...f, price_60: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-pperm">Price Permanent</Label>
+                  <Input id="g-pperm" type="number" value={form.price_permanent} onChange={(e) => setForm((f) => ({ ...f, price_permanent: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-old">Old Price</Label>
+                  <Input id="g-old" type="number" value={form.old_price} onChange={(e) => setForm((f) => ({ ...f, old_price: e.target.value }))} />
+                </div>
+              </div>
+              {discount && <Badge tone="red">Auto discount: {discount}%</Badge>}
+
+              <div className="grid gap-3 rounded-xl bg-surface-2 p-3 sm:grid-cols-5">
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <Switch checked={form.visible} onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))} /> Visible
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <Switch checked={form.featured} onCheckedChange={(v) => setForm((f) => ({ ...f, featured: v }))} /> Featured
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <Switch checked={form.trending} onCheckedChange={(v) => setForm((f) => ({ ...f, trending: v }))} /> Trending
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <Switch checked={form.hot_deal} onCheckedChange={(v) => setForm((f) => ({ ...f, hot_deal: v }))} /> Hot Deal
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <Switch checked={form.new_release} onCheckedChange={(v) => setForm((f) => ({ ...f, new_release: v }))} /> New Release
+                </label>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="g-order">Display Order</Label>
+                <Input id="g-order" type="number" value={form.display_order} onChange={(e) => setForm((f) => ({ ...f, display_order: e.target.value }))} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="glass" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="hero" onClick={handleSave} disabled={saving}>
+                {saving ? "Saving…" : editingId ? "Save Changes" : "Add Game"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </AdminShell>
+    </AdminGate>
+  );
+}

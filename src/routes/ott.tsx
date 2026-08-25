@@ -1,0 +1,118 @@
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { MessageCircle, Monitor, Tv, Users } from "lucide-react";
+
+import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
+import { Button } from "@/components/ui/button";
+import { buildOrderMessage, discountPercent, money, whatsappLink } from "@/lib/lag";
+import { contactFrom, ottQuery, settingsQuery } from "@/lib/queries";
+
+export const Route = createFileRoute("/ott")({
+  head: () => ({
+    meta: [
+      { title: "OTT Subscriptions — Netflix, Prime & More | LAG LIVE AS GAMERS" },
+      {
+        name: "description",
+        content:
+          "Affordable OTT subscription plans with 4K quality and multi-screen options. Pick a plan and order instantly on WhatsApp.",
+      },
+      { property: "og:title", content: "OTT Subscriptions — LAG LIVE AS GAMERS" },
+      {
+        property: "og:description",
+        content: "Streaming subscriptions at gamer-friendly prices, delivered over WhatsApp.",
+      },
+    ],
+  }),
+  component: OttPage,
+});
+
+function OttPage() {
+  const { data: plans = [], isLoading, isError, error } = useQuery(ottQuery);
+  const { data: settings } = useQuery(settingsQuery);
+  const contact = contactFrom(settings);
+  const visible = plans.filter((p) => p.visible);
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <SectionHeading
+        eyebrow="Subscriptions"
+        title="OTT Subscriptions"
+        subtitle="Streaming plans for every screen in the house — activated the same day you order."
+      />
+
+      {isError ? (
+        <EmptyState icon={Tv} title="Couldn't load plans" body={(error as Error).message} />
+      ) : isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="glass h-64 animate-pulse rounded-3xl" />
+          ))}
+        </div>
+      ) : visible.length === 0 ? (
+        <EmptyState icon={Tv} title="No OTT plans yet" body="Streaming plans are on the way." />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((p, i) => {
+            const off = discountPercent(p.old_price, p.price);
+            const message = buildOrderMessage(
+              {
+                productType: "ott",
+                productName: p.name,
+                productId: p.id,
+                optionType: p.plan,
+                duration: p.duration,
+                price: p.price,
+              },
+              contact.brand,
+            );
+            return (
+              <Reveal key={p.id} delay={i * 80}>
+                <article className="glass hover-lift flex h-full flex-col rounded-3xl p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    {p.logo_url ? (
+                      <img
+                        src={p.logo_url}
+                        alt={`${p.name} logo`}
+                        loading="lazy"
+                        className="h-12 w-12 rounded-2xl object-cover"
+                      />
+                    ) : (
+                      <GlassIcon icon={Monitor} tone="red" size="lg" />
+                    )}
+                    {off && <Badge tone="red">{off}% off</Badge>}
+                  </div>
+                  <h2 className="mt-4 font-display text-xl font-bold">{p.name}</h2>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Badge tone="blue">{p.plan}</Badge>
+                    <Badge>{p.duration}</Badge>
+                    {p.quality && <Badge>{p.quality}</Badge>}
+                  </div>
+                  {p.description && <p className="mt-3 text-sm text-muted-foreground">{p.description}</p>}
+                  {p.screens && (
+                    <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="h-4 w-4 text-lag-blue" aria-hidden />
+                      {p.screens}
+                    </p>
+                  )}
+                  <div className="mt-5 flex items-end gap-2">
+                    <span className="font-display text-2xl font-bold">{money(p.price)}</span>
+                    {p.old_price && (
+                      <span className="text-sm text-muted-foreground line-through">{money(p.old_price)}</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{p.availability}</p>
+                  <Button asChild variant="whatsapp" className="mt-4 w-full">
+                    <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
+                      <MessageCircle className="h-4 w-4" aria-hidden />
+                      Order on WhatsApp
+                    </a>
+                  </Button>
+                </article>
+              </Reveal>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
