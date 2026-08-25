@@ -13,12 +13,17 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as OttRouteImport } from './routes/ott'
+import { Route as PsPlusRouteImport } from './routes/ps-plus'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminGamesRouteImport } from './routes/admin/games'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminPsPlusRouteImport } from './routes/admin/ps-plus'
 import { Route as GamesIndexRouteImport } from './routes/games/index'
+import { Route as GamesSlugRouteImport } from './routes/games/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -38,6 +43,16 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OttRoute = OttRouteImport.update({
+  id: '/ott',
+  path: '/ott',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PsPlusRoute = PsPlusRouteImport.update({
+  id: '/ps-plus',
+  path: '/ps-plus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -60,14 +75,29 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminGamesRoute = AdminGamesRouteImport.update({
+  id: '/admin/games',
+  path: '/admin/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPsPlusRoute = AdminPsPlusRouteImport.update({
+  id: '/admin/ps-plus',
+  path: '/admin/ps-plus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesSlugRoute = GamesSlugRouteImport.update({
+  id: '/games/$slug',
+  path: '/games/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -76,10 +106,15 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/ott': typeof OttRoute
+  '/ps-plus': typeof PsPlusRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/games': typeof AdminGamesRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/ps-plus': typeof AdminPsPlusRoute
+  '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/games/': typeof GamesIndexRoute
 }
@@ -88,10 +123,15 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/ott': typeof OttRoute
+  '/ps-plus': typeof PsPlusRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/games': typeof AdminGamesRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/ps-plus': typeof AdminPsPlusRoute
+  '/games/$slug': typeof GamesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/games': typeof GamesIndexRoute
 }
@@ -101,10 +141,15 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/ott': typeof OttRoute
+  '/ps-plus': typeof PsPlusRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/games': typeof AdminGamesRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/ps-plus': typeof AdminPsPlusRoute
+  '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/games/': typeof GamesIndexRoute
 }
@@ -115,10 +160,15 @@ export interface FileRouteTypes {
     | '/account'
     | '/forgot-password'
     | '/login'
+    | '/ott'
+    | '/ps-plus'
     | '/register'
     | '/reset-password'
     | '/wishlist'
+    | '/admin/games'
     | '/admin/login'
+    | '/admin/ps-plus'
+    | '/games/$slug'
     | '/admin/'
     | '/games/'
   fileRoutesByTo: FileRoutesByTo
@@ -127,10 +177,15 @@ export interface FileRouteTypes {
     | '/account'
     | '/forgot-password'
     | '/login'
+    | '/ott'
+    | '/ps-plus'
     | '/register'
     | '/reset-password'
     | '/wishlist'
+    | '/admin/games'
     | '/admin/login'
+    | '/admin/ps-plus'
+    | '/games/$slug'
     | '/admin'
     | '/games'
   id:
@@ -139,10 +194,15 @@ export interface FileRouteTypes {
     | '/account'
     | '/forgot-password'
     | '/login'
+    | '/ott'
+    | '/ps-plus'
     | '/register'
     | '/reset-password'
     | '/wishlist'
+    | '/admin/games'
     | '/admin/login'
+    | '/admin/ps-plus'
+    | '/games/$slug'
     | '/admin/'
     | '/games/'
   fileRoutesById: FileRoutesById
@@ -152,10 +212,15 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  OttRoute: typeof OttRoute
+  PsPlusRoute: typeof PsPlusRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   WishlistRoute: typeof WishlistRoute
+  AdminGamesRoute: typeof AdminGamesRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminPsPlusRoute: typeof AdminPsPlusRoute
+  GamesSlugRoute: typeof GamesSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   GamesIndexRoute: typeof GamesIndexRoute
 }
@@ -190,6 +255,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ott': {
+      id: '/ott'
+      path: '/ott'
+      fullPath: '/ott'
+      preLoaderRoute: typeof OttRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ps-plus': {
+      id: '/ps-plus'
+      path: '/ps-plus'
+      fullPath: '/ps-plus'
+      preLoaderRoute: typeof PsPlusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -218,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/games': {
+      id: '/admin/games'
+      path: '/admin/games'
+      fullPath: '/admin/games'
+      preLoaderRoute: typeof AdminGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/admin/login'
@@ -225,11 +311,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/ps-plus': {
+      id: '/admin/ps-plus'
+      path: '/admin/ps-plus'
+      fullPath: '/admin/ps-plus'
+      preLoaderRoute: typeof AdminPsPlusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/': {
       id: '/games/'
       path: '/games'
       fullPath: '/games/'
       preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$slug': {
+      id: '/games/$slug'
+      path: '/games/$slug'
+      fullPath: '/games/$slug'
+      preLoaderRoute: typeof GamesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -240,10 +340,15 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  OttRoute: OttRoute,
+  PsPlusRoute: PsPlusRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   WishlistRoute: WishlistRoute,
+  AdminGamesRoute: AdminGamesRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminPsPlusRoute: AdminPsPlusRoute,
+  GamesSlugRoute: GamesSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   GamesIndexRoute: GamesIndexRoute,
 }
