@@ -418,7 +418,7 @@ function GameRow({
   eyebrow: string;
   title: string;
   subtitle?: string;
-  games: { id: string }[] & Parameters<typeof GameCard>[0]["game"][];
+  games: Game[];
   loading?: boolean;
 }) {
   return (
@@ -426,7 +426,7 @@ function GameRow({
       <SectionHeading
         eyebrow={eyebrow}
         title={title}
-        subtitle={subtitle}
+        subtitle={subtitle ?? ""}
         action={
           <Button asChild variant="glass" size="sm">
             <Link to="/games">
