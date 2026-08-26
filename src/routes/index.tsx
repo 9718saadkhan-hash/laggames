@@ -21,7 +21,7 @@ import { GameCard } from "@/components/lag/GameCard";
 import { HeroSlider } from "@/components/lag/HeroSlider";
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { buildOrderMessage, instagramUrl, money, whatsappLink } from "@/lib/lag";
+import { buildOrderMessage, instagramUrl, money, whatsappLink, type Game } from "@/lib/lag";
 import {
   collabsQuery,
   contactFrom,
