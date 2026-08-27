@@ -23,9 +23,16 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminCollabsRouteImport } from './routes/admin/collabs'
+import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminGamesRouteImport } from './routes/admin/games'
+import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
+import { Route as AdminOttRouteImport } from './routes/admin/ott'
 import { Route as AdminPsPlusRouteImport } from './routes/admin/ps-plus'
+import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as GamesIndexRouteImport } from './routes/games/index'
 import { Route as GamesSlugRouteImport } from './routes/games/$slug'
 
@@ -99,9 +106,24 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCollabsRoute = AdminCollabsRouteImport.update({
+  id: '/admin/collabs',
+  path: '/admin/collabs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCustomersRoute = AdminCustomersRouteImport.update({
+  id: '/admin/customers',
+  path: '/admin/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminGamesRoute = AdminGamesRouteImport.update({
   id: '/admin/games',
   path: '/admin/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHomepageRoute = AdminHomepageRouteImport.update({
+  id: '/admin/homepage',
+  path: '/admin/homepage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -109,9 +131,29 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/admin/orders',
+  path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOttRoute = AdminOttRouteImport.update({
+  id: '/admin/ott',
+  path: '/admin/ott',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPsPlusRoute = AdminPsPlusRouteImport.update({
   id: '/admin/ps-plus',
   path: '/admin/ps-plus',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/admin/reviews',
+  path: '/admin/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
@@ -139,9 +181,16 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/collabs': typeof AdminCollabsRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/games': typeof AdminGamesRoute
+  '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/ott': typeof AdminOttRoute
   '/admin/ps-plus': typeof AdminPsPlusRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/games/': typeof GamesIndexRoute
@@ -160,9 +209,16 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/collabs': typeof AdminCollabsRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/games': typeof AdminGamesRoute
+  '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/ott': typeof AdminOttRoute
   '/admin/ps-plus': typeof AdminPsPlusRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/games': typeof GamesIndexRoute
@@ -182,9 +238,16 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/collabs': typeof AdminCollabsRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/games': typeof AdminGamesRoute
+  '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/ott': typeof AdminOttRoute
   '/admin/ps-plus': typeof AdminPsPlusRoute
+  '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/games/': typeof GamesIndexRoute
@@ -205,9 +268,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/wishlist'
+    | '/admin/collabs'
+    | '/admin/customers'
     | '/admin/games'
+    | '/admin/homepage'
     | '/admin/login'
+    | '/admin/orders'
+    | '/admin/ott'
     | '/admin/ps-plus'
+    | '/admin/reviews'
+    | '/admin/settings'
     | '/games/$slug'
     | '/admin/'
     | '/games/'
@@ -226,9 +296,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/wishlist'
+    | '/admin/collabs'
+    | '/admin/customers'
     | '/admin/games'
+    | '/admin/homepage'
     | '/admin/login'
+    | '/admin/orders'
+    | '/admin/ott'
     | '/admin/ps-plus'
+    | '/admin/reviews'
+    | '/admin/settings'
     | '/games/$slug'
     | '/admin'
     | '/games'
@@ -247,9 +324,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/reviews'
     | '/wishlist'
+    | '/admin/collabs'
+    | '/admin/customers'
     | '/admin/games'
+    | '/admin/homepage'
     | '/admin/login'
+    | '/admin/orders'
+    | '/admin/ott'
     | '/admin/ps-plus'
+    | '/admin/reviews'
+    | '/admin/settings'
     | '/games/$slug'
     | '/admin/'
     | '/games/'
@@ -269,9 +353,16 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
   WishlistRoute: typeof WishlistRoute
+  AdminCollabsRoute: typeof AdminCollabsRoute
+  AdminCustomersRoute: typeof AdminCustomersRoute
   AdminGamesRoute: typeof AdminGamesRoute
+  AdminHomepageRoute: typeof AdminHomepageRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminOttRoute: typeof AdminOttRoute
   AdminPsPlusRoute: typeof AdminPsPlusRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   GamesSlugRoute: typeof GamesSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   GamesIndexRoute: typeof GamesIndexRoute
@@ -377,11 +468,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/collabs': {
+      id: '/admin/collabs'
+      path: '/admin/collabs'
+      fullPath: '/admin/collabs'
+      preLoaderRoute: typeof AdminCollabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/customers': {
+      id: '/admin/customers'
+      path: '/admin/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/games': {
       id: '/admin/games'
       path: '/admin/games'
       fullPath: '/admin/games'
       preLoaderRoute: typeof AdminGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/homepage': {
+      id: '/admin/homepage'
+      path: '/admin/homepage'
+      fullPath: '/admin/homepage'
+      preLoaderRoute: typeof AdminHomepageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/login': {
@@ -391,11 +503,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/admin/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/ott': {
+      id: '/admin/ott'
+      path: '/admin/ott'
+      fullPath: '/admin/ott'
+      preLoaderRoute: typeof AdminOttRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/ps-plus': {
       id: '/admin/ps-plus'
       path: '/admin/ps-plus'
       fullPath: '/admin/ps-plus'
       preLoaderRoute: typeof AdminPsPlusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/admin/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/games/': {
@@ -429,9 +569,16 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
   WishlistRoute: WishlistRoute,
+  AdminCollabsRoute: AdminCollabsRoute,
+  AdminCustomersRoute: AdminCustomersRoute,
   AdminGamesRoute: AdminGamesRoute,
+  AdminHomepageRoute: AdminHomepageRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminOttRoute: AdminOttRoute,
   AdminPsPlusRoute: AdminPsPlusRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   GamesSlugRoute: GamesSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   GamesIndexRoute: GamesIndexRoute,
