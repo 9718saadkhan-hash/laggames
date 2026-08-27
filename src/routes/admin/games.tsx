@@ -265,10 +265,20 @@ function AdminGamesPage() {
     }
   }
 
-  async function toggleField(g: Game, field: keyof Game) {
+  type GameFlag =
+    | "visible"
+    | "trending"
+    | "hot_deal"
+    | "new_release"
+    | "featured"
+    | "primary_available"
+    | "secondary_available";
+
+  async function toggleField(g: Game, field: GameFlag) {
+    const payload = { [field]: !g[field] } as Record<GameFlag, boolean>;
     const { error } = await supabase
       .from("games")
-      .update({ [field]: !g[field] })
+      .update(payload)
       .eq("id", g.id);
     if (error) toast.error(error.message);
     else invalidate();
