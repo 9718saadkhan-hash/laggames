@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string | null
+          id: string
+          meta: Json
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string | null
+          id?: string
+          meta?: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string | null
+          id?: string
+          meta?: Json
+        }
+        Relationships: []
+      }
       collab_videos: {
         Row: {
           created_at: string
@@ -74,6 +110,99 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+        }
+        Relationships: []
+      }
+      deal_games: {
+        Row: {
+          deal_id: string
+          display_order: number
+          game_id: string
+        }
+        Insert: {
+          deal_id: string
+          display_order?: number
+          game_id: string
+        }
+        Update: {
+          deal_id?: string
+          display_order?: number
+          game_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_games_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_games_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          badge: string | null
+          created_at: string
+          cta_label: string
+          cta_link: string | null
+          description: string | null
+          discount: string | null
+          display_order: number
+          end_date: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          show_in_hero: boolean
+          start_date: string | null
+          subtitle: string | null
+          title: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          cta_label?: string
+          cta_link?: string | null
+          description?: string | null
+          discount?: string | null
+          display_order?: number
+          end_date?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          show_in_hero?: boolean
+          start_date?: string | null
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          cta_label?: string
+          cta_link?: string | null
+          description?: string | null
+          discount?: string | null
+          display_order?: number
+          end_date?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          show_in_hero?: boolean
+          start_date?: string | null
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+          visible?: boolean
         }
         Relationships: []
       }
@@ -188,9 +317,13 @@ export type Database = {
       hero_banners: {
         Row: {
           availability: string | null
+          badge: string | null
           created_at: string
           cta_label: string
+          cta_link: string | null
+          deal_id: string | null
           description: string | null
+          discount: string | null
           display_order: number
           game_slug: string | null
           id: string
@@ -205,9 +338,13 @@ export type Database = {
         }
         Insert: {
           availability?: string | null
+          badge?: string | null
           created_at?: string
           cta_label?: string
+          cta_link?: string | null
+          deal_id?: string | null
           description?: string | null
+          discount?: string | null
           display_order?: number
           game_slug?: string | null
           id?: string
@@ -222,9 +359,13 @@ export type Database = {
         }
         Update: {
           availability?: string | null
+          badge?: string | null
           created_at?: string
           cta_label?: string
+          cta_link?: string | null
+          deal_id?: string | null
           description?: string | null
+          discount?: string | null
           display_order?: number
           game_slug?: string | null
           id?: string
@@ -237,7 +378,15 @@ export type Database = {
           updated_at?: string
           visible?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "hero_banners_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -357,7 +506,9 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          last_login_at: string | null
           phone: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -366,7 +517,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          last_login_at?: string | null
           phone?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -375,7 +528,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          last_login_at?: string | null
           phone?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -448,6 +603,7 @@ export type Database = {
           review: string
           status: string
           user_id: string | null
+          verified: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -459,6 +615,7 @@ export type Database = {
           review: string
           status?: string
           user_id?: string | null
+          verified?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -470,6 +627,7 @@ export type Database = {
           review?: string
           status?: string
           user_id?: string | null
+          verified?: boolean
         }
         Relationships: []
       }
@@ -488,6 +646,72 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      upcoming_games: {
+        Row: {
+          banner_url: string | null
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          developer: string | null
+          display_order: number
+          featured: boolean
+          genre: string | null
+          id: string
+          platform: string
+          publisher: string | null
+          release_date: string | null
+          release_note: string | null
+          short_description: string | null
+          slug: string
+          title: string
+          trailer_url: string | null
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          banner_url?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer?: string | null
+          display_order?: number
+          featured?: boolean
+          genre?: string | null
+          id?: string
+          platform?: string
+          publisher?: string | null
+          release_date?: string | null
+          release_note?: string | null
+          short_description?: string | null
+          slug: string
+          title: string
+          trailer_url?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          banner_url?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer?: string | null
+          display_order?: number
+          featured?: boolean
+          genre?: string | null
+          id?: string
+          platform?: string
+          publisher?: string | null
+          release_date?: string | null
+          release_note?: string | null
+          short_description?: string | null
+          slug?: string
+          title?: string
+          trailer_url?: string | null
+          updated_at?: string
+          visible?: boolean
         }
         Relationships: []
       }
