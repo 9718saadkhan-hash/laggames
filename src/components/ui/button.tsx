@@ -16,11 +16,16 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/85",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-lag-red text-primary-foreground glow-red hover:brightness-110 hover:-translate-y-0.5",
-        blue: "bg-lag-blue text-secondary-foreground glow-blue hover:brightness-110 hover:-translate-y-0.5",
-        glass: "glass text-foreground hover:border-lag-blue/50 hover:-translate-y-0.5",
-        whatsapp:
-          "bg-gradient-to-r from-lag-red to-lag-blue text-primary-foreground glow-red hover:brightness-110 hover:-translate-y-0.5",
+        /** Primary CTA — frosted glass with strong red glow. */
+        hero: "glass-btn glass-btn-primary hover:brightness-105",
+        /** Secondary CTA — frosted glass with blue glow. */
+        blue: "glass-btn glass-btn-blue hover:brightness-105",
+        /** Secondary / tertiary — subtle translucent glass. */
+        glass: "glass-btn text-foreground hover:border-lag-blue/45",
+        /** Minimal glass for navigation / icon buttons. */
+        nav: "glass-btn-nav text-muted-foreground hover:text-foreground hover:border-lag-blue/40",
+        /** WhatsApp actions — frosted glass with green accent. */
+        whatsapp: "glass-btn glass-btn-whatsapp hover:brightness-105",
       },
       size: {
         default: "h-10 px-4 py-2",
