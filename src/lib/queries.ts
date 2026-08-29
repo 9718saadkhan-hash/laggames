@@ -3,7 +3,10 @@ import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_CONTACT,
+  type ActivityEntry,
   type CollabVideo,
+  type Deal,
+  type UpcomingGame,
   type ContactSettings,
   type Game,
   type HeroBanner,
@@ -164,3 +167,79 @@ export const contactMessagesQuery = queryOptions({
     }[];
   },
 });
+
+export const dealsQuery = (opts?: { admin?: boolean }) =>
+  queryOptions({
+    queryKey: ["deals", opts?.admin ? "admin" : "public"],
+    queryFn: async () =>
+      unwrap<Deal[]>(
+        (await supabase
+          .from("deals")
+          .select("*")
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: false })) as never,
+      ),
+  });
+
+/** Game ids attached to each deal (join rows only — games come from the catalogue). */
+export const dealGamesQuery = queryOptions({
+  queryKey: ["deal_games"],
+  queryFn: async () => {
+    const res = await supabase
+      .from("deal_games")
+      .select("deal_id, game_id, display_order")
+      .order("display_order", { ascending: true });
+    if (res.error) throw new Error(res.error.message);
+    return (res.data ?? []) as { deal_id: string; game_id: string; display_order: number }[];
+  },
+});
+
+export const upcomingGamesQuery = (opts?: { admin?: boolean }) =>
+  queryOptions({
+    queryKey: ["upcoming_games", opts?.admin ? "admin" : "public"],
+    queryFn: async () =>
+      unwrap<UpcomingGame[]>(
+        (await supabase
+          .from("upcoming_games")
+          .select("*")
+          .order("display_order", { ascending: true })
+          .order("release_date", { ascending: true })) as never,
+      ),
+  });
+
+export const activityLogQuery = queryOptions({
+  queryKey: ["activity_log"],
+  queryFn: async () =>
+    unwrap<ActivityEntry[]>(
+      (await supabase
+        .from("activity_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(300)) as never,
+    ),
+});
+
+/** Fire-and-forget audit trail entry. Never blocks the caller's UI. */
+export async function logActivity(entry: {
+  action: string;
+  entityType?: string;
+  entityId?: string | null;
+  entityLabel?: string | null;
+  actorId?: string | null;
+  actorName?: string | null;
+  meta?: Record<string, unknown>;
+}) {
+  try {
+    await supabase.from("activity_log").insert({
+      action: entry.action,
+      entity_type: entry.entityType ?? null,
+      entity_id: entry.entityId ?? null,
+      entity_label: entry.entityLabel ?? null,
+      actor_id: entry.actorId ?? null,
+      actor_name: entry.actorName ?? null,
+      meta: (entry.meta ?? {}) as never,
+    });
+  } catch {
+    /* logging must never break a user action */
+  }
+}
