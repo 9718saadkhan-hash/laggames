@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DealsRouteImport } from './routes/deals'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoginRouteImport } from './routes/login'
@@ -21,10 +23,13 @@ import { Route as PsPlusRouteImport } from './routes/ps-plus'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as UpcomingGamesRouteImport } from './routes/upcoming-games'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 import { Route as AdminCollabsRouteImport } from './routes/admin/collabs'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminDealsRouteImport } from './routes/admin/deals'
 import { Route as AdminGamesRouteImport } from './routes/admin/games'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
@@ -33,12 +38,18 @@ import { Route as AdminOttRouteImport } from './routes/admin/ott'
 import { Route as AdminPsPlusRouteImport } from './routes/admin/ps-plus'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminUpcomingGamesRouteImport } from './routes/admin/upcoming-games'
 import { Route as GamesIndexRouteImport } from './routes/games/index'
 import { Route as GamesSlugRouteImport } from './routes/games/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -49,6 +60,11 @@ const AccountRoute = AccountRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsRoute = DealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -96,6 +112,11 @@ const ReviewsRoute = ReviewsRouteImport.update({
   path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UpcomingGamesRoute = UpcomingGamesRouteImport.update({
+  id: '/upcoming-games',
+  path: '/upcoming-games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
@@ -106,6 +127,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminActivityRoute = AdminActivityRouteImport.update({
+  id: '/admin/activity',
+  path: '/admin/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCollabsRoute = AdminCollabsRouteImport.update({
   id: '/admin/collabs',
   path: '/admin/collabs',
@@ -114,6 +140,11 @@ const AdminCollabsRoute = AdminCollabsRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/admin/customers',
   path: '/admin/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDealsRoute = AdminDealsRouteImport.update({
+  id: '/admin/deals',
+  path: '/admin/deals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminGamesRoute = AdminGamesRouteImport.update({
@@ -156,6 +187,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUpcomingGamesRoute = AdminUpcomingGamesRouteImport.update({
+  id: '/admin/upcoming-games',
+  path: '/admin/upcoming-games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
@@ -169,8 +205,10 @@ const GamesSlugRoute = GamesSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/contact': typeof ContactRoute
+  '/deals': typeof DealsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -180,9 +218,12 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/upcoming-games': typeof UpcomingGamesRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/activity': typeof AdminActivityRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
@@ -191,14 +232,17 @@ export interface FileRoutesByFullPath {
   '/admin/ps-plus': typeof AdminPsPlusRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/upcoming-games': typeof AdminUpcomingGamesRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/games/': typeof GamesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/contact': typeof ContactRoute
+  '/deals': typeof DealsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -208,9 +252,12 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/upcoming-games': typeof UpcomingGamesRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/activity': typeof AdminActivityRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
@@ -219,6 +266,7 @@ export interface FileRoutesByTo {
   '/admin/ps-plus': typeof AdminPsPlusRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/upcoming-games': typeof AdminUpcomingGamesRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/games': typeof GamesIndexRoute
@@ -226,8 +274,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/contact': typeof ContactRoute
+  '/deals': typeof DealsRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -237,9 +287,12 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reviews': typeof ReviewsRoute
+  '/upcoming-games': typeof UpcomingGamesRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/activity': typeof AdminActivityRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
@@ -248,6 +301,7 @@ export interface FileRoutesById {
   '/admin/ps-plus': typeof AdminPsPlusRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/upcoming-games': typeof AdminUpcomingGamesRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/games/': typeof GamesIndexRoute
@@ -256,8 +310,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/account'
     | '/contact'
+    | '/deals'
     | '/forgot-password'
     | '/how-it-works'
     | '/login'
@@ -267,9 +323,12 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/reviews'
+    | '/upcoming-games'
     | '/wishlist'
+    | '/admin/activity'
     | '/admin/collabs'
     | '/admin/customers'
+    | '/admin/deals'
     | '/admin/games'
     | '/admin/homepage'
     | '/admin/login'
@@ -278,14 +337,17 @@ export interface FileRouteTypes {
     | '/admin/ps-plus'
     | '/admin/reviews'
     | '/admin/settings'
+    | '/admin/upcoming-games'
     | '/games/$slug'
     | '/admin/'
     | '/games/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/account'
     | '/contact'
+    | '/deals'
     | '/forgot-password'
     | '/how-it-works'
     | '/login'
@@ -295,9 +357,12 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/reviews'
+    | '/upcoming-games'
     | '/wishlist'
+    | '/admin/activity'
     | '/admin/collabs'
     | '/admin/customers'
+    | '/admin/deals'
     | '/admin/games'
     | '/admin/homepage'
     | '/admin/login'
@@ -306,14 +371,17 @@ export interface FileRouteTypes {
     | '/admin/ps-plus'
     | '/admin/reviews'
     | '/admin/settings'
+    | '/admin/upcoming-games'
     | '/games/$slug'
     | '/admin'
     | '/games'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/account'
     | '/contact'
+    | '/deals'
     | '/forgot-password'
     | '/how-it-works'
     | '/login'
@@ -323,9 +391,12 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/reviews'
+    | '/upcoming-games'
     | '/wishlist'
+    | '/admin/activity'
     | '/admin/collabs'
     | '/admin/customers'
+    | '/admin/deals'
     | '/admin/games'
     | '/admin/homepage'
     | '/admin/login'
@@ -334,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin/ps-plus'
     | '/admin/reviews'
     | '/admin/settings'
+    | '/admin/upcoming-games'
     | '/games/$slug'
     | '/admin/'
     | '/games/'
@@ -341,8 +413,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   ContactRoute: typeof ContactRoute
+  DealsRoute: typeof DealsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
@@ -352,9 +426,12 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ReviewsRoute: typeof ReviewsRoute
+  UpcomingGamesRoute: typeof UpcomingGamesRoute
   WishlistRoute: typeof WishlistRoute
+  AdminActivityRoute: typeof AdminActivityRoute
   AdminCollabsRoute: typeof AdminCollabsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminDealsRoute: typeof AdminDealsRoute
   AdminGamesRoute: typeof AdminGamesRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -363,6 +440,7 @@ export interface RootRouteChildren {
   AdminPsPlusRoute: typeof AdminPsPlusRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUpcomingGamesRoute: typeof AdminUpcomingGamesRoute
   GamesSlugRoute: typeof GamesSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   GamesIndexRoute: typeof GamesIndexRoute
@@ -377,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account': {
       id: '/account'
       path: '/account'
@@ -389,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals': {
+      id: '/deals'
+      path: '/deals'
+      fullPath: '/deals'
+      preLoaderRoute: typeof DealsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -454,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/upcoming-games': {
+      id: '/upcoming-games'
+      path: '/upcoming-games'
+      fullPath: '/upcoming-games'
+      preLoaderRoute: typeof UpcomingGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wishlist': {
       id: '/wishlist'
       path: '/wishlist'
@@ -468,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/activity': {
+      id: '/admin/activity'
+      path: '/admin/activity'
+      fullPath: '/admin/activity'
+      preLoaderRoute: typeof AdminActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/collabs': {
       id: '/admin/collabs'
       path: '/admin/collabs'
@@ -480,6 +586,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/deals': {
+      id: '/admin/deals'
+      path: '/admin/deals'
+      fullPath: '/admin/deals'
+      preLoaderRoute: typeof AdminDealsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/games': {
@@ -538,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/upcoming-games': {
+      id: '/admin/upcoming-games'
+      path: '/admin/upcoming-games'
+      fullPath: '/admin/upcoming-games'
+      preLoaderRoute: typeof AdminUpcomingGamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/': {
       id: '/games/'
       path: '/games'
@@ -557,8 +677,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   ContactRoute: ContactRoute,
+  DealsRoute: DealsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
@@ -568,9 +690,12 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ReviewsRoute: ReviewsRoute,
+  UpcomingGamesRoute: UpcomingGamesRoute,
   WishlistRoute: WishlistRoute,
+  AdminActivityRoute: AdminActivityRoute,
   AdminCollabsRoute: AdminCollabsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminDealsRoute: AdminDealsRoute,
   AdminGamesRoute: AdminGamesRoute,
   AdminHomepageRoute: AdminHomepageRoute,
   AdminLoginRoute: AdminLoginRoute,
@@ -579,6 +704,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPsPlusRoute: AdminPsPlusRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminUpcomingGamesRoute: AdminUpcomingGamesRoute,
   GamesSlugRoute: GamesSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   GamesIndexRoute: GamesIndexRoute,
