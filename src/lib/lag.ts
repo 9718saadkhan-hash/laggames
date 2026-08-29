@@ -155,6 +155,79 @@ export const DEFAULT_CONTACT = {
 
 export type ContactSettings = typeof DEFAULT_CONTACT;
 
+export const HELP_MESSAGE =
+  "Hi LAG LIVE AS GAMERS \u{1F44B} I need help with your games/subscriptions.";
+
+export interface Deal {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+  image_url: string | null;
+  discount: string | null;
+  badge: string | null;
+  cta_label: string;
+  cta_link: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  featured: boolean;
+  show_in_hero: boolean;
+  visible: boolean;
+  display_order: number;
+  created_at: string;
+}
+
+export interface UpcomingGame {
+  id: string;
+  slug: string;
+  title: string;
+  short_description: string | null;
+  description: string | null;
+  cover_url: string | null;
+  banner_url: string | null;
+  platform: string;
+  genre: string | null;
+  developer: string | null;
+  publisher: string | null;
+  release_date: string | null;
+  release_note: string | null;
+  trailer_url: string | null;
+  featured: boolean;
+  visible: boolean;
+  display_order: number;
+  created_at: string;
+}
+
+export interface ActivityEntry {
+  id: string;
+  action: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  entity_label: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
+  meta: Record<string, unknown>;
+  created_at: string;
+}
+
+/** Pre-filled WhatsApp message for customer review submissions. */
+export function buildReviewMessage(
+  input: { name: string; rating: number; review: string },
+  brand = DEFAULT_CONTACT.brand,
+): string {
+  return [
+    `Hi ${brand} \u{1F44B}`,
+    "",
+    "I want to submit a review/feedback.",
+    "",
+    `Name: ${input.name}`,
+    `Rating: ${input.rating}/5`,
+    `Review: ${input.review}`,
+    "",
+    "Thank you.",
+  ].join("\n");
+}
+
 export function money(value?: number | null): string {
   if (value === null || value === undefined) return "Ask on WhatsApp";
   return "₹" + Number(value).toLocaleString("en-IN");
