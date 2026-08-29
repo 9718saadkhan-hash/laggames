@@ -90,6 +90,7 @@
 
   --glass-bg: oklch(0.2 0.008 285 / 62%);
   --glass-border: oklch(1 0 0 / 12%);
+  --glass-highlight: oklch(1 0 0 / 16%);
   --gradient-red-blue: linear-gradient(120deg, var(--lag-red), var(--lag-blue));
   --gradient-fade: linear-gradient(
     to top,
