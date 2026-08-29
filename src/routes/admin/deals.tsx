@@ -1,0 +1,5 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/admin/deals")({
+  component: () => <div className="mx-auto max-w-7xl px-4 py-10">Coming soon</div>,
+});
