@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Gamepad2,
   Heart,
+  Home,
   Instagram,
   LayoutDashboard,
   LogOut,
@@ -13,6 +14,7 @@ import {
   Search,
   ShieldCheck,
   Sun,
+  Tag,
   Tv,
   User,
   Users,
@@ -20,6 +22,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { FloatingWhatsApp } from "@/components/lag/FloatingWhatsApp";
 import { SearchDialog } from "@/components/lag/SearchDialog";
 import { Logo } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
@@ -40,20 +43,27 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/games", label: "Games" },
+  { to: "/deals", label: "Deals" },
+  { to: "/upcoming-games", label: "Upcoming Games" },
   { to: "/ps-plus", label: "PS Plus" },
   { to: "/ott", label: "OTT" },
   { to: "/how-it-works", label: "How It Works" },
   { to: "/reviews", label: "Reviews" },
+  { to: "/about", label: "About Us" },
   { to: "/contact", label: "Contact" },
 ] as const;
+
+/** Desktop bar keeps a shorter set; the hamburger holds everything. */
+const DESKTOP_NAV = NAV.filter((i) => i.label !== "About Us");
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <BackdropGlow />
       <Header />
-      <main className="relative flex-1 pb-24 md:pb-0">{children}</main>
+      <main className="relative w-full min-w-0 flex-1 pb-28 md:pb-0">{children}</main>
       <Footer />
+      <FloatingWhatsApp />
       <MobileTabBar />
     </div>
   );
@@ -94,7 +104,7 @@ function Header() {
           <Logo />
 
           <nav aria-label="Main" className="hidden justify-center gap-1 lg:flex">
-            {NAV.map((item) => (
+            {DESKTOP_NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -109,7 +119,7 @@ function Header() {
 
           <div className="flex items-center gap-1.5">
             <Button
-              variant="glass"
+              variant="nav"
               size="icon"
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
@@ -118,7 +128,7 @@ function Header() {
               <Search className="h-4 w-4" aria-hidden />
             </Button>
             <Button
-              variant="glass"
+              variant="nav"
               size="icon"
               aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
               onClick={toggle}
@@ -130,7 +140,7 @@ function Header() {
                 <Moon className="h-4 w-4" aria-hidden />
               )}
             </Button>
-            <Button asChild variant="glass" size="icon" className="h-9 w-9" aria-label="Admin">
+            <Button asChild variant="nav" size="icon" className="h-9 w-9" aria-label="Admin">
               <Link to={isAdmin ? "/admin" : "/admin/login"}>
                 <ShieldCheck className="h-4 w-4 text-lag-blue" aria-hidden />
               </Link>
@@ -138,7 +148,7 @@ function Header() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="glass" size="icon" className="h-9 w-9" aria-label="Account">
+                <Button variant="nav" size="icon" className="h-9 w-9" aria-label="Account">
                   <User className="h-4 w-4" aria-hidden />
                 </Button>
               </DropdownMenuTrigger>
@@ -179,7 +189,7 @@ function Header() {
             </DropdownMenu>
 
             <Button
-              variant="glass"
+              variant="nav"
               size="icon"
               className="h-9 w-9 lg:hidden"
               aria-label="Open menu"
@@ -196,19 +206,40 @@ function Header() {
             aria-label="Mobile"
             className="glass-strong mx-auto mt-2 max-w-7xl rounded-2xl p-2 lg:hidden"
           >
-            {[...NAV, { to: "/about", label: "About Us" }, { to: "/wishlist", label: "Wishlist" }].map(
-              (item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMenuOpen(false)}
-                  activeOptions={{ exact: item.to === "/" }}
-                  activeProps={{ className: "text-foreground bg-accent" }}
-                  className="block rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {item.label}
-                </Link>
-              ),
+            {[
+              ...NAV,
+              ...(user
+                ? [
+                    { to: "/account", label: "My Account" },
+                    { to: "/wishlist", label: "Wishlist" },
+                  ]
+                : [
+                    { to: "/login", label: "Login" },
+                    { to: "/register", label: "Create Account" },
+                  ]),
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMenuOpen(false)}
+                activeOptions={{ exact: item.to === "/" }}
+                activeProps={{ className: "text-foreground bg-accent" }}
+                className="block rounded-xl px-4 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  void signOut();
+                }}
+                className="block w-full rounded-xl px-4 py-3 text-left text-sm font-semibold text-lag-red transition-colors hover:bg-accent"
+              >
+                Logout
+              </button>
             )}
           </nav>
         )}
@@ -221,10 +252,10 @@ function Header() {
 
 function MobileTabBar() {
   const items = [
-    { to: "/", label: "Home", icon: Gamepad2 },
+    { to: "/", label: "Home", icon: Home },
     { to: "/games", label: "Games", icon: Gamepad2 },
+    { to: "/deals", label: "Deals", icon: Tag },
     { to: "/ps-plus", label: "PS Plus", icon: Monitor },
-    { to: "/ott", label: "OTT", icon: Tv },
     { to: "/account", label: "Account", icon: User },
   ] as const;
   return (
@@ -265,7 +296,7 @@ function Footer() {
         </div>
 
         <FooterCol title="Explore">
-          {[...NAV, { to: "/about", label: "About Us" }].map((i) => (
+          {NAV.map((i) => (
             <Link key={i.to} to={i.to} className="hover:text-foreground">
               {i.label}
             </Link>

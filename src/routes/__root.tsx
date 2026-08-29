@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { IntroLoader } from "@/components/lag/IntroLoader";
 import { SiteLayout } from "@/components/lag/SiteLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
@@ -132,6 +133,7 @@ function RootComponent() {
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </SiteLayout>
+          <IntroLoader />
           <Toaster position="top-center" />
         </AuthProvider>
       </ThemeProvider>

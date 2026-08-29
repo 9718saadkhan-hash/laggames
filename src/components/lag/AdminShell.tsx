@@ -2,6 +2,9 @@ import { Link, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Gamepad2,
+  Tag,
+  CalendarClock,
+  History,
   Crown,
   Clapperboard,
   ShoppingBag,
@@ -23,6 +26,8 @@ import { cn } from "@/lib/utils";
 const NAV: { label: string; to: string; icon: ElementType }[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
   { label: "Games", to: "/admin/games", icon: Gamepad2 },
+  { label: "Deals", to: "/admin/deals", icon: Tag },
+  { label: "Upcoming Games", to: "/admin/upcoming-games", icon: CalendarClock },
   { label: "PS Plus", to: "/admin/ps-plus", icon: Crown },
   { label: "OTT", to: "/admin/ott", icon: Clapperboard },
   { label: "Orders", to: "/admin/orders", icon: ShoppingBag },
@@ -30,6 +35,7 @@ const NAV: { label: string; to: string; icon: ElementType }[] = [
   { label: "Reviews", to: "/admin/reviews", icon: Star },
   { label: "Collabs", to: "/admin/collabs", icon: Video },
   { label: "Homepage", to: "/admin/homepage", icon: Home },
+  { label: "Activity Log", to: "/admin/activity", icon: History },
   { label: "Settings", to: "/admin/settings", icon: Settings },
 ];
 
