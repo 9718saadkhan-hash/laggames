@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CreditCard, Gamepad2, MessageCircle, ShieldCheck, Sparkles, Timer } from "lucide-react";
 
-import { GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
+import { Badge, GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
