@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Badge, EmptyState, GlassIcon } from "@/components/lag/ui-bits";
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,6 @@ export const Route = createFileRoute("/account")({
 const profileSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name."),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
-  avatarUrl: z.string().trim().url("Enter a valid URL.").optional().or(z.literal("")),
 });
 
 function initialsOf(name?: string | null, email?: string | null) {
@@ -142,7 +142,7 @@ function ProfileTab({
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
   const [phone, setPhone] = useState(profile?.phone ?? "");
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? "");
-  const [errors, setErrors] = useState<{ fullName?: string; phone?: string; avatarUrl?: string }>({});
+  const [errors, setErrors] = useState<{ fullName?: string; phone?: string }>({});
 
   useEffect(() => {
     setFullName(profile?.full_name ?? "");
@@ -152,7 +152,7 @@ function ProfileTab({
 
   const save = useMutation({
     mutationFn: async () => {
-      const parsed = profileSchema.safeParse({ fullName, phone, avatarUrl });
+      const parsed = profileSchema.safeParse({ fullName, phone });
       if (!parsed.success) {
         const fieldErrors: typeof errors = {};
         for (const issue of parsed.error.issues) {
@@ -168,7 +168,7 @@ function ProfileTab({
         full_name: parsed.data.fullName,
         email,
         phone: parsed.data.phone || null,
-        avatar_url: parsed.data.avatarUrl || null,
+        avatar_url: avatarUrl || null,
       });
       if (error) throw new Error(error.message);
     },
@@ -221,9 +221,13 @@ function ProfileTab({
           {errors.phone && <p className="text-xs font-medium text-lag-red">{errors.phone}</p>}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="avatarUrl">Avatar URL (optional)</Label>
-          <Input id="avatarUrl" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} aria-invalid={Boolean(errors.avatarUrl)} placeholder="https://…" />
-          {errors.avatarUrl && <p className="text-xs font-medium text-lag-red">{errors.avatarUrl}</p>}
+          <Label>Profile photo</Label>
+          <ImageUploadField
+            variant="avatar"
+            label="Upload avatar"
+            value={avatarUrl}
+            onChange={(v) => setAvatarUrl(v ?? "")}
+          />
         </div>
         <div className="sm:col-span-2">
           <Button type="submit" variant="hero" size="lg" disabled={save.isPending}>
