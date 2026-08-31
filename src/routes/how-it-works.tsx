@@ -99,17 +99,37 @@ function HowItWorksPage() {
         ))}
       </div>
 
+      <section className="mt-10 grid gap-4 md:grid-cols-2">
+        <div className="glass rounded-3xl p-6">
+          <Badge tone="red">PRIMARY</Badge>
+          <h2 className="mt-3 font-display text-lg font-bold">Primary account</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {how.primary_text ??
+              "Play on your personal PlayStation account with your own trophies and saved progress."}
+          </p>
+        </div>
+        <div className="glass rounded-3xl p-6">
+          <Badge tone="blue">SECONDARY</Badge>
+          <h2 className="mt-3 font-display text-lg font-bold">Secondary account</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {how.secondary_text ??
+              "Play using an account provided by LAG LIVE AS GAMERS at a more affordable price."}
+          </p>
+        </div>
+      </section>
+
       <div className="mt-6 flex flex-wrap gap-3">
         <Button asChild variant="whatsapp" size="lg">
           <a href={link} target="_blank" rel="noreferrer noopener">
             <MessageCircle className="h-4 w-4" aria-hidden />
-            {how.primary_text ?? "Order on WhatsApp"}
+            Order on WhatsApp
           </a>
         </Button>
         <Button asChild variant="glass" size="lg">
-          <Link to="/games">{how.secondary_text ?? "Browse games"}</Link>
+          <Link to="/games">Browse games</Link>
         </Button>
       </div>
+
 
       <section className="mt-14">
         <h2 className="font-display text-2xl font-bold">What you get with every order</h2>
