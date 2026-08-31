@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { MessageSquareQuote, Send } from "lucide-react";
+import { MessageCircle, MessageSquareQuote } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -10,10 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatDate } from "@/lib/lag";
-import { reviewsQuery } from "@/lib/queries";
+import { buildReviewMessage, formatDate, whatsappLink } from "@/lib/lag";
+import { contactFrom, reviewsQuery, settingsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/reviews")({
   head: () => ({
@@ -41,44 +40,31 @@ const schema = z.object({
 });
 
 function ReviewsPage() {
-  const { user, profile } = useAuth();
-  const queryClient = useQueryClient();
+  const { profile } = useAuth();
   const { data: reviews = [], isLoading } = useQuery(reviewsQuery({ approvedOnly: true }));
+  const { data: settings } = useQuery(settingsQuery);
+  const contact = contactFrom(settings);
 
   const [name, setName] = useState(profile?.full_name ?? "");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const submit = useMutation({
-    mutationFn: async () => {
-      const parsed = schema.safeParse({ name, rating, review });
-      if (!parsed.success) {
-        const map: Record<string, string> = {};
-        for (const issue of parsed.error.issues) map[String(issue.path[0])] = issue.message;
-        setErrors(map);
-        throw new Error("invalid");
-      }
-      setErrors({});
-      const { error } = await supabase.from("reviews").insert({
-        user_id: user?.id ?? null,
-        name: parsed.data.name,
-        rating: parsed.data.rating,
-        review: parsed.data.review,
-        status: "pending",
-      });
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      toast.success("Thanks! Your review will appear once approved.");
-      setReview("");
-      setRating(5);
-      void queryClient.invalidateQueries({ queryKey: ["reviews"] });
-    },
-    onError: (e) => {
-      if (e.message !== "invalid") toast.error(e.message);
-    },
-  });
+  /** Reviews are never published from the site — they are sent to LAG on WhatsApp. */
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = schema.safeParse({ name, rating, review });
+    if (!parsed.success) {
+      const map: Record<string, string> = {};
+      for (const issue of parsed.error.issues) map[String(issue.path[0])] = issue.message;
+      setErrors(map);
+      return;
+    }
+    setErrors({});
+    const url = whatsappLink(contact.whatsapp, buildReviewMessage(parsed.data, contact.brand));
+    toast.success("Opening WhatsApp so you can send your review.");
+    window.open(url, "_blank", "noreferrer,noopener");
+  }
 
   const average = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
@@ -144,14 +130,12 @@ function ReviewsPage() {
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <form
             className="glass-strong rounded-3xl p-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submit.mutate();
-            }}
+            onSubmit={handleSubmit}
           >
             <h2 className="font-display text-lg font-bold">Write a review</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Reviews are moderated before they appear publicly.
+              Fill this in and we&apos;ll open WhatsApp with your review ready to send. Our team
+              publishes it after checking it.
             </p>
 
             <div className="mt-4">
@@ -188,9 +172,9 @@ function ReviewsPage() {
               {errors["review"] && <p className="mt-1 text-xs text-destructive">{errors["review"]}</p>}
             </div>
 
-            <Button type="submit" variant="hero" className="mt-5 w-full" disabled={submit.isPending}>
-              <Send className="h-4 w-4" aria-hidden />
-              {submit.isPending ? "Submitting…" : "Submit review"}
+            <Button type="submit" variant="whatsapp" className="mt-5 w-full">
+              <MessageCircle className="h-4 w-4" aria-hidden />
+              Submit review
             </Button>
           </form>
         </aside>

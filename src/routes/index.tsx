@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { GameCard } from "@/components/lag/GameCard";
-import { HeroSlider } from "@/components/lag/HeroSlider";
+import { DealsHero } from "@/components/lag/DealsHero";
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { buildOrderMessage, instagramUrl, money, whatsappLink, type Game } from "@/lib/lag";
@@ -80,7 +80,6 @@ function HomePage() {
   };
   const how = (settings?.["how_it_works"] ?? {}) as {
     steps?: { title: string; body: string }[];
-    primary_text?: string;
   };
 
   const generalLink = whatsappLink(
@@ -91,7 +90,7 @@ function HomePage() {
   return (
     <div className="pb-8">
       <div className="pt-4 sm:pt-6">
-        <HeroSlider />
+        <DealsHero />
       </div>
 
       {/* Categories */}
@@ -275,7 +274,7 @@ function HomePage() {
           <Button asChild variant="whatsapp" size="lg">
             <a href={generalLink} target="_blank" rel="noreferrer noopener">
               <MessageCircle className="h-4 w-4" aria-hidden />
-              {how.primary_text ?? "Order on WhatsApp"}
+              Order on WhatsApp
             </a>
           </Button>
           <Button asChild variant="glass" size="lg">
