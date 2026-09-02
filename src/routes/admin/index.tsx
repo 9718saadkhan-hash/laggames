@@ -9,6 +9,8 @@ import {
   Star,
   Mail,
   Eye,
+  Tag,
+  CalendarClock,
 } from "lucide-react";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
@@ -21,6 +23,9 @@ import {
   reviewsQuery,
   customersQuery,
   contactMessagesQuery,
+  dealsQuery,
+  upcomingGamesQuery,
+  activityLogQuery,
 } from "@/lib/queries";
 import { money, formatDate } from "@/lib/lag";
 import { Badge } from "@/components/lag/ui-bits";
@@ -70,9 +75,13 @@ function AdminDashboardPage() {
   const { data: reviews = [] } = useQuery(reviewsQuery());
   const { data: customers = [] } = useQuery(customersQuery);
   const { data: messages = [] } = useQuery(contactMessagesQuery);
+  const { data: deals = [] } = useQuery(dealsQuery({ admin: true }));
+  const { data: upcoming = [] } = useQuery(upcomingGamesQuery({ admin: true }));
+  const { data: activity = [] } = useQuery(activityLogQuery);
 
   const visibleGames = games.filter((g) => g.visible).length;
   const pendingReviews = reviews.filter((r) => r.status === "pending").length;
+  const liveDeals = deals.filter((d) => d.visible).length;
   const statusCounts = orders.reduce<Record<string, number>>((acc, o) => {
     acc[o.status] = (acc[o.status] ?? 0) + 1;
     return acc;
@@ -86,6 +95,8 @@ function AdminDashboardPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <StatCard icon={Gamepad2} label="Total Games" value={games.length} />
           <StatCard icon={Eye} label="Visible Games" value={visibleGames} tone="blue" />
+          <StatCard icon={Tag} label="Live Deals" value={liveDeals} />
+          <StatCard icon={CalendarClock} label="Upcoming Games" value={upcoming.length} tone="blue" />
           <StatCard icon={Crown} label="PS Plus Plans" value={psPlus.length} />
           <StatCard icon={Clapperboard} label="OTT Plans" value={ott.length} tone="blue" />
           <StatCard icon={ShoppingBag} label="Total Orders" value={orders.length} />
@@ -126,21 +137,54 @@ function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="glass rounded-2xl p-5">
-            <h3 className="font-display text-lg font-bold">Quick Links</h3>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/games">
-                Manage Games
-              </Link>
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/orders">
-                View Orders
-              </Link>
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/reviews">
-                Moderate Reviews
-              </Link>
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/homepage">
-                Edit Homepage
-              </Link>
+          <div className="grid gap-6">
+            <div className="glass rounded-2xl p-5">
+              <h3 className="font-display text-lg font-bold">Quick Links</h3>
+              <div className="mt-4 flex flex-col gap-2 text-sm">
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/games">
+                  Manage Games
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/deals">
+                  Manage Deals
+                </Link>
+                <Link
+                  className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2"
+                  to="/admin/upcoming-games"
+                >
+                  Upcoming Games
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/orders">
+                  View Orders
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/reviews">
+                  Moderate Reviews
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/homepage">
+                  Edit Homepage
+                </Link>
+              </div>
+            </div>
+
+            <div className="glass rounded-2xl p-5">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-display text-lg font-bold">Recent Activity</h3>
+                <Link className="text-xs font-semibold text-lag-blue" to="/admin/activity">
+                  View all
+                </Link>
+              </div>
+              <ul className="mt-4 space-y-3 text-sm">
+                {activity.slice(0, 6).map((a) => (
+                  <li key={a.id} className="min-w-0">
+                    <p className="truncate font-semibold">{a.action}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {a.entity_label ?? a.entity_type ?? "—"} · {formatDate(a.created_at)}
+                    </p>
+                  </li>
+                ))}
+                {activity.length === 0 && (
+                  <li className="text-sm text-muted-foreground">No activity logged yet.</li>
+                )}
+              </ul>
             </div>
           </div>
         </div>

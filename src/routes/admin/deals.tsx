@@ -186,10 +186,13 @@ function AdminDealsPage() {
   }
 
   async function toggle(deal: Deal, field: "visible" | "featured" | "show_in_hero") {
-    const { error } = await supabase
-      .from("deals")
-      .update({ [field]: !deal[field] })
-      .eq("id", deal.id);
+    const patch =
+      field === "visible"
+        ? { visible: !deal.visible }
+        : field === "featured"
+          ? { featured: !deal.featured }
+          : { show_in_hero: !deal.show_in_hero };
+    const { error } = await supabase.from("deals").update(patch).eq("id", deal.id);
     if (error) {
       toast.error(error.message);
       return;
