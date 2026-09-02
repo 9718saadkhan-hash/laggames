@@ -75,9 +75,13 @@ function AdminDashboardPage() {
   const { data: reviews = [] } = useQuery(reviewsQuery());
   const { data: customers = [] } = useQuery(customersQuery);
   const { data: messages = [] } = useQuery(contactMessagesQuery);
+  const { data: deals = [] } = useQuery(dealsQuery({ admin: true }));
+  const { data: upcoming = [] } = useQuery(upcomingGamesQuery({ admin: true }));
+  const { data: activity = [] } = useQuery(activityLogQuery);
 
   const visibleGames = games.filter((g) => g.visible).length;
   const pendingReviews = reviews.filter((r) => r.status === "pending").length;
+  const liveDeals = deals.filter((d) => d.visible).length;
   const statusCounts = orders.reduce<Record<string, number>>((acc, o) => {
     acc[o.status] = (acc[o.status] ?? 0) + 1;
     return acc;
@@ -91,6 +95,8 @@ function AdminDashboardPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <StatCard icon={Gamepad2} label="Total Games" value={games.length} />
           <StatCard icon={Eye} label="Visible Games" value={visibleGames} tone="blue" />
+          <StatCard icon={Tag} label="Live Deals" value={liveDeals} />
+          <StatCard icon={CalendarClock} label="Upcoming Games" value={upcoming.length} tone="blue" />
           <StatCard icon={Crown} label="PS Plus Plans" value={psPlus.length} />
           <StatCard icon={Clapperboard} label="OTT Plans" value={ott.length} tone="blue" />
           <StatCard icon={ShoppingBag} label="Total Orders" value={orders.length} />
