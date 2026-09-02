@@ -137,21 +137,54 @@ function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="glass rounded-2xl p-5">
-            <h3 className="font-display text-lg font-bold">Quick Links</h3>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/games">
-                Manage Games
-              </Link>
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/orders">
-                View Orders
-              </Link>
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/reviews">
-                Moderate Reviews
-              </Link>
-              <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/homepage">
-                Edit Homepage
-              </Link>
+          <div className="grid gap-6">
+            <div className="glass rounded-2xl p-5">
+              <h3 className="font-display text-lg font-bold">Quick Links</h3>
+              <div className="mt-4 flex flex-col gap-2 text-sm">
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/games">
+                  Manage Games
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/deals">
+                  Manage Deals
+                </Link>
+                <Link
+                  className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2"
+                  to="/admin/upcoming-games"
+                >
+                  Upcoming Games
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/orders">
+                  View Orders
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/reviews">
+                  Moderate Reviews
+                </Link>
+                <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/homepage">
+                  Edit Homepage
+                </Link>
+              </div>
+            </div>
+
+            <div className="glass rounded-2xl p-5">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-display text-lg font-bold">Recent Activity</h3>
+                <Link className="text-xs font-semibold text-lag-blue" to="/admin/activity">
+                  View all
+                </Link>
+              </div>
+              <ul className="mt-4 space-y-3 text-sm">
+                {activity.slice(0, 6).map((a) => (
+                  <li key={a.id} className="min-w-0">
+                    <p className="truncate font-semibold">{a.action}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {a.entity_label ?? a.entity_type ?? "—"} · {formatDate(a.created_at)}
+                    </p>
+                  </li>
+                ))}
+                {activity.length === 0 && (
+                  <li className="text-sm text-muted-foreground">No activity logged yet.</li>
+                )}
+              </ul>
             </div>
           </div>
         </div>
