@@ -9,6 +9,8 @@ import {
   Star,
   Mail,
   Eye,
+  Tag,
+  CalendarClock,
 } from "lucide-react";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
@@ -21,6 +23,9 @@ import {
   reviewsQuery,
   customersQuery,
   contactMessagesQuery,
+  dealsQuery,
+  upcomingGamesQuery,
+  activityLogQuery,
 } from "@/lib/queries";
 import { money, formatDate } from "@/lib/lag";
 import { Badge } from "@/components/lag/ui-bits";
