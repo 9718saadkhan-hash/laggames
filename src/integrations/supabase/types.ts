@@ -57,9 +57,11 @@ export type Database = {
           display_order: number
           id: string
           platform: string
+          source: string
+          storage_path: string | null
           thumbnail_url: string | null
           title: string
-          url: string
+          url: string | null
           visible: boolean
         }
         Insert: {
@@ -68,9 +70,11 @@ export type Database = {
           display_order?: number
           id?: string
           platform?: string
+          source?: string
+          storage_path?: string | null
           thumbnail_url?: string | null
           title: string
-          url: string
+          url?: string | null
           visible?: boolean
         }
         Update: {
@@ -79,9 +83,11 @@ export type Database = {
           display_order?: number
           id?: string
           platform?: string
+          source?: string
+          storage_path?: string | null
           thumbnail_url?: string | null
           title?: string
-          url?: string
+          url?: string | null
           visible?: boolean
         }
         Relationships: []
@@ -110,6 +116,69 @@ export type Database = {
           message?: string
           name?: string
           phone?: string | null
+        }
+        Relationships: []
+      }
+      customer_activity: {
+        Row: {
+          action: string
+          created_at: string
+          detail: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      customer_sessions: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device: string | null
+          id: string
+          last_active_at: string
+          os: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          last_active_at?: string
+          os?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          id?: string
+          last_active_at?: string
+          os?: string | null
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -158,8 +227,10 @@ export type Database = {
           end_date: string | null
           featured: boolean
           id: string
+          image_position: string | null
           image_url: string | null
           show_in_hero: boolean
+          slug: string | null
           start_date: string | null
           subtitle: string | null
           title: string
@@ -177,8 +248,10 @@ export type Database = {
           end_date?: string | null
           featured?: boolean
           id?: string
+          image_position?: string | null
           image_url?: string | null
           show_in_hero?: boolean
+          slug?: string | null
           start_date?: string | null
           subtitle?: string | null
           title: string
@@ -196,8 +269,10 @@ export type Database = {
           end_date?: string | null
           featured?: boolean
           id?: string
+          image_position?: string | null
           image_url?: string | null
           show_in_hero?: boolean
+          slug?: string | null
           start_date?: string | null
           subtitle?: string | null
           title?: string
@@ -209,7 +284,9 @@ export type Database = {
       games: {
         Row: {
           availability: string
+          banner_position: string | null
           banner_url: string | null
+          cover_position: string | null
           cover_url: string | null
           created_at: string
           description: string | null
@@ -244,7 +321,9 @@ export type Database = {
         }
         Insert: {
           availability?: string
+          banner_position?: string | null
           banner_url?: string | null
+          cover_position?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -279,7 +358,9 @@ export type Database = {
         }
         Update: {
           availability?: string
+          banner_position?: string | null
           banner_url?: string | null
+          cover_position?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -327,6 +408,7 @@ export type Database = {
           display_order: number
           game_slug: string | null
           id: string
+          image_position: string | null
           image_url: string | null
           platform: string | null
           price_from: number | null
@@ -348,6 +430,7 @@ export type Database = {
           display_order?: number
           game_slug?: string | null
           id?: string
+          image_position?: string | null
           image_url?: string | null
           platform?: string | null
           price_from?: number | null
@@ -369,6 +452,7 @@ export type Database = {
           display_order?: number
           game_slug?: string | null
           id?: string
+          image_position?: string | null
           image_url?: string | null
           platform?: string | null
           price_from?: number | null
@@ -387,6 +471,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      media_library: {
+        Row: {
+          created_at: string
+          folder: string
+          height: number | null
+          id: string
+          kind: string
+          mime_type: string | null
+          name: string
+          size: number | null
+          storage_path: string | null
+          uploaded_by: string | null
+          url: string
+          usage: string | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          folder?: string
+          height?: number | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          name: string
+          size?: number | null
+          storage_path?: string | null
+          uploaded_by?: string | null
+          url: string
+          usage?: string | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          folder?: string
+          height?: number | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          name?: string
+          size?: number | null
+          storage_path?: string | null
+          uploaded_by?: string | null
+          url?: string
+          usage?: string | null
+          width?: number | null
+        }
+        Relationships: []
       }
       orders: {
         Row: {
@@ -453,6 +585,7 @@ export type Database = {
           display_order: number
           duration: string
           id: string
+          image_position: string | null
           logo_url: string | null
           name: string
           old_price: number | null
@@ -470,6 +603,7 @@ export type Database = {
           display_order?: number
           duration: string
           id?: string
+          image_position?: string | null
           logo_url?: string | null
           name: string
           old_price?: number | null
@@ -487,6 +621,7 @@ export type Database = {
           display_order?: number
           duration?: string
           id?: string
+          image_position?: string | null
           logo_url?: string | null
           name?: string
           old_price?: number | null
@@ -544,6 +679,7 @@ export type Database = {
           duration: string
           features: string[]
           id: string
+          image_position: string | null
           image_url: string | null
           name: string
           old_price: number | null
@@ -562,6 +698,7 @@ export type Database = {
           duration: string
           features?: string[]
           id?: string
+          image_position?: string | null
           image_url?: string | null
           name: string
           old_price?: number | null
@@ -580,6 +717,7 @@ export type Database = {
           duration?: string
           features?: string[]
           id?: string
+          image_position?: string | null
           image_url?: string | null
           name?: string
           old_price?: number | null
@@ -594,38 +732,50 @@ export type Database = {
       }
       reviews: {
         Row: {
+          admin_note: string | null
           avatar_url: string | null
           created_at: string
           featured: boolean
           id: string
+          image_position: string | null
+          image_url: string | null
           name: string
           rating: number
           review: string
           status: string
+          updated_at: string
           user_id: string | null
           verified: boolean
         }
         Insert: {
+          admin_note?: string | null
           avatar_url?: string | null
           created_at?: string
           featured?: boolean
           id?: string
+          image_position?: string | null
+          image_url?: string | null
           name: string
           rating?: number
           review: string
           status?: string
+          updated_at?: string
           user_id?: string | null
           verified?: boolean
         }
         Update: {
+          admin_note?: string | null
           avatar_url?: string | null
           created_at?: string
           featured?: boolean
           id?: string
+          image_position?: string | null
+          image_url?: string | null
           name?: string
           rating?: number
           review?: string
           status?: string
+          updated_at?: string
           user_id?: string | null
           verified?: boolean
         }
@@ -651,13 +801,16 @@ export type Database = {
       }
       upcoming_games: {
         Row: {
+          banner_position: string | null
           banner_url: string | null
+          cover_position: string | null
           cover_url: string | null
           created_at: string
           description: string | null
           developer: string | null
           display_order: number
           featured: boolean
+          gallery: string[]
           genre: string | null
           id: string
           platform: string
@@ -672,13 +825,16 @@ export type Database = {
           visible: boolean
         }
         Insert: {
+          banner_position?: string | null
           banner_url?: string | null
+          cover_position?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
           developer?: string | null
           display_order?: number
           featured?: boolean
+          gallery?: string[]
           genre?: string | null
           id?: string
           platform?: string
@@ -693,13 +849,16 @@ export type Database = {
           visible?: boolean
         }
         Update: {
+          banner_position?: string | null
           banner_url?: string | null
+          cover_position?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
           developer?: string | null
           display_order?: number
           featured?: boolean
+          gallery?: string[]
           genre?: string | null
           id?: string
           platform?: string
@@ -795,12 +954,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -824,11 +983,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -849,11 +1008,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -874,11 +1033,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -891,11 +1050,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
