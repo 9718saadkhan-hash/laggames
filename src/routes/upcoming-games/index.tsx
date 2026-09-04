@@ -9,7 +9,7 @@ import { whatsappLink } from "@/lib/lag";
 import { contactFrom, settingsQuery, upcomingGamesQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/upcoming-games")({
+export const Route = createFileRoute("/upcoming-games/")({
   head: () => ({
     meta: [
       { title: "Upcoming PlayStation Games — LAG LIVE AS GAMERS" },

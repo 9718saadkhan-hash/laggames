@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/lag";
 import { dealGamesQuery, dealsQuery, gamesQuery } from "@/lib/queries";
 
-export const Route = createFileRoute("/deals")({
+export const Route = createFileRoute("/deals/")({
   head: () => ({
     meta: [
       { title: "LAG Deals — Game Offers & PlayStation Promotions" },
