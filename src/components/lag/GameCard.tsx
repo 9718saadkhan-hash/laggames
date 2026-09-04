@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { discountPercent, formatDate, lowestGamePrice, money, type Game } from "@/lib/lag";
+import { safePosition } from "@/lib/media";
 import { wishlistQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
@@ -54,13 +55,15 @@ export function GameCard({ game, className }: { game: Game; className?: string }
         to="/games/$slug"
         params={{ slug: game.slug }}
         className="relative block aspect-16/10 overflow-hidden"
+        aria-label={`View details for ${game.title}`}
       >
         {game.cover_url ? (
           <img
             src={game.cover_url}
             alt={`${game.title} artwork`}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            style={{ objectPosition: safePosition(game.cover_position) }}
+            className="h-full w-full object-cover transition-[transform,opacity] duration-700 will-change-transform group-hover:scale-105"
           />
         ) : (
           <div aria-hidden className="h-full w-full bg-surface-2" />
