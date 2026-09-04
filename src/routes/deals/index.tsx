@@ -5,10 +5,10 @@ import { CalendarDays, Tag } from "lucide-react";
 import { GameCard } from "@/components/lag/GameCard";
 import { Badge, EmptyState, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/lag";
+import { formatDate, slugify } from "@/lib/lag";
 import { dealGamesQuery, dealsQuery, gamesQuery } from "@/lib/queries";
 
-export const Route = createFileRoute("/deals")({
+export const Route = createFileRoute("/deals/")({
   head: () => ({
     meta: [
       { title: "LAG Deals — Game Offers & PlayStation Promotions" },
@@ -76,20 +76,26 @@ function DealsPage() {
               .map((id) => games.find((g) => g.id === id))
               .filter((g): g is NonNullable<typeof g> => Boolean(g) && g!.visible);
             const external = deal.cta_link?.startsWith("http");
+            const dealSlug = deal.slug ?? slugify(deal.title);
 
             return (
               <section key={deal.id} id={deal.id} className="min-w-0 scroll-mt-24">
                 <div className="glass-strong overflow-hidden rounded-3xl">
                   {deal.image_url && (
-                    <div className="relative aspect-16/9 w-full sm:aspect-21/9">
+                    <Link
+                      to="/deals/$slug"
+                      params={{ slug: dealSlug }}
+                      className="relative block aspect-16/9 w-full sm:aspect-21/9"
+                    >
                       <img
                         src={deal.image_url}
                         alt={`${deal.title} promotional banner`}
                         loading={di === 0 ? "eager" : "lazy"}
+                        style={{ objectPosition: deal.image_position ?? "50% 50%" }}
                         className="h-full w-full object-cover"
                       />
                       <div aria-hidden className="overlay-fade absolute inset-0" />
-                    </div>
+                    </Link>
                   )}
                   <div className="p-5 sm:p-7">
                     <div className="flex flex-wrap items-center gap-2">
@@ -98,7 +104,9 @@ function DealsPage() {
                       {deal.featured && <Badge>Featured</Badge>}
                     </div>
                     <h2 className="mt-3 font-display text-2xl font-bold uppercase sm:text-3xl">
-                      {deal.title}
+                      <Link to="/deals/$slug" params={{ slug: dealSlug }} className="hover:text-lag-blue">
+                        {deal.title}
+                      </Link>
                     </h2>
                     {deal.subtitle && (
                       <p className="mt-1 font-display font-semibold text-lag-blue">{deal.subtitle}</p>
@@ -115,21 +123,21 @@ function DealsPage() {
                         {deal.end_date ? ` · Ends ${formatDate(deal.end_date)}` : null}
                       </p>
                     )}
-                    {deal.cta_link && (
-                      <div className="mt-5">
-                        {external ? (
-                          <Button asChild variant="hero">
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <Button asChild variant="hero">
+                        <Link to="/deals/$slug" params={{ slug: dealSlug }}>
+                          View deal
+                        </Link>
+                      </Button>
+                      {deal.cta_link &&
+                        (external ? (
+                          <Button asChild variant="glass">
                             <a href={deal.cta_link} target="_blank" rel="noreferrer noopener">
                               {deal.cta_label}
                             </a>
                           </Button>
-                        ) : (
-                          <Button asChild variant="hero">
-                            <Link to="/games">{deal.cta_label}</Link>
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                        ) : null)}
+                    </div>
                   </div>
                 </div>
 

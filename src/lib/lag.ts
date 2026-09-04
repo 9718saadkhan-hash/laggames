@@ -19,6 +19,8 @@ export interface Game {
   description: string | null;
   cover_url: string | null;
   banner_url: string | null;
+  cover_position: string | null;
+  banner_position: string | null;
   gallery: string[];
   trailer_url: string | null;
   platform: string;
@@ -58,6 +60,7 @@ export interface PsPlusPlan {
   description: string | null;
   features: string[];
   image_url: string | null;
+  image_position: string | null;
   availability: string;
   visible: boolean;
   display_order: number;
@@ -67,6 +70,7 @@ export interface OttPlan {
   id: string;
   name: string;
   logo_url: string | null;
+  image_position: string | null;
   plan: string;
   duration: string;
   quality: string | null;
@@ -85,12 +89,17 @@ export interface HeroBanner {
   subtitle: string | null;
   description: string | null;
   image_url: string | null;
+  image_position: string | null;
   game_slug: string | null;
   platform: string | null;
   price_from: number | null;
   release_date: string | null;
   availability: string | null;
   cta_label: string;
+  cta_link: string | null;
+  badge: string | null;
+  discount: string | null;
+  deal_id: string | null;
   visible: boolean;
   display_order: number;
 }
@@ -102,6 +111,10 @@ export interface Review {
   rating: number;
   review: string;
   avatar_url: string | null;
+  image_url: string | null;
+  image_position: string | null;
+  admin_note: string | null;
+  verified: boolean;
   status: string;
   featured: boolean;
   created_at: string;
@@ -111,7 +124,9 @@ export interface CollabVideo {
   id: string;
   title: string;
   description: string | null;
-  url: string;
+  url: string | null;
+  storage_path: string | null;
+  source: string;
   thumbnail_url: string | null;
   platform: string;
   visible: boolean;
@@ -160,10 +175,12 @@ export const HELP_MESSAGE =
 
 export interface Deal {
   id: string;
+  slug: string | null;
   title: string;
   subtitle: string | null;
   description: string | null;
   image_url: string | null;
+  image_position: string | null;
   discount: string | null;
   badge: string | null;
   cta_label: string;
@@ -185,6 +202,9 @@ export interface UpcomingGame {
   description: string | null;
   cover_url: string | null;
   banner_url: string | null;
+  cover_position: string | null;
+  banner_position: string | null;
+  gallery: string[];
   platform: string;
   genre: string | null;
   developer: string | null;
@@ -296,4 +316,74 @@ export function buildOrderMessage(intent: OrderIntent, brand = DEFAULT_CONTACT.b
   if (intent.customerName) lines.push(`Customer: ${intent.customerName}`);
   lines.push("", "Please confirm availability and payment details.");
   return lines.join("\n");
+}
+
+export const REVIEW_STATUSES = ["pending", "approved", "rejected", "hidden"] as const;
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
+
+export interface CustomerSession {
+  id: string;
+  user_id: string;
+  device: string | null;
+  browser: string | null;
+  os: string | null;
+  user_agent: string | null;
+  created_at: string;
+  last_active_at: string;
+}
+
+export interface CustomerActivity {
+  id: string;
+  user_id: string;
+  action: string;
+  detail: string | null;
+  entity_type: string | null;
+  entity_id: string | null;
+  created_at: string;
+}
+
+/** Slugify a title for deal / game detail URLs. */
+export function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Days remaining until a date, or null when it is missing/past. */
+export function daysUntil(date?: string | null): number | null {
+  if (!date) return null;
+  const target = new Date(date + (date.length === 10 ? "T00:00:00" : ""));
+  if (Number.isNaN(target.getTime())) return null;
+  const diff = Math.ceil((target.getTime() - Date.now()) / 86_400_000);
+  return diff > 0 ? diff : null;
+}
+
+/** Lightweight, non-invasive device summary for session history. */
+export function describeDevice(ua: string): { device: string; browser: string; os: string } {
+  const device = /Mobi|Android|iPhone/i.test(ua) ? "Mobile" : /iPad|Tablet/i.test(ua) ? "Tablet" : "Desktop";
+  const browser = /Edg\//.test(ua)
+    ? "Edge"
+    : /OPR\//.test(ua)
+      ? "Opera"
+      : /Chrome\//.test(ua)
+        ? "Chrome"
+        : /Safari\//.test(ua)
+          ? "Safari"
+          : /Firefox\//.test(ua)
+            ? "Firefox"
+            : "Browser";
+  const os = /Windows/.test(ua)
+    ? "Windows"
+    : /Android/.test(ua)
+      ? "Android"
+      : /iPhone|iPad|iOS/.test(ua)
+        ? "iOS"
+        : /Mac OS X/.test(ua)
+          ? "macOS"
+          : /Linux/.test(ua)
+            ? "Linux"
+            : "Unknown OS";
+  return { device, browser, os };
 }

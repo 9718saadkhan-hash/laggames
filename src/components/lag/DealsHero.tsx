@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Badge } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/lag";
+import { formatDate, slugify } from "@/lib/lag";
 import { dealsQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
@@ -60,25 +60,34 @@ export function DealsHero() {
 
   const slide = slides[Math.min(index, count - 1)]!;
   const external = slide.cta_link?.startsWith("http");
+  const dealSlug = slide.slug ?? slugify(slide.title);
 
   return (
     <section aria-label="Deals" className="mx-auto w-full max-w-7xl px-3 sm:px-5">
       <div className="relative overflow-hidden rounded-3xl border border-border">
         <div className="relative aspect-4/5 w-full sm:aspect-16/9 lg:aspect-21/9">
-          {slides.map((s, i) => (
-            <img
-              key={s.id}
-              src={s.image_url ?? ""}
-              alt={`${s.title} promotional banner`}
-              width={1536}
-              height={864}
-              loading={i === 0 ? "eager" : "lazy"}
-              className={cn(
-                "absolute inset-0 h-full w-full object-cover transition-all duration-1000",
-                i === index ? "scale-100 opacity-100" : "scale-105 opacity-0",
-              )}
-            />
-          ))}
+          <Link
+            to="/deals/$slug"
+            params={{ slug: dealSlug }}
+            aria-label={`View ${slide.title} deal`}
+            className="absolute inset-0 block"
+          >
+            {slides.map((s, i) => (
+              <img
+                key={s.id}
+                src={s.image_url ?? ""}
+                alt={`${s.title} promotional banner`}
+                width={1536}
+                height={864}
+                loading={i === 0 ? "eager" : "lazy"}
+                style={{ objectPosition: s.image_position ?? "50% 50%" }}
+                className={cn(
+                  "absolute inset-0 h-full w-full object-cover transition-all duration-1000",
+                  i === index ? "scale-100 opacity-100" : "scale-105 opacity-0",
+                )}
+              />
+            ))}
+          </Link>
           <div aria-hidden className="overlay-fade absolute inset-0" />
 
           <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-12">
@@ -117,7 +126,7 @@ export function DealsHero() {
                   </Button>
                 ) : (
                   <Button asChild variant="hero" size="lg">
-                    <Link to="/deals" hash={slide.id}>
+                    <Link to="/deals/$slug" params={{ slug: dealSlug }}>
                       <Tag className="h-4 w-4" aria-hidden />
                       {slide.cta_label}
                     </Link>

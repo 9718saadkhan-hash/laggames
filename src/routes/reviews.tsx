@@ -1,18 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { MessageCircle, MessageSquareQuote } from "lucide-react";
+import { CheckCircle2, MessageSquareQuote, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { Badge, EmptyState, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { buildReviewMessage, formatDate, whatsappLink } from "@/lib/lag";
-import { contactFrom, reviewsQuery, settingsQuery } from "@/lib/queries";
+import { formatDate } from "@/lib/lag";
+import { logCustomerActivity, reviewsQuery } from "@/lib/queries";
+import { safePosition } from "@/lib/media";
 
 export const Route = createFileRoute("/reviews")({
   head: () => ({
@@ -40,18 +43,18 @@ const schema = z.object({
 });
 
 function ReviewsPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { data: reviews = [], isLoading } = useQuery(reviewsQuery({ approvedOnly: true }));
-  const { data: settings } = useQuery(settingsQuery);
-  const contact = contactFrom(settings);
 
   const [name, setName] = useState(profile?.full_name ?? "");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  /** Reviews are never published from the site — they are sent to LAG on WhatsApp. */
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const parsed = schema.safeParse({ name, rating, review });
     if (!parsed.success) {
@@ -61,14 +64,41 @@ function ReviewsPage() {
       return;
     }
     setErrors({});
-    const url = whatsappLink(contact.whatsapp, buildReviewMessage(parsed.data, contact.brand));
-    toast.success("Opening WhatsApp so you can send your review.");
-    window.open(url, "_blank", "noreferrer,noopener");
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("reviews").insert({
+        user_id: user?.id ?? null,
+        name: parsed.data.name,
+        rating: parsed.data.rating,
+        review: parsed.data.review,
+        image_url: imageUrl,
+        status: "pending",
+      } as never);
+      if (error) throw error;
+      if (user) {
+        void logCustomerActivity({
+          userId: user.id,
+          action: "submitted a review",
+          detail: parsed.data.review.slice(0, 80),
+        });
+      }
+      toast.success("Thank you! Your review has been submitted and is waiting for approval.");
+      setSubmitted(true);
+      setReview("");
+      setRating(5);
+      setImageUrl(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not submit your review.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const average = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
+
+  const sorted = [...reviews].sort((a, b) => Number(b.featured) - Number(a.featured));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -98,7 +128,7 @@ function ReviewsPage() {
                 <div key={i} className="glass h-28 animate-pulse rounded-3xl" />
               ))}
             </div>
-          ) : reviews.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <EmptyState
               icon={MessageSquareQuote}
               title="No reviews yet"
@@ -106,8 +136,11 @@ function ReviewsPage() {
             />
           ) : (
             <ul className="space-y-4">
-              {reviews.map((r) => (
-                <li key={r.id} className="glass rounded-3xl p-5">
+              {sorted.map((r) => (
+                <li
+                  key={r.id}
+                  className={r.featured ? "glass-strong rounded-3xl p-5 ring-1 ring-lag-red/40" : "glass rounded-3xl p-5"}
+                >
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                     <div className="min-w-0">
                       <p className="truncate font-display font-bold">{r.name}</p>
@@ -115,6 +148,17 @@ function ReviewsPage() {
                     </div>
                     <StarRating value={r.rating} />
                   </div>
+                  {r.image_url && (
+                    <div className="mt-3 overflow-hidden rounded-2xl border border-border">
+                      <img
+                        src={r.image_url}
+                        alt={`Photo shared by ${r.name}`}
+                        loading="lazy"
+                        className="h-48 w-full object-cover"
+                        style={{ objectPosition: safePosition(r.image_position) }}
+                      />
+                    </div>
+                  )}
                   <p className="mt-3 text-sm text-muted-foreground">{r.review}</p>
                   {r.featured && (
                     <div className="mt-3">
@@ -128,55 +172,77 @@ function ReviewsPage() {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <form
-            className="glass-strong rounded-3xl p-5"
-            onSubmit={handleSubmit}
-          >
-            <h2 className="font-display text-lg font-bold">Write a review</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Fill this in and we&apos;ll open WhatsApp with your review ready to send. Our team
-              publishes it after checking it.
-            </p>
-
-            <div className="mt-4">
-              <Label htmlFor="r-name">Your name</Label>
-              <Input
-                id="r-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={60}
-                aria-invalid={Boolean(errors["name"])}
-                className="mt-1.5"
-              />
-              {errors["name"] && <p className="mt-1 text-xs text-destructive">{errors["name"]}</p>}
+          {submitted ? (
+            <div className="glass-strong rounded-3xl p-6 text-center">
+              <CheckCircle2 className="mx-auto h-10 w-10 text-lag-blue" aria-hidden />
+              <h2 className="mt-3 font-display text-lg font-bold">Thanks for the review!</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your review has been submitted and is waiting for approval.
+              </p>
+              <div className="mt-4">
+                <Badge tone="neutral">Pending approval</Badge>
+              </div>
+              <Button variant="glass" className="mt-5 w-full" onClick={() => setSubmitted(false)}>
+                Write another review
+              </Button>
             </div>
+          ) : (
+            <form className="glass-strong rounded-3xl p-5" onSubmit={handleSubmit}>
+              <h2 className="font-display text-lg font-bold">Write a review</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Share your experience. Our team checks it before it goes live on the site.
+              </p>
 
-            <div className="mt-4">
-              <span className="mb-1.5 block text-sm font-medium">Rating</span>
-              <StarRating value={rating} onChange={setRating} size={26} />
-              {errors["rating"] && <p className="mt-1 text-xs text-destructive">{errors["rating"]}</p>}
-            </div>
+              <div className="mt-4">
+                <Label htmlFor="r-name">Your name</Label>
+                <Input
+                  id="r-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={60}
+                  aria-invalid={Boolean(errors["name"])}
+                  className="mt-1.5"
+                />
+                {errors["name"] && <p className="mt-1 text-xs text-destructive">{errors["name"]}</p>}
+              </div>
 
-            <div className="mt-4">
-              <Label htmlFor="r-review">Your review</Label>
-              <Textarea
-                id="r-review"
-                value={review}
-                onChange={(e) => setReview(e.target.value)}
-                rows={5}
-                maxLength={700}
-                placeholder="How was your experience with LAG?"
-                aria-invalid={Boolean(errors["review"])}
-                className="mt-1.5"
-              />
-              {errors["review"] && <p className="mt-1 text-xs text-destructive">{errors["review"]}</p>}
-            </div>
+              <div className="mt-4">
+                <span className="mb-1.5 block text-sm font-medium">Rating</span>
+                <StarRating value={rating} onChange={setRating} size={26} />
+                {errors["rating"] && <p className="mt-1 text-xs text-destructive">{errors["rating"]}</p>}
+              </div>
 
-            <Button type="submit" variant="whatsapp" className="mt-5 w-full">
-              <MessageCircle className="h-4 w-4" aria-hidden />
-              Submit review
-            </Button>
-          </form>
+              <div className="mt-4">
+                <Label htmlFor="r-review">Your review</Label>
+                <Textarea
+                  id="r-review"
+                  value={review}
+                  onChange={(e) => setReview(e.target.value)}
+                  rows={5}
+                  maxLength={700}
+                  placeholder="How was your experience with LAG?"
+                  aria-invalid={Boolean(errors["review"])}
+                  className="mt-1.5"
+                />
+                {errors["review"] && <p className="mt-1 text-xs text-destructive">{errors["review"]}</p>}
+              </div>
+
+              <div className="mt-4">
+                <ImageUploadField
+                  value={imageUrl}
+                  onChange={setImageUrl}
+                  label="Add a photo (optional)"
+                  purpose="review"
+                  mediaFolder="reviews"
+                />
+              </div>
+
+              <Button type="submit" variant="hero" className="mt-5 w-full" disabled={submitting}>
+                <Send className="h-4 w-4" aria-hidden />
+                {submitting ? "Submitting…" : "Submit review"}
+              </Button>
+            </form>
+          )}
         </aside>
       </div>
     </div>
