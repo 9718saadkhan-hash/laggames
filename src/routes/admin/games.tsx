@@ -178,8 +178,10 @@ function formToPayload(f: GameForm) {
     description: f.description || null,
     cover_url: f.cover_url || null,
     banner_url: f.banner_url || null,
+    cover_position: f.cover_position || "50% 50%",
+    banner_position: f.banner_position || "50% 50%",
     gallery: f.gallery
-      .split(/[\n,]/)
+      .split("\n")
       .map((s) => s.trim())
       .filter(Boolean),
     trailer_url: f.trailer_url || null,
