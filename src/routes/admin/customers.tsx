@@ -70,6 +70,16 @@ function AdminCustomersPage() {
           </p>
         </div>
 
+        <div className="mb-5">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, username, email or phone"
+            aria-label="Search customers"
+          />
+        </div>
+
+
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading customers…</p>
         ) : isError ? (
