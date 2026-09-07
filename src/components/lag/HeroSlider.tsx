@@ -54,18 +54,31 @@ export function HeroSlider() {
       <div className="relative overflow-hidden rounded-3xl border border-border">
         <div className="relative aspect-4/5 w-full sm:aspect-16/9 lg:aspect-21/9">
           {slides.map((s, i) => (
-            <img
+            <div
               key={s.id}
-              src={s.image_url ?? ""}
-              alt={`${s.title} artwork`}
-              width={1536}
-              height={864}
-              loading={i === 0 ? "eager" : "lazy"}
               className={cn(
-                "absolute inset-0 h-full w-full object-cover transition-all duration-1000",
-                i === index ? "scale-100 opacity-100" : "scale-105 opacity-0",
+                "absolute inset-0 transition-opacity duration-1000",
+                i === index ? "opacity-100" : "opacity-0",
               )}
-            />
+            >
+              {/* Blurred extension of the same image fills the frame — the
+                  original image itself is never cropped. */}
+              <img
+                src={s.image_url ?? ""}
+                alt=""
+                aria-hidden
+                loading={i === 0 ? "eager" : "lazy"}
+                className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-50"
+              />
+              <img
+                src={s.image_url ?? ""}
+                alt={`${s.title} artwork`}
+                width={1536}
+                height={864}
+                loading={i === 0 ? "eager" : "lazy"}
+                className="absolute inset-0 h-full w-full object-contain"
+              />
+            </div>
           ))}
           <div aria-hidden className="overlay-fade absolute inset-0" />
 
