@@ -74,6 +74,14 @@ function HomePage() {
   const newReleases = visible.filter((g) => g.new_release).slice(0, 8);
 
   const about = (settings?.["about"] ?? {}) as { heading?: string; body?: string };
+  const categories = (settings?.["categories"] ?? {}) as {
+    games_image?: string;
+    games_position?: string;
+    ps_plus_image?: string;
+    ps_plus_position?: string;
+    ott_image?: string;
+    ott_position?: string;
+  };
   const comparison = (settings?.["comparison"] ?? {}) as {
     title?: string;
     rows?: { feature: string; lag: boolean; others: boolean }[];
