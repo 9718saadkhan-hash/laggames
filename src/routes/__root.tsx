@@ -13,6 +13,7 @@ import { IntroLoader } from "@/components/lag/IntroLoader";
 import { SiteLayout } from "@/components/lag/SiteLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
+import { CartProvider } from "@/lib/cart";
 import { ThemeProvider } from "@/lib/theme";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -129,10 +130,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <SiteLayout>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </SiteLayout>
+          <CartProvider>
+            <SiteLayout>
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </SiteLayout>
+          </CartProvider>
           <IntroLoader />
           <Toaster position="top-center" />
         </AuthProvider>
