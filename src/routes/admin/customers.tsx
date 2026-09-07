@@ -8,6 +8,7 @@ import { SectionHeading, EmptyState, Badge, GlassIcon } from "@/components/lag/u
 import { customersQuery, ordersQuery } from "@/lib/queries";
 import { money, formatDate } from "@/lib/lag";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin/customers")({
