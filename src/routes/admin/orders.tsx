@@ -218,6 +218,135 @@ function AdminOrdersPage() {
             ))}
           </div>
         )}
+
+        <Dialog open={addOpen} onOpenChange={setAddOpen}>
+          <DialogContent className="max-h-[88vh] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add order manually</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-3 py-2">
+              <div className="space-y-1.5">
+                <Label>Find customer</Label>
+                <Input
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  placeholder="Search name, username, email or phone"
+                  aria-label="Search customer"
+                />
+                <Select value={manual.userId} onValueChange={(v) => setManual((m) => ({ ...m, userId: v }))}>
+                  <SelectTrigger aria-label="Select customer">
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {matchedCustomers.map((c) => {
+                      const row = c as Record<string, unknown>;
+                      return (
+                        <SelectItem key={c.id} value={c.id}>
+                          {(row["full_name"] as string) || (row["username"] as string) || (row["email"] as string) || "Customer"}
+                          {row["phone"] ? ` · ${row["phone"] as string}` : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Product type</Label>
+                  <Select value={manual.productType} onValueChange={(v) => setManual((m) => ({ ...m, productType: v }))}>
+                    <SelectTrigger aria-label="Product type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["Game", "PS Plus", "OTT", "Other"].map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {manual.productType === "Game" ? (
+                  <div className="space-y-1.5">
+                    <Label>Game</Label>
+                    <Select value={manual.productId} onValueChange={(v) => setManual((m) => ({ ...m, productId: v }))}>
+                      <SelectTrigger aria-label="Game"><SelectValue placeholder="Select game" /></SelectTrigger>
+                      <SelectContent>
+                        {games.slice(0, 200).map((g) => (
+                          <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label>Product name</Label>
+                    <Input value={manual.productName} onChange={(e) => setManual((m) => ({ ...m, productName: e.target.value }))} />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label>Account</Label>
+                  <Select value={manual.optionType} onValueChange={(v) => setManual((m) => ({ ...m, optionType: v }))}>
+                    <SelectTrigger aria-label="Account type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["Primary", "Secondary", "—"].map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Duration</Label>
+                  <Select value={manual.duration} onValueChange={(v) => setManual((m) => ({ ...m, duration: v }))}>
+                    <SelectTrigger aria-label="Duration"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["30 Days", "60 Days", "Permanent", "1 Month", "3 Months", "12 Months"].map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Price paid</Label>
+                  <Input type="number" value={manual.price} onChange={(e) => setManual((m) => ({ ...m, price: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label>Platform</Label>
+                  <Input value={manual.platform} onChange={(e) => setManual((m) => ({ ...m, platform: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Purchase date</Label>
+                  <Input type="date" value={manual.date} onChange={(e) => setManual((m) => ({ ...m, date: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select value={manual.status} onValueChange={(v) => setManual((m) => ({ ...m, status: v }))}>
+                    <SelectTrigger aria-label="Order status"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {ORDER_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Notes</Label>
+                <Textarea rows={2} value={manual.notes} onChange={(e) => setManual((m) => ({ ...m, notes: e.target.value }))} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="glass" onClick={() => setAddOpen(false)}>Cancel</Button>
+              <Button variant="hero" onClick={addManualOrder} disabled={saving}>
+                {saving ? "Saving…" : "Add order"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </AdminShell>
     </AdminGate>
   );
