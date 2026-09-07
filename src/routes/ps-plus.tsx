@@ -1,12 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check, MessageCircle, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { buildOrderMessage, discountPercent, money, whatsappLink } from "@/lib/lag";
+import {
+  PS_PLUS_DURATIONS,
+  PS_PLUS_TIERS,
+  buildOrderMessage,
+  discountPercent,
+  money,
+  whatsappLink,
+  type PsPlusDurationKey,
+  type PsPlusPlan,
+} from "@/lib/lag";
 import { contactFrom, psPlusQuery, settingsQuery } from "@/lib/queries";
+import { safePosition } from "@/lib/media";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ps-plus")({
@@ -16,129 +26,195 @@ export const Route = createFileRoute("/ps-plus")({
       {
         name: "description",
         content:
-          "Buy PlayStation Plus Essential, Extra and Deluxe memberships at LAG prices. Choose your region and duration, then order on WhatsApp.",
+          "Buy PlayStation Plus Essential, Extra and Deluxe memberships at LAG prices. Pick 1, 3 or 12 months and order on WhatsApp.",
       },
       { property: "og:title", content: "PS Plus Subscriptions — LAG LIVE AS GAMERS" },
       {
         property: "og:description",
-        content: "Online multiplayer, monthly games and the classics catalog — delivered fast over WhatsApp.",
+        content: "Essential, Extra and Deluxe memberships for 1, 3 or 12 months — delivered fast over WhatsApp.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: PsPlusPage,
 });
 
+function priceFor(plan: PsPlusPlan | null, key: PsPlusDurationKey): number | null {
+  if (!plan) return null;
+  return plan[key] ?? plan.price ?? null;
+}
+
 function PsPlusPage() {
   const { data: plans = [], isLoading, isError, error } = useQuery(psPlusQuery);
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
-  const [tier, setTier] = useState("all");
 
-  const visible = plans.filter((p) => p.visible);
-  const tiers = ["all", ...Array.from(new Set(visible.map((p) => p.tier).filter(Boolean)))];
-  const results = tier === "all" ? visible : visible.filter((p) => p.tier === tier);
+  const [tier, setTier] = useState<string>(PS_PLUS_TIERS[0]);
+  const [duration, setDuration] = useState<PsPlusDurationKey>("price_1m");
+
+  const visible = useMemo(() => plans.filter((p) => p.visible), [plans]);
+
+  /** One card per category — the first visible plan of that tier. */
+  const byTier = useMemo(() => {
+    const map = new Map<string, PsPlusPlan>();
+    for (const t of PS_PLUS_TIERS) {
+      const found = visible.find((p) => (p.tier || p.name).toLowerCase().includes(t.toLowerCase()));
+      if (found) map.set(t, found);
+    }
+    return map;
+  }, [visible]);
+
+  const selected = byTier.get(tier) ?? null;
+  const price = priceFor(selected, duration);
+  const durationLabel = PS_PLUS_DURATIONS.find((d) => d.key === duration)?.label ?? "1 Month";
+
+  const message = selected
+    ? buildOrderMessage(
+        {
+          productType: "ps-plus",
+          productName: `PS Plus ${tier}`,
+          productId: selected.id,
+          duration: durationLabel,
+          region: selected.region,
+          platform: selected.platform,
+          price,
+        },
+        contact.brand,
+      )
+    : "";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <SectionHeading
         eyebrow="Subscriptions"
         title="PlayStation Plus"
-        subtitle="Online multiplayer, free monthly games, cloud saves and the game catalog — pick the tier that fits you."
+        subtitle="Three memberships, three durations. Pick your category, choose 1, 3 or 12 months and the price updates instantly."
       />
-
-      {tiers.length > 2 && (
-        <div className="no-scrollbar mb-6 flex gap-2 overflow-x-auto">
-          {tiers.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTier(t)}
-              aria-pressed={tier === t}
-              className={cn(
-                "shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold capitalize transition-colors",
-                tier === t
-                  ? "border-lag-blue/50 bg-lag-blue/20 text-lag-blue"
-                  : "border-border bg-muted/40 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {t === "all" ? "All tiers" : t}
-            </button>
-          ))}
-        </div>
-      )}
 
       {isError ? (
         <EmptyState icon={Sparkles} title="Couldn't load plans" body={(error as Error).message} />
       ) : isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="glass h-80 animate-pulse rounded-3xl" />
+            <div key={i} className="glass h-56 animate-pulse rounded-3xl" />
           ))}
         </div>
-      ) : results.length === 0 ? (
-        <EmptyState icon={Sparkles} title="No PS Plus plans yet" body="New membership plans are added regularly." />
+      ) : byTier.size === 0 ? (
+        <EmptyState icon={Sparkles} title="No PS Plus plans yet" body="Memberships are being added — message us on WhatsApp meanwhile." />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {results.map((p, i) => {
-            const off = discountPercent(p.old_price, p.price);
-            const message = buildOrderMessage(
-              {
-                productType: "ps-plus",
-                productName: p.name,
-                productId: p.id,
-                duration: p.duration,
-                region: p.region,
-                platform: p.platform,
-                price: p.price,
-              },
-              contact.brand,
-            );
-            return (
-              <Reveal key={p.id} delay={i * 80}>
-                <article className="glass hover-lift flex h-full flex-col rounded-3xl p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <GlassIcon icon={Sparkles} tone="blue" size="lg" />
-                    {off && <Badge tone="red">{off}% off</Badge>}
-                  </div>
-                  <h2 className="mt-4 font-display text-xl font-bold">{p.name}</h2>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <Badge tone="blue">{p.tier}</Badge>
-                    <Badge>{p.duration}</Badge>
-                    <Badge>{p.region}</Badge>
-                  </div>
-                  {p.description && (
-                    <p className="mt-3 text-sm text-muted-foreground">{p.description}</p>
-                  )}
-                  {p.features?.length > 0 && (
-                    <ul className="mt-4 space-y-1.5">
-                      {p.features.map((f) => (
-                        <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-lag-red" aria-hidden />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="mt-5 flex items-end gap-2">
-                    <span className="font-display text-2xl font-bold">{money(p.price)}</span>
-                    {p.old_price && (
-                      <span className="text-sm text-muted-foreground line-through">{money(p.old_price)}</span>
+        <>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {PS_PLUS_TIERS.map((t, i) => {
+              const plan = byTier.get(t);
+              const active = tier === t;
+              const from = plan ? priceFor(plan, "price_1m") : null;
+              return (
+                <Reveal key={t} delay={i * 80}>
+                  <button
+                    type="button"
+                    disabled={!plan}
+                    aria-pressed={active}
+                    onClick={() => setTier(t)}
+                    className={cn(
+                      "glass relative flex h-full w-full flex-col overflow-hidden rounded-3xl p-5 text-left transition-transform duration-300",
+                      active ? "glow-red -translate-y-1 border-lag-red/50" : "hover:-translate-y-1",
+                      !plan && "opacity-45",
                     )}
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {p.platform} · {p.availability}
-                  </p>
-                  <Button asChild variant="whatsapp" className="mt-4 w-full">
-                    <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
-                      <MessageCircle className="h-4 w-4" aria-hidden />
-                      Order on WhatsApp
-                    </a>
-                  </Button>
-                </article>
-              </Reveal>
-            );
-          })}
-        </div>
+                  >
+                    {plan?.image_url && (
+                      <img
+                        src={plan.image_url}
+                        alt=""
+                        aria-hidden
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover opacity-20"
+                        style={{ objectPosition: safePosition(plan.image_position) }}
+                      />
+                    )}
+                    <div className="relative">
+                      <GlassIcon icon={Sparkles} tone={i === 1 ? "blue" : "red"} size="lg" />
+                      <h2 className="mt-4 font-display text-xl font-bold">PS Plus {t}</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {plan ? `From ${money(from)}` : "Coming soon"}
+                      </p>
+                    </div>
+                  </button>
+                </Reveal>
+              );
+            })}
+          </div>
+
+          {selected && (
+            <div className="glass-strong mt-6 rounded-3xl p-5 sm:p-7">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="red">PS Plus {tier}</Badge>
+                <Badge tone="blue">{selected.platform}</Badge>
+                <Badge>{selected.region}</Badge>
+                <Badge>{selected.availability}</Badge>
+              </div>
+
+              <h3 className="mt-4 font-display text-lg font-bold">Choose your duration</h3>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                {PS_PLUS_DURATIONS.map((d) => {
+                  const value = priceFor(selected, d.key);
+                  const active = duration === d.key;
+                  return (
+                    <button
+                      key={d.key}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setDuration(d.key)}
+                      className={cn(
+                        "glass rounded-2xl px-4 py-4 text-left transition-transform duration-200",
+                        active ? "glow-blue border-lag-blue/50" : "hover:-translate-y-0.5",
+                      )}
+                    >
+                      <span className="block text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                        {d.label}
+                      </span>
+                      <span className="mt-1 block font-display text-xl font-bold">{money(value)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-end gap-3">
+                <span className="font-display text-3xl font-bold">{money(price)}</span>
+                {selected.old_price && (
+                  <span className="text-sm text-muted-foreground line-through">{money(selected.old_price)}</span>
+                )}
+                {discountPercent(selected.old_price, price) && (
+                  <Badge tone="red">{discountPercent(selected.old_price, price)}% off</Badge>
+                )}
+                <span className="text-sm text-muted-foreground">for {durationLabel}</span>
+              </div>
+
+              {selected.description && (
+                <p className="mt-3 text-sm text-muted-foreground">{selected.description}</p>
+              )}
+
+              {selected.features?.length > 0 && (
+                <ul className="mt-4 grid gap-1.5 sm:grid-cols-2">
+                  {selected.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-lag-red" aria-hidden />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <Button asChild variant="whatsapp" size="lg" className="mt-6 w-full sm:w-auto">
+                <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
+                  <MessageCircle className="h-4 w-4" aria-hidden />
+                  Order {tier} · {durationLabel}
+                </a>
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

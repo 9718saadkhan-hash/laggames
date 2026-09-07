@@ -17,15 +17,15 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         /** Primary CTA — frosted glass with strong red glow. */
-        hero: "glass-btn glass-btn-primary hover:brightness-105",
+        hero: "glass-btn glass-btn-pro glass-btn-primary hover:brightness-110",
         /** Secondary CTA — frosted glass with blue glow. */
-        blue: "glass-btn glass-btn-blue hover:brightness-105",
+        blue: "glass-btn glass-btn-pro glass-btn-blue hover:brightness-110",
         /** Secondary / tertiary — subtle translucent glass. */
-        glass: "glass-btn text-foreground hover:border-lag-blue/45",
+        glass: "glass-btn glass-btn-pro text-foreground hover:border-lag-blue/45",
         /** Minimal glass for navigation / icon buttons. */
         nav: "glass-btn-nav text-muted-foreground hover:text-foreground hover:border-lag-blue/40",
         /** WhatsApp actions — frosted glass with green accent. */
-        whatsapp: "glass-btn glass-btn-whatsapp hover:brightness-105",
+        whatsapp: "glass-btn glass-btn-pro glass-btn-whatsapp hover:brightness-110",
       },
       size: {
         default: "h-10 px-4 py-2",
