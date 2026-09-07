@@ -155,8 +155,37 @@ function AdminCollabsPage() {
             <div className="grid gap-3 py-2">
               <div className="space-y-1.5"><Label htmlFor="c-title">Title</Label><Input id="c-title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} /></div>
               <div className="space-y-1.5"><Label htmlFor="c-desc">Description</Label><Textarea id="c-desc" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label htmlFor="c-url">Video URL</Label><Input id="c-url" value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label htmlFor="c-thumb">Thumbnail URL</Label><Input id="c-thumb" value={form.thumbnail_url} onChange={(e) => setForm((f) => ({ ...f, thumbnail_url: e.target.value }))} /></div>
+              <div className="space-y-1.5">
+                <Label>Video file</Label>
+                <VideoUploadField
+                  value={{ url: form.storage_path ? form.url : null, storagePath: form.storage_path, thumbnail: form.thumbnail_url || null }}
+                  onChange={(v) =>
+                    setForm((f) => ({
+                      ...f,
+                      url: v.url ?? (v.storagePath ? "" : f.storage_path ? "" : f.url),
+                      storage_path: v.storagePath,
+                      thumbnail_url: v.thumbnail ?? "",
+                      source: v.storagePath ? "upload" : "link",
+                    }))
+                  }
+                />
+              </div>
+              {!form.storage_path && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-url">Or paste a video link (YouTube / Instagram)</Label>
+                  <Input id="c-url" value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label>Custom thumbnail (optional)</Label>
+                <ImageUploadField
+                  value={form.thumbnail_url || null}
+                  onChange={(v) => setForm((f) => ({ ...f, thumbnail_url: v ?? "" }))}
+                  purpose="game-banner"
+                  label="Upload thumbnail"
+                  mediaFolder="collabs"
+                />
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5"><Label htmlFor="c-platform">Platform</Label><Input id="c-platform" value={form.platform} onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value }))} /></div>
                 <div className="space-y-1.5"><Label htmlFor="c-order">Display Order</Label><Input id="c-order" type="number" value={form.display_order} onChange={(e) => setForm((f) => ({ ...f, display_order: e.target.value }))} /></div>
