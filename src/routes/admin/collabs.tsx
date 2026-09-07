@@ -41,7 +41,7 @@ const EMPTY: F = { title: "", description: "", url: "", thumbnail_url: "", platf
 
 function toForm(c: CollabVideo): F {
   return {
-    id: c.id, title: c.title, description: c.description ?? "", url: c.url,
+    id: c.id, title: c.title, description: c.description ?? "", url: c.url ?? "",
     thumbnail_url: c.thumbnail_url ?? "", platform: c.platform, visible: c.visible,
     display_order: c.display_order?.toString() ?? "0",
   };

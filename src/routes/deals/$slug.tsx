@@ -138,7 +138,7 @@ function DealDetailPage() {
         <SectionHeading
           eyebrow="Included"
           title="Games in this deal"
-          subtitle={dealGames.length ? undefined : "Games will be added to this promotion soon."}
+          {...(dealGames.length ? {} : { subtitle: "Games will be added to this promotion soon." })}
         />
         {dealGames.length > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
