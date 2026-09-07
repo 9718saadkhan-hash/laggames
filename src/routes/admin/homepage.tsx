@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Home, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { ImagePositionField } from "@/components/lag/ImagePositionField";
 import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
@@ -369,12 +370,91 @@ function AboutSection({ initial }: { initial: AboutValue }) {
   );
 }
 
+// ---------- Category card images ----------
+
+type CategoriesValue = {
+  games_image: string;
+  games_position: string;
+  ps_plus_image: string;
+  ps_plus_position: string;
+  ott_image: string;
+  ott_position: string;
+};
+const DEFAULT_CATEGORIES: CategoriesValue = {
+  games_image: "",
+  games_position: "50% 50%",
+  ps_plus_image: "",
+  ps_plus_position: "50% 50%",
+  ott_image: "",
+  ott_position: "50% 50%",
+};
+
+function CategoriesSection({ initial }: { initial: CategoriesValue }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState<CategoriesValue>(initial);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => setValue(initial), [initial]);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("site_settings").upsert({ key: "categories", value });
+      if (error) throw error;
+      toast.success("Category images updated successfully.");
+      qc.invalidateQueries({ queryKey: ["site_settings"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const cards: { label: string; imageKey: keyof CategoriesValue; posKey: keyof CategoriesValue }[] = [
+    { label: "Games", imageKey: "games_image", posKey: "games_position" },
+    { label: "PS Plus", imageKey: "ps_plus_image", posKey: "ps_plus_position" },
+    { label: "OTT", imageKey: "ott_image", posKey: "ott_position" },
+  ];
+
+  return (
+    <Card className="glass border-0">
+      <CardHeader>
+        <CardTitle className="font-display">Pick A Category Images</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-5">
+        {cards.map((c) => (
+          <div key={c.label} className="grid gap-3 border-b border-border/50 pb-5 last:border-0 last:pb-0">
+            <Label>{c.label} card image</Label>
+            <ImageUploadField
+              value={value[c.imageKey] || null}
+              onChange={(v) => setValue((s) => ({ ...s, [c.imageKey]: v ?? "" }))}
+              purpose="hero-banner"
+              label="Upload from device"
+              mediaFolder="categories"
+            />
+            <ImagePositionField
+              value={value[c.posKey]}
+              onChange={(v) => setValue((s) => ({ ...s, [c.posKey]: v }))}
+              preview={value[c.imageKey] || null}
+              label={`${c.label} focal position`}
+            />
+          </div>
+        ))}
+        <Button variant="hero" className="w-max" onClick={save} disabled={saving}>
+          {saving ? "Saving…" : "Save Category Images"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AdminHomepagePage() {
   const { data: settings, isLoading } = useQuery(settingsQuery);
 
   const comparison = (settings?.["comparison"] as ComparisonValue | undefined) ?? DEFAULT_COMPARISON;
   const howItWorks = (settings?.["how_it_works"] as HowItWorksValue | undefined) ?? DEFAULT_HOW;
   const about = (settings?.["about"] as AboutValue | undefined) ?? DEFAULT_ABOUT;
+  const categories = (settings?.["categories"] as CategoriesValue | undefined) ?? DEFAULT_CATEGORIES;
 
   return (
     <AdminGate>
@@ -393,6 +473,7 @@ function AdminHomepagePage() {
             <>
               <ComparisonSection initial={comparison} />
               <HowItWorksSection initial={howItWorks} />
+              <CategoriesSection initial={categories} />
               <AboutSection initial={about} />
             </>
           )}

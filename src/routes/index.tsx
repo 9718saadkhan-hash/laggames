@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   BadgeCheck,
   Check,
@@ -21,7 +22,7 @@ import { GameCard } from "@/components/lag/GameCard";
 import { DealsHero } from "@/components/lag/DealsHero";
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { buildOrderMessage, instagramUrl, money, whatsappLink, type Game } from "@/lib/lag";
+import { buildOrderMessage, instagramUrl, whatsappLink, type CollabVideo, type Game } from "@/lib/lag";
 import {
   collabsQuery,
   contactFrom,
@@ -74,6 +75,14 @@ function HomePage() {
   const newReleases = visible.filter((g) => g.new_release).slice(0, 8);
 
   const about = (settings?.["about"] ?? {}) as { heading?: string; body?: string };
+  const categories = (settings?.["categories"] ?? {}) as {
+    games_image?: string;
+    games_position?: string;
+    ps_plus_image?: string;
+    ps_plus_position?: string;
+    ott_image?: string;
+    ott_position?: string;
+  };
   const comparison = (settings?.["comparison"] ?? {}) as {
     title?: string;
     rows?: { feature: string; lag: boolean; others: boolean }[];
@@ -174,67 +183,8 @@ function HomePage() {
         loading={isLoading}
       />
 
-      {deals.length > 0 && (
-        <GameRow eyebrow="Limited time" title="Latest deals" subtitle="Discounted rentals and permanent copies." games={deals} />
-      )}
+      <CollabRail collabs={collabs.filter((c) => c.visible)} />
 
-      {newReleases.length > 0 && (
-        <GameRow eyebrow="Fresh drops" title="New releases" subtitle="The newest titles added to the LAG library." games={newReleases} />
-      )}
-
-      {/* Subscriptions strip */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <SectionHeading
-          eyebrow="Subscriptions"
-          title="PS Plus & OTT plans"
-          subtitle="Multiplayer, monthly games and every streaming app you actually use."
-          action={
-            <Button asChild variant="glass" size="sm">
-              <Link to="/ps-plus">All plans</Link>
-            </Button>
-          }
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="glass rounded-3xl p-5">
-            <div className="flex items-center gap-3">
-              <GlassIcon icon={Sparkles} tone="blue" />
-              <h3 className="font-display text-lg font-bold">PlayStation Plus</h3>
-            </div>
-            <ul className="mt-4 space-y-2">
-              {psPlus.filter((p) => p.visible).slice(0, 4).map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 border-b border-border/60 pb-2 text-sm last:border-0">
-                  <span className="min-w-0 truncate">
-                    {p.name} <span className="text-muted-foreground">· {p.duration}</span>
-                  </span>
-                  <span className="shrink-0 font-display font-bold">{money(p.price)}</span>
-                </li>
-              ))}
-            </ul>
-            <Button asChild variant="blue" className="mt-5 w-full">
-              <Link to="/ps-plus">View PS Plus plans</Link>
-            </Button>
-          </div>
-          <div className="glass rounded-3xl p-5">
-            <div className="flex items-center gap-3">
-              <GlassIcon icon={Monitor} tone="red" />
-              <h3 className="font-display text-lg font-bold">OTT Subscriptions</h3>
-            </div>
-            <ul className="mt-4 space-y-2">
-              {ott.filter((p) => p.visible).slice(0, 4).map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 border-b border-border/60 pb-2 text-sm last:border-0">
-                  <span className="min-w-0 truncate">
-                    {p.name} <span className="text-muted-foreground">· {p.duration}</span>
-                  </span>
-                  <span className="shrink-0 font-display font-bold">{money(p.price)}</span>
-                </li>
-              ))}
-            </ul>
-            <Button asChild variant="hero" className="mt-5 w-full">
-              <Link to="/ott">View OTT plans</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Why choose us */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -369,52 +319,6 @@ function HomePage() {
         )}
       </section>
 
-      {/* Collabs */}
-      {collabs.filter((c) => c.visible).length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <SectionHeading eyebrow="Collabs" title="Creator collaborations" subtitle="Reviews and gameplay from our partners." />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {collabs
-              .filter((c) => c.visible)
-              .map((c) => (
-                <a
-                  key={c.id}
-                  href={c.url ?? "#"}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="glass hover-lift group overflow-hidden rounded-3xl"
-                >
-                  <div className="relative aspect-video">
-                    {c.thumbnail_url ? (
-                      <img
-                        src={c.thumbnail_url}
-                        alt={`${c.title} thumbnail`}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center bg-muted">
-                        <Play className="h-8 w-8 text-muted-foreground" aria-hidden />
-                      </div>
-                    )}
-                    <span className="absolute inset-0 grid place-items-center bg-background/30 opacity-0 transition-opacity group-hover:opacity-100">
-                      <GlassIcon icon={Play} tone="red" size="lg" />
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Badge tone="blue">{c.platform}</Badge>
-                    </div>
-                    <h3 className="mt-2 font-display text-base font-bold">{c.title}</h3>
-                    {c.description && (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
-                    )}
-                  </div>
-                </a>
-              ))}
-          </div>
-        </section>
-      )}
 
       {/* About + CTA */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -494,6 +398,88 @@ function GameRow({
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
+  const [playing, setPlaying] = useState<string | null>(null);
+  if (collabs.length === 0) return null;
+
+  return (
+    <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <SectionHeading
+        eyebrow="Collabs"
+        title="Collab videos"
+        subtitle="Gameplay and reviews from creators we work with. Swipe to browse."
+      />
+      <div className="rail no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
+        {collabs.map((c) => {
+          const isUpload = Boolean(c.storage_path) && Boolean(c.url);
+          const active = playing === c.id;
+          return (
+            <article
+              key={c.id}
+              className="glass hover-lift w-[78%] shrink-0 snap-start overflow-hidden rounded-3xl sm:w-[46%] lg:w-[31%]"
+            >
+              <div className="relative aspect-video bg-surface-2">
+                {isUpload && active ? (
+                  <video
+                    src={c.url ?? undefined}
+                    poster={c.thumbnail_url ?? undefined}
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="none"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <>
+                    {c.thumbnail_url ? (
+                      <img
+                        src={c.thumbnail_url}
+                        alt={`${c.title} thumbnail`}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center">
+                        <Play className="h-8 w-8 text-muted-foreground" aria-hidden />
+                      </div>
+                    )}
+                    {isUpload ? (
+                      <button
+                        type="button"
+                        onClick={() => setPlaying(c.id)}
+                        aria-label={`Play ${c.title}`}
+                        className="absolute inset-0 grid place-items-center bg-background/25 transition-opacity hover:bg-background/40"
+                      >
+                        <GlassIcon icon={Play} tone="red" size="lg" />
+                      </button>
+                    ) : (
+                      <a
+                        href={c.url ?? "#"}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        aria-label={`Watch ${c.title}`}
+                        className="absolute inset-0 grid place-items-center bg-background/25 transition-opacity hover:bg-background/40"
+                      >
+                        <GlassIcon icon={Play} tone="red" size="lg" />
+                      </a>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="p-4">
+                <Badge tone="blue">{c.platform}</Badge>
+                <h3 className="mt-2 font-display text-base font-bold">{c.title}</h3>
+                {c.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>}
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </section>
   );
 }
