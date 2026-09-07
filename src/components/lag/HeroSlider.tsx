@@ -14,6 +14,7 @@ export function HeroSlider() {
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
   const [index, setIndex] = useState(0);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
   const count = slides.length;
 
   const go = useCallback((next: number) => setIndex((i) => (count ? (next + count) % count : 0)), [count]);
