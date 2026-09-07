@@ -101,6 +101,8 @@ const EMPTY_FORM: GameForm = {
   description: "",
   cover_url: "",
   banner_url: "",
+  cover_position: "50% 50%",
+  banner_position: "50% 50%",
   gallery: "",
   trailer_url: "",
   platform: "PS5",
