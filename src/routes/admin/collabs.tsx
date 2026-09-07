@@ -35,24 +35,29 @@ export const Route = createFileRoute("/admin/collabs")({
 
 type F = {
   id?: string; title: string; description: string; url: string; thumbnail_url: string;
+  storage_path: string | null; source: string;
   platform: string; visible: boolean; display_order: string;
 };
-const EMPTY: F = { title: "", description: "", url: "", thumbnail_url: "", platform: "YouTube", visible: true, display_order: "0" };
+const EMPTY: F = { title: "", description: "", url: "", thumbnail_url: "", storage_path: null, source: "upload", platform: "LAG", visible: true, display_order: "0" };
 
 function toForm(c: CollabVideo): F {
   return {
     id: c.id, title: c.title, description: c.description ?? "", url: c.url ?? "",
-    thumbnail_url: c.thumbnail_url ?? "", platform: c.platform, visible: c.visible,
+    thumbnail_url: c.thumbnail_url ?? "", storage_path: c.storage_path ?? null,
+    source: c.source ?? (c.storage_path ? "upload" : "link"),
+    platform: c.platform, visible: c.visible,
     display_order: c.display_order?.toString() ?? "0",
   };
 }
 function toPayload(f: F) {
   if (!f.title.trim()) throw new Error("Title is required.");
-  if (!f.url.trim()) throw new Error("URL is required.");
+  if (!f.storage_path && !f.url.trim()) throw new Error("Upload a video or paste a video link.");
   const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
   return {
-    title: f.title.trim(), description: f.description || null, url: f.url.trim(),
-    thumbnail_url: f.thumbnail_url || null, platform: f.platform || "YouTube", visible: f.visible,
+    title: f.title.trim(), description: f.description || null, url: f.url.trim() || null,
+    thumbnail_url: f.thumbnail_url || null, storage_path: f.storage_path,
+    source: f.storage_path ? "upload" : "link",
+    platform: f.platform || "LAG", visible: f.visible,
     display_order: num(f.display_order),
   };
 }
