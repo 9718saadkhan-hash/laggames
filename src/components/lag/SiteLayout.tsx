@@ -23,6 +23,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 import { FloatingWhatsApp } from "@/components/lag/FloatingWhatsApp";
+import { CartDrawer } from "@/components/lag/CartDrawer";
 import { SearchDialog } from "@/components/lag/SearchDialog";
 import { Logo } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,7 @@ function Header() {
           </nav>
 
           <div className="flex items-center gap-1.5">
+            <CartDrawer />
             <Button
               variant="nav"
               size="icon"

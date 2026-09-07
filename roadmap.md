@@ -17,6 +17,7 @@
 - Admin customer search (name/username/email/phone) and manual WhatsApp order entry
 - Registration with name, username, email, country code, phone (email sign-up, no OTP provider yet)
 - JOIN WHATSAPP COMMUNITY button in the menu
+- Larger, simplified product cards with persistent cart and combined WhatsApp checkout
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
