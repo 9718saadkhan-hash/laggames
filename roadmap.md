@@ -19,6 +19,11 @@
 - JOIN WHATSAPP COMMUNITY button in the menu
 - Larger, simplified product cards with persistent cart and combined WhatsApp checkout
 
+## In progress
+- Replace floating WhatsApp artwork and add Instagram above it
+- Replace the admin image adjuster with a WhatsApp-style crop, drag, pinch, zoom, rotate, reset, preview, cancel, and save flow
+- Add the requested second full-access administrator
+
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
 - Media library reuse directly inside each upload field
