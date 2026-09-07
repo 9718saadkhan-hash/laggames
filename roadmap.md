@@ -10,6 +10,13 @@
 - Premium light theme, stronger glass buttons/icons, hamburger social buttons, About social buttons
 - Account page: device avatar upload, active sessions list
 - Overflow + console checks pass on all public and admin pages at 390px and 1280px
+- Rebuilt crop tool (drag, pinch zoom, slider, ratios, reset/cancel/save, live preview)
+- PS Plus Essential/Extra/Deluxe with 1/3/12-month dynamic pricing (public + admin)
+- Collab videos: direct device uploads, thumbnails, order/publish controls; homepage swipe rail above How It Works
+- Homepage: image category cards (Games / PS Plus / OTT) editable from admin; removed New Releases, Latest Deals, generic subscription strip
+- Admin customer search (name/username/email/phone) and manual WhatsApp order entry
+- Registration with name, username, email, country code, phone (email sign-up, no OTP provider yet)
+- JOIN WHATSAPP COMMUNITY button in the menu
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
