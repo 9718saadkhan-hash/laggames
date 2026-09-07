@@ -148,13 +148,30 @@ function RegisterPage() {
             {errors.fullName && <p className="text-xs font-medium text-lag-red">{errors.fullName}</p>}
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} aria-invalid={Boolean(errors.username)} />
+            {errors.username && <p className="text-xs font-medium text-lag-red">{errors.username}</p>}
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={Boolean(errors.email)} />
             {errors.email && <p className="text-xs font-medium text-lag-red">{errors.email}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="phone">Phone (optional)</Label>
-            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={Boolean(errors.phone)} />
+            <Label htmlFor="phone">Phone number</Label>
+            <div className="flex gap-2">
+              <select
+                aria-label="Country code"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="h-9 shrink-0 rounded-md border border-input bg-transparent px-2 text-sm"
+              >
+                {COUNTRY_CODES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <Input id="phone" type="tel" inputMode="tel" className="min-w-0 flex-1" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={Boolean(errors.phone)} />
+            </div>
             {errors.phone && <p className="text-xs font-medium text-lag-red">{errors.phone}</p>}
           </div>
           <div className="space-y-1.5">
