@@ -154,7 +154,21 @@ function AdminOttPage() {
             <DialogHeader><DialogTitle>{editingId ? "Edit Plan" : "Add Plan"}</DialogTitle></DialogHeader>
             <div className="grid gap-3 py-2">
               <div className="space-y-1.5"><Label htmlFor="o-name">Name</Label><Input id="o-name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label htmlFor="o-logo">Logo URL</Label><Input id="o-logo" value={form.logo_url} onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))} /></div>
+              <div className="space-y-1.5">
+                <Label>Logo / image</Label>
+                <ImageUploadField
+                  value={form.logo_url}
+                  onChange={(v) => setForm((f) => ({ ...f, logo_url: v ?? "" }))}
+                  purpose="ott"
+                  label="Upload from device"
+                  mediaFolder="ott"
+                />
+              </div>
+              <ImagePositionField
+                value={form.image_position}
+                onChange={(v) => setForm((f) => ({ ...f, image_position: v }))}
+                label="Image focal position"
+              />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5"><Label htmlFor="o-plan">Plan</Label><Input id="o-plan" value={form.plan} onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value }))} /></div>
                 <div className="space-y-1.5"><Label htmlFor="o-duration">Duration</Label><Input id="o-duration" value={form.duration} onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))} /></div>

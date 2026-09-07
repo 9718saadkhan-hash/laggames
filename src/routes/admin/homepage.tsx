@@ -167,7 +167,16 @@ function HeroBannersSection() {
               <div className="space-y-1.5"><Label htmlFor="h-subtitle">Subtitle</Label><Input id="h-subtitle" value={form.subtitle} onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))} /></div>
             </div>
             <div className="space-y-1.5"><Label htmlFor="h-desc">Description</Label><Textarea id="h-desc" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>
-            <div className="space-y-1.5"><Label htmlFor="h-image">Image URL</Label><Input id="h-image" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} /></div>
+            <div className="space-y-1.5">
+              <Label>Banner image</Label>
+              <ImageUploadField
+                value={form.image_url}
+                onChange={(v) => setForm((f) => ({ ...f, image_url: v ?? "" }))}
+                purpose="hero-banner"
+                label="Upload from device"
+                mediaFolder="banners"
+              />
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5"><Label htmlFor="h-slug">Game Slug</Label><Input id="h-slug" value={form.game_slug} onChange={(e) => setForm((f) => ({ ...f, game_slug: e.target.value }))} /></div>
               <div className="space-y-1.5"><Label htmlFor="h-platform">Platform</Label><Input id="h-platform" value={form.platform} onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value }))} /></div>
