@@ -88,7 +88,6 @@ function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { theme, toggle } = useTheme();
   const { user, profile, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
@@ -133,19 +132,6 @@ function Header() {
               className="h-9 w-9"
             >
               <Search className="h-4 w-4" aria-hidden />
-            </Button>
-            <Button
-              variant="nav"
-              size="icon"
-              aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-              onClick={toggle}
-              className="h-9 w-9"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4" aria-hidden />
-              ) : (
-                <Moon className="h-4 w-4" aria-hidden />
-              )}
             </Button>
             <Button asChild variant="nav" size="icon" className="h-9 w-9" aria-label="Admin">
               <Link to={isAdmin ? "/admin" : "/admin/login"}>
