@@ -182,67 +182,8 @@ function HomePage() {
         loading={isLoading}
       />
 
-      {deals.length > 0 && (
-        <GameRow eyebrow="Limited time" title="Latest deals" subtitle="Discounted rentals and permanent copies." games={deals} />
-      )}
+      <CollabRail collabs={collabs.filter((c) => c.visible)} />
 
-      {newReleases.length > 0 && (
-        <GameRow eyebrow="Fresh drops" title="New releases" subtitle="The newest titles added to the LAG library." games={newReleases} />
-      )}
-
-      {/* Subscriptions strip */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <SectionHeading
-          eyebrow="Subscriptions"
-          title="PS Plus & OTT plans"
-          subtitle="Multiplayer, monthly games and every streaming app you actually use."
-          action={
-            <Button asChild variant="glass" size="sm">
-              <Link to="/ps-plus">All plans</Link>
-            </Button>
-          }
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="glass rounded-3xl p-5">
-            <div className="flex items-center gap-3">
-              <GlassIcon icon={Sparkles} tone="blue" />
-              <h3 className="font-display text-lg font-bold">PlayStation Plus</h3>
-            </div>
-            <ul className="mt-4 space-y-2">
-              {psPlus.filter((p) => p.visible).slice(0, 4).map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 border-b border-border/60 pb-2 text-sm last:border-0">
-                  <span className="min-w-0 truncate">
-                    {p.name} <span className="text-muted-foreground">· {p.duration}</span>
-                  </span>
-                  <span className="shrink-0 font-display font-bold">{money(p.price)}</span>
-                </li>
-              ))}
-            </ul>
-            <Button asChild variant="blue" className="mt-5 w-full">
-              <Link to="/ps-plus">View PS Plus plans</Link>
-            </Button>
-          </div>
-          <div className="glass rounded-3xl p-5">
-            <div className="flex items-center gap-3">
-              <GlassIcon icon={Monitor} tone="red" />
-              <h3 className="font-display text-lg font-bold">OTT Subscriptions</h3>
-            </div>
-            <ul className="mt-4 space-y-2">
-              {ott.filter((p) => p.visible).slice(0, 4).map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 border-b border-border/60 pb-2 text-sm last:border-0">
-                  <span className="min-w-0 truncate">
-                    {p.name} <span className="text-muted-foreground">· {p.duration}</span>
-                  </span>
-                  <span className="shrink-0 font-display font-bold">{money(p.price)}</span>
-                </li>
-              ))}
-            </ul>
-            <Button asChild variant="hero" className="mt-5 w-full">
-              <Link to="/ott">View OTT plans</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Why choose us */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
