@@ -138,6 +138,8 @@ function gameToForm(g: Game): GameForm {
     description: g.description ?? "",
     cover_url: g.cover_url ?? "",
     banner_url: g.banner_url ?? "",
+    cover_position: g.cover_position ?? "50% 50%",
+    banner_position: g.banner_position ?? "50% 50%",
     gallery: (g.gallery ?? []).join("\n"),
     trailer_url: g.trailer_url ?? "",
     platform: g.platform,
