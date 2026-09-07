@@ -38,6 +38,7 @@ import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminUpcomingGamesRouteImport } from './routes/admin/upcoming-games'
 import { Route as DealsIndexRouteImport } from './routes/deals/index'
+import { Route as DealsSlugRouteImport } from './routes/deals/$slug'
 import { Route as GamesIndexRouteImport } from './routes/games/index'
 import { Route as GamesSlugRouteImport } from './routes/games/$slug'
 import { Route as UpcomingGamesIndexRouteImport } from './routes/upcoming-games/index'
@@ -187,6 +188,11 @@ const DealsIndexRoute = DealsIndexRouteImport.update({
   path: '/deals/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DealsSlugRoute = DealsSlugRouteImport.update({
+  id: '/deals/$slug',
+  path: '/deals/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/upcoming-games': typeof AdminUpcomingGamesRoute
+  '/deals/$slug': typeof DealsSlugRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/deals/': typeof DealsIndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/upcoming-games': typeof AdminUpcomingGamesRoute
+  '/deals/$slug': typeof DealsSlugRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/deals': typeof DealsIndexRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/upcoming-games': typeof AdminUpcomingGamesRoute
+  '/deals/$slug': typeof DealsSlugRoute
   '/games/$slug': typeof GamesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/deals/': typeof DealsIndexRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/upcoming-games'
+    | '/deals/$slug'
     | '/games/$slug'
     | '/admin/'
     | '/deals/'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/upcoming-games'
+    | '/deals/$slug'
     | '/games/$slug'
     | '/admin'
     | '/deals'
@@ -404,6 +415,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/settings'
     | '/admin/upcoming-games'
+    | '/deals/$slug'
     | '/games/$slug'
     | '/admin/'
     | '/deals/'
@@ -439,6 +451,7 @@ export interface RootRouteChildren {
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUpcomingGamesRoute: typeof AdminUpcomingGamesRoute
+  DealsSlugRoute: typeof DealsSlugRoute
   GamesSlugRoute: typeof GamesSlugRoute
   AdminIndexRoute: typeof AdminIndexRoute
   DealsIndexRoute: typeof DealsIndexRoute
@@ -651,6 +664,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DealsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deals/$slug': {
+      id: '/deals/$slug'
+      path: '/deals/$slug'
+      fullPath: '/deals/$slug'
+      preLoaderRoute: typeof DealsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/': {
       id: '/games/'
       path: '/games'
@@ -703,6 +723,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUpcomingGamesRoute: AdminUpcomingGamesRoute,
+  DealsSlugRoute: DealsSlugRoute,
   GamesSlugRoute: GamesSlugRoute,
   AdminIndexRoute: AdminIndexRoute,
   DealsIndexRoute: DealsIndexRoute,
