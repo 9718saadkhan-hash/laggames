@@ -7,6 +7,7 @@ import { Badge, EmptyState, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { formatDate, whatsappLink } from "@/lib/lag";
 import { contactFrom, dealBySlugQuery, dealGamesQuery, gamesQuery, settingsQuery } from "@/lib/queries";
+import { BannerImage } from "@/components/lag/BannerImage";
 
 export const Route = createFileRoute("/deals/$slug")({
   head: ({ params }) => {
@@ -79,15 +80,9 @@ function DealDetailPage() {
 
       <article className="glass-strong overflow-hidden rounded-3xl">
         {deal.image_url && (
-          <div className="relative aspect-16/9 w-full sm:aspect-21/9">
-            <img
-              src={deal.image_url}
-              alt={`${deal.title} promotional banner`}
-              style={{ objectPosition: deal.image_position ?? "50% 50%" }}
-              className="h-full w-full object-cover"
-            />
+          <BannerImage src={deal.image_url} alt={`${deal.title} promotional banner`} eager>
             <div aria-hidden className="overlay-fade absolute inset-0" />
-          </div>
+          </BannerImage>
         )}
         <div className="p-5 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">

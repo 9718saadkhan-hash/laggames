@@ -192,7 +192,36 @@ export async function renderRotatedCrop(
   return output.toDataURL("image/jpeg", quality);
 }
 
+/** Export the complete image (optionally rotated) with no cropping at all. */
+export async function renderFullImage(
+  src: string,
+  rotation = 0,
+  opts: { maxSize?: number; quality?: number } = {},
+): Promise<string> {
+  const img = await loadImage(src);
+  const radians = (rotation * Math.PI) / 180;
+  const sin = Math.abs(Math.sin(radians));
+  const cos = Math.abs(Math.cos(radians));
+  const boundW = Math.ceil(img.naturalWidth * cos + img.naturalHeight * sin);
+  const boundH = Math.ceil(img.naturalWidth * sin + img.naturalHeight * cos);
+  const maxSize = opts.maxSize ?? 1920;
+  const quality = opts.quality ?? 0.92;
+  const scale = Math.min(1, maxSize / Math.max(boundW, boundH));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(boundW * scale));
+  canvas.height = Math.max(1, Math.round(boundH * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return src;
+  ctx.imageSmoothingQuality = "high";
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(radians);
+  ctx.scale(scale, scale);
+  ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 /** Legacy helpers kept for compatibility with existing callers. */
+
 export async function compressImageFile(
   file: File,
   opts: { maxSize?: number; quality?: number } = {},

@@ -14,6 +14,7 @@ export function HeroSlider() {
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
   const [index, setIndex] = useState(0);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
   const count = slides.length;
 
   const go = useCallback((next: number) => setIndex((i) => (count ? (next + count) % count : 0)), [count]);
@@ -52,7 +53,10 @@ export function HeroSlider() {
   return (
     <section aria-label="Hot deals" className="mx-auto max-w-7xl px-3 sm:px-5">
       <div className="relative overflow-hidden rounded-3xl border border-border">
-        <div className="relative aspect-4/5 w-full sm:aspect-16/9 lg:aspect-21/9">
+        <div
+          className="relative w-full"
+          style={{ aspectRatio: String(ratios[slide.id] ?? 16 / 9) }}
+        >
           {slides.map((s, i) => (
             <div
               key={s.id}
@@ -73,9 +77,14 @@ export function HeroSlider() {
               <img
                 src={s.image_url ?? ""}
                 alt={`${s.title} artwork`}
-                width={1536}
-                height={864}
                 loading={i === 0 ? "eager" : "lazy"}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  if (img.naturalWidth && img.naturalHeight)
+                    setRatios((r) =>
+                      r[s.id] ? r : { ...r, [s.id]: img.naturalWidth / img.naturalHeight },
+                    );
+                }}
                 className="absolute inset-0 h-full w-full object-contain"
               />
             </div>
