@@ -24,9 +24,20 @@ export const Route = createFileRoute("/admin/customers")({
 });
 
 function AdminCustomersPage() {
-  const { data: customers = [], isLoading, isError } = useQuery(customersQuery);
+  const { data: allCustomers = [], isLoading, isError } = useQuery(customersQuery);
   const { data: orders = [] } = useQuery(ordersQuery());
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  const customers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return allCustomers;
+    return allCustomers.filter((c) => {
+      const row = c as Record<string, unknown>;
+      const fields = [row["full_name"], row["username"], row["email"], row["phone"]];
+      return fields.some((v) => typeof v === "string" && v.toLowerCase().includes(q));
+    });
+  }, [allCustomers, search]);
 
   const orderCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -37,7 +48,7 @@ function AdminCustomersPage() {
     return map;
   }, [orders]);
 
-  const activeCustomer = customers.find((c) => c.id === activeId) ?? null;
+  const activeCustomer = allCustomers.find((c) => c.id === activeId) ?? null;
   const activeOrders = useMemo(
     () => (activeId ? orders.filter((o) => o.user_id === activeId) : []),
     [orders, activeId],
