@@ -17,9 +17,15 @@ export function FloatingWhatsApp() {
         target="_blank"
         rel="noreferrer noopener"
         aria-label="Follow LAG on Instagram"
-        className="glass-btn grid h-13 w-13 place-items-center overflow-hidden rounded-2xl p-1.5 md:h-14 md:w-14"
+        className="group relative grid h-13 w-13 place-items-center overflow-hidden rounded-2xl bg-transparent shadow-lg shadow-black/20 ring-1 ring-white/10 transition-transform duration-200 hover:scale-105 active:scale-95 md:h-14 md:w-14"
       >
-        <img src={instagramAsset.url} alt="" className="h-full w-full object-contain" aria-hidden />
+        <img
+          src={instagramAsset.url}
+          alt=""
+          className="h-full w-full object-cover"
+          aria-hidden
+        />
+        <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/20" />
       </a>
       <a
         href={whatsappLink(contact.whatsapp, HELP_MESSAGE)}
