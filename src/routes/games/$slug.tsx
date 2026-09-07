@@ -33,6 +33,7 @@ import {
 import { safePosition } from "@/lib/media";
 import { contactFrom, gameQuery, gamesQuery, settingsQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { BannerImage } from "@/components/lag/BannerImage";
 
 export const Route = createFileRoute("/games/$slug")({
   head: () => ({

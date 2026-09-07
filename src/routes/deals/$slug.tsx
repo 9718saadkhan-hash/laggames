@@ -7,6 +7,7 @@ import { Badge, EmptyState, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { formatDate, whatsappLink } from "@/lib/lag";
 import { contactFrom, dealBySlugQuery, dealGamesQuery, gamesQuery, settingsQuery } from "@/lib/queries";
+import { BannerImage } from "@/components/lag/BannerImage";
 
 export const Route = createFileRoute("/deals/$slug")({
   head: ({ params }) => {

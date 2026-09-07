@@ -22,6 +22,7 @@ export function DealsHero() {
   const { data: all = [] } = useQuery(dealsQuery());
   const slides = all.filter((d) => d.visible && d.show_in_hero && isLive(d.end_date));
   const [index, setIndex] = useState(0);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
   const count = slides.length;
 
   const go = useCallback(
