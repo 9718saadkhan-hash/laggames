@@ -58,7 +58,7 @@ function AdminOrdersPage() {
     duration: "30 Days",
     price: "",
     date: new Date().toISOString().slice(0, 10),
-    status: ORDER_STATUSES[0] ?? "Pending",
+    status: String(ORDER_STATUSES[0] ?? "Pending"),
     notes: "",
   });
 
