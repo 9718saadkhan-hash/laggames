@@ -22,7 +22,7 @@ import { GameCard } from "@/components/lag/GameCard";
 import { DealsHero } from "@/components/lag/DealsHero";
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { buildOrderMessage, instagramUrl, money, whatsappLink, type Game } from "@/lib/lag";
+import { buildOrderMessage, instagramUrl, whatsappLink, type CollabVideo, type Game } from "@/lib/lag";
 import {
   collabsQuery,
   contactFrom,
