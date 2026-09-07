@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2, Video } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
+import { VideoUploadField } from "@/components/lag/VideoUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { collabsQuery } from "@/lib/queries";
