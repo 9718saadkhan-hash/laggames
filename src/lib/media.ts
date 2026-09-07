@@ -146,6 +146,52 @@ export async function renderCrop(
   return canvas.toDataURL("image/jpeg", quality);
 }
 
+/** Render a crop after rotating the source image around its center. */
+export async function renderRotatedCrop(
+  src: string,
+  crop: CropRect,
+  rotation: number,
+  opts: { maxSize?: number; quality?: number } = {},
+): Promise<string> {
+  const img = await loadImage(src);
+  const radians = (rotation * Math.PI) / 180;
+  const sin = Math.abs(Math.sin(radians));
+  const cos = Math.abs(Math.cos(radians));
+  const boundW = Math.ceil(img.naturalWidth * cos + img.naturalHeight * sin);
+  const boundH = Math.ceil(img.naturalWidth * sin + img.naturalHeight * cos);
+  const rotated = document.createElement("canvas");
+  rotated.width = boundW;
+  rotated.height = boundH;
+  const rotatedContext = rotated.getContext("2d");
+  if (!rotatedContext) return src;
+  rotatedContext.translate(boundW / 2, boundH / 2);
+  rotatedContext.rotate(radians);
+  rotatedContext.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+
+  const maxSize = opts.maxSize ?? 1400;
+  const quality = opts.quality ?? 0.82;
+  const outputScale = Math.min(1, maxSize / Math.max(crop.width, crop.height));
+  const output = document.createElement("canvas");
+  output.width = Math.max(1, Math.round(crop.width * outputScale));
+  output.height = Math.max(1, Math.round(crop.height * outputScale));
+  const outputContext = output.getContext("2d");
+  if (!outputContext) return src;
+  outputContext.imageSmoothingEnabled = true;
+  outputContext.imageSmoothingQuality = "high";
+  outputContext.drawImage(
+    rotated,
+    crop.x,
+    crop.y,
+    crop.width,
+    crop.height,
+    0,
+    0,
+    output.width,
+    output.height,
+  );
+  return output.toDataURL("image/jpeg", quality);
+}
+
 /** Legacy helpers kept for compatibility with existing callers. */
 export async function compressImageFile(
   file: File,
