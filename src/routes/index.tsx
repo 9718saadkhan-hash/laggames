@@ -318,52 +318,6 @@ function HomePage() {
         )}
       </section>
 
-      {/* Collabs */}
-      {collabs.filter((c) => c.visible).length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <SectionHeading eyebrow="Collabs" title="Creator collaborations" subtitle="Reviews and gameplay from our partners." />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {collabs
-              .filter((c) => c.visible)
-              .map((c) => (
-                <a
-                  key={c.id}
-                  href={c.url ?? "#"}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="glass hover-lift group overflow-hidden rounded-3xl"
-                >
-                  <div className="relative aspect-video">
-                    {c.thumbnail_url ? (
-                      <img
-                        src={c.thumbnail_url}
-                        alt={`${c.title} thumbnail`}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center bg-muted">
-                        <Play className="h-8 w-8 text-muted-foreground" aria-hidden />
-                      </div>
-                    )}
-                    <span className="absolute inset-0 grid place-items-center bg-background/30 opacity-0 transition-opacity group-hover:opacity-100">
-                      <GlassIcon icon={Play} tone="red" size="lg" />
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Badge tone="blue">{c.platform}</Badge>
-                    </div>
-                    <h3 className="mt-2 font-display text-base font-bold">{c.title}</h3>
-                    {c.description && (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
-                    )}
-                  </div>
-                </a>
-              ))}
-          </div>
-        </section>
-      )}
 
       {/* About + CTA */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
