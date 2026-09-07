@@ -65,7 +65,10 @@ export function DealsHero() {
   return (
     <section aria-label="Deals" className="mx-auto w-full max-w-7xl px-3 sm:px-5">
       <div className="relative overflow-hidden rounded-3xl border border-border">
-        <div className="relative aspect-4/5 w-full sm:aspect-16/9 lg:aspect-21/9">
+        <div
+          className="relative w-full"
+          style={{ aspectRatio: String(ratios[slide.id] ?? 16 / 9) }}
+        >
           <Link
             to="/deals/$slug"
             params={{ slug: dealSlug }}
@@ -77,13 +80,15 @@ export function DealsHero() {
                 key={s.id}
                 src={s.image_url ?? ""}
                 alt={`${s.title} promotional banner`}
-                width={1536}
-                height={864}
                 loading={i === 0 ? "eager" : "lazy"}
-                style={{ objectPosition: s.image_position ?? "50% 50%" }}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  if (img.naturalWidth && img.naturalHeight)
+                    setRatios((r) => (r[s.id] ? r : { ...r, [s.id]: img.naturalWidth / img.naturalHeight }));
+                }}
                 className={cn(
-                  "absolute inset-0 h-full w-full object-cover transition-all duration-1000",
-                  i === index ? "scale-100 opacity-100" : "scale-105 opacity-0",
+                  "absolute inset-0 h-full w-full object-contain transition-opacity duration-1000",
+                  i === index ? "opacity-100" : "opacity-0",
                 )}
               />
             ))}

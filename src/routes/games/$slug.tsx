@@ -150,16 +150,11 @@ function GameDetailPage() {
   return (
     <div className="pb-10">
       {/* Hero */}
-      <div className="relative aspect-4/3 max-h-[44vh] w-full overflow-hidden sm:aspect-16/9 sm:max-h-none lg:aspect-21/9">
+      <div className="relative w-full overflow-hidden">
         {heroImage ? (
-          <img
-            src={heroImage}
-            alt={`${game.title} artwork`}
-            style={{ objectPosition: heroPosition }}
-            className="h-full w-full object-cover"
-          />
+          <BannerImage src={heroImage} alt={`${game.title} artwork`} eager />
         ) : (
-          <div aria-hidden className="h-full w-full bg-surface-2" />
+          <div aria-hidden className="aspect-video w-full bg-surface-2" />
         )}
         <div aria-hidden className="overlay-fade absolute inset-0" />
         <button
