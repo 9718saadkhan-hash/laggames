@@ -10,10 +10,8 @@ import {
   Menu,
   MessageCircle,
   Monitor,
-  Moon,
   Search,
   ShieldCheck,
-  Sun,
   Tag,
   Tv,
   User,
@@ -38,7 +36,6 @@ import {
 import { useAuth } from "@/lib/auth";
 import { instagramUrl, whatsappLink } from "@/lib/lag";
 import { contactFrom, settingsQuery } from "@/lib/queries";
-import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const NAV = [
