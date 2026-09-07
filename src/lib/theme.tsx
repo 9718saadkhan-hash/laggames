@@ -1,34 +1,21 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
-type Theme = "dark" | "light";
-const KEY = "lag-theme";
-
-const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
-  theme: "dark",
-  toggle: () => {},
-});
-
+/**
+ * LAG is dark-only. The provider is kept so existing imports keep working,
+ * but it always forces the dark theme and there is no toggle.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(KEY);
-    if (stored === "light" || stored === "dark") setTheme(stored);
-  }, []);
-
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.toggle("light", theme === "light");
-    root.classList.toggle("dark", theme === "dark");
-    root.style.colorScheme = theme;
-    window.localStorage.setItem(KEY, theme);
-  }, [theme]);
+    root.classList.remove("light");
+    root.classList.add("dark");
+    root.style.colorScheme = "dark";
+    window.localStorage.removeItem("lag-theme");
+  }, []);
 
-  const toggle = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
-
-  return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>;
+  return <>{children}</>;
 }
 
 export function useTheme() {
-  return useContext(ThemeContext);
+  return { theme: "dark" as const, toggle: () => {} };
 }
