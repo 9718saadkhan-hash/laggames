@@ -146,15 +146,20 @@ function AdminOrdersPage() {
           title="Manage Orders"
           subtitle="Track and update customer orders across the store."
           action={
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-44" aria-label="Filter by status"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {ORDER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-44" aria-label="Filter by status"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {ORDER_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="hero" onClick={() => setAddOpen(true)}>
+                <Plus className="h-4 w-4" /> Add Order
+              </Button>
+            </div>
           }
         />
 
