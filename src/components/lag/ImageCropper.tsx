@@ -322,8 +322,8 @@ export function ImageCropper({
                 minZoom={1}
                 maxZoom={5}
                 rotation={rotation}
-                aspect={mode === "custom" ? undefined : ratio}
-                cropSize={mode === "custom" && box ? box : undefined}
+                {...(mode === "custom" ? {} : { aspect: ratio })}
+                {...(mode === "custom" && box ? { cropSize: { width: box.w, height: box.h } } : {})}
                 objectFit="contain"
                 showGrid
                 restrictPosition={false}
