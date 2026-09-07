@@ -319,13 +319,13 @@ function GameDetailPage() {
                       type="button"
                       onClick={() => setLightbox(src)}
                       aria-label={`Enlarge screenshot ${i + 1}`}
-                      className="aspect-16/9 overflow-hidden rounded-2xl border border-border/60"
+                      className="aspect-16/9 overflow-hidden rounded-2xl border border-border/60 bg-surface-2"
                     >
                       <img
                         src={src}
                         alt={`${game.title} screenshot ${i + 1}`}
                         loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                        className="h-full w-full object-contain transition-transform duration-500 hover:scale-105"
                       />
                     </button>
                   </DialogTrigger>
