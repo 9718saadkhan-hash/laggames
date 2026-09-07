@@ -400,3 +400,85 @@ function GameRow({
     </section>
   );
 }
+
+function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
+  const [playing, setPlaying] = useState<string | null>(null);
+  if (collabs.length === 0) return null;
+
+  return (
+    <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <SectionHeading
+        eyebrow="Collabs"
+        title="Collab videos"
+        subtitle="Gameplay and reviews from creators we work with. Swipe to browse."
+      />
+      <div className="rail no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
+        {collabs.map((c) => {
+          const isUpload = Boolean(c.storage_path) && Boolean(c.url);
+          const active = playing === c.id;
+          return (
+            <article
+              key={c.id}
+              className="glass hover-lift w-[78%] shrink-0 snap-start overflow-hidden rounded-3xl sm:w-[46%] lg:w-[31%]"
+            >
+              <div className="relative aspect-video bg-surface-2">
+                {isUpload && active ? (
+                  <video
+                    src={c.url ?? undefined}
+                    poster={c.thumbnail_url ?? undefined}
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="none"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <>
+                    {c.thumbnail_url ? (
+                      <img
+                        src={c.thumbnail_url}
+                        alt={`${c.title} thumbnail`}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center">
+                        <Play className="h-8 w-8 text-muted-foreground" aria-hidden />
+                      </div>
+                    )}
+                    {isUpload ? (
+                      <button
+                        type="button"
+                        onClick={() => setPlaying(c.id)}
+                        aria-label={`Play ${c.title}`}
+                        className="absolute inset-0 grid place-items-center bg-background/25 transition-opacity hover:bg-background/40"
+                      >
+                        <GlassIcon icon={Play} tone="red" size="lg" />
+                      </button>
+                    ) : (
+                      <a
+                        href={c.url ?? "#"}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        aria-label={`Watch ${c.title}`}
+                        className="absolute inset-0 grid place-items-center bg-background/25 transition-opacity hover:bg-background/40"
+                      >
+                        <GlassIcon icon={Play} tone="red" size="lg" />
+                      </a>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="p-4">
+                <Badge tone="blue">{c.platform}</Badge>
+                <h3 className="mt-2 font-display text-base font-bold">{c.title}</h3>
+                {c.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
