@@ -93,34 +93,78 @@ function HomePage() {
         <DealsHero />
       </div>
 
-      {/* Categories */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      {/* Pick a category */}
+      <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading
           eyebrow="Browse gaming"
-          title="Pick your category"
+          title="Pick a category"
           subtitle="Games, PlayStation Plus and OTT subscriptions — all delivered over WhatsApp."
         />
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { to: "/games" as const, icon: Gamepad2, title: "PS4 & PS5 Games", body: `${visible.length} titles available`, tone: "red" as const },
-            { to: "/ps-plus" as const, icon: Sparkles, title: "PS Plus", body: `${psPlus.filter((p) => p.visible).length} membership plans`, tone: "blue" as const },
-            { to: "/ott" as const, icon: Tv, title: "OTT Subscriptions", body: `${ott.filter((p) => p.visible).length} streaming plans`, tone: "red" as const },
+            {
+              to: "/games" as const,
+              icon: Gamepad2,
+              title: "GAMES",
+              body: `${visible.length} PS4 & PS5 titles`,
+              tone: "red" as const,
+              image: categories.games_image ?? null,
+              position: categories.games_position ?? "50% 50%",
+            },
+            {
+              to: "/ps-plus" as const,
+              icon: Sparkles,
+              title: "PS PLUS",
+              body: "Essential · Extra · Deluxe",
+              tone: "blue" as const,
+              image: categories.ps_plus_image ?? null,
+              position: categories.ps_plus_position ?? "50% 50%",
+            },
+            {
+              to: "/ott" as const,
+              icon: Tv,
+              title: "OTT",
+              body: `${ott.filter((p) => p.visible).length} streaming plans`,
+              tone: "red" as const,
+              image: categories.ott_image ?? null,
+              position: categories.ott_position ?? "50% 50%",
+            },
           ].map((c, i) => (
             <Reveal key={c.title} delay={i * 90}>
               <Link
                 to={c.to}
-                className="glass hover-lift group flex h-full items-center gap-4 rounded-3xl p-5"
+                className="glass hover-lift group relative block h-full overflow-hidden rounded-3xl"
               >
-                <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
-                <div className="min-w-0">
-                  <h3 className="truncate font-display text-lg font-bold">{c.title}</h3>
-                  <p className="truncate text-sm text-muted-foreground">{c.body}</p>
+                <div className="relative aspect-[4/3] w-full sm:aspect-[3/4] lg:aspect-[4/3]">
+                  {c.image ? (
+                    <img
+                      src={c.image}
+                      alt={`${c.title} category`}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover:scale-[1.04]"
+                      style={{ objectPosition: c.position }}
+                    />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center bg-surface-2">
+                      <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
+                    </div>
+                  )}
+                  <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-background via-background/45 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <h3 className="font-display text-xl font-bold tracking-wide">{c.title}</h3>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{c.body}</p>
+                    <span className="glass-btn-pro mt-4 inline-flex items-center rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest">
+                      Explore
+                    </span>
+                  </div>
                 </div>
               </Link>
             </Reveal>
           ))}
         </div>
       </section>
+
 
       <GameRow
         eyebrow="Hot right now"
