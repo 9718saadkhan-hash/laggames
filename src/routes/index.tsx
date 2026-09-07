@@ -335,7 +335,7 @@ function HomePage() {
               .map((c) => (
                 <a
                   key={c.id}
-                  href={c.url}
+                  href={c.url ?? "#"}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="glass hover-lift group overflow-hidden rounded-3xl"
