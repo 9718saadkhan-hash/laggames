@@ -637,6 +637,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          country_code: string | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -645,9 +646,11 @@ export type Database = {
           phone: string | null
           status: string
           updated_at: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -656,9 +659,11 @@ export type Database = {
           phone?: string | null
           status?: string
           updated_at?: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          country_code?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -667,6 +672,7 @@ export type Database = {
           phone?: string | null
           status?: string
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -685,6 +691,9 @@ export type Database = {
           old_price: number | null
           platform: string
           price: number | null
+          price_12m: number | null
+          price_1m: number | null
+          price_3m: number | null
           region: string
           tier: string
           updated_at: string
@@ -704,6 +713,9 @@ export type Database = {
           old_price?: number | null
           platform?: string
           price?: number | null
+          price_12m?: number | null
+          price_1m?: number | null
+          price_3m?: number | null
           region?: string
           tier?: string
           updated_at?: string
@@ -723,6 +735,9 @@ export type Database = {
           old_price?: number | null
           platform?: string
           price?: number | null
+          price_12m?: number | null
+          price_1m?: number | null
+          price_3m?: number | null
           region?: string
           tier?: string
           updated_at?: string

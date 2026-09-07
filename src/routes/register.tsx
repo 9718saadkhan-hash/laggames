@@ -22,11 +22,19 @@ export const Route = createFileRoute("/register")({
   component: RegisterPage,
 });
 
+const COUNTRY_CODES = ["+91", "+1", "+44", "+61", "+971", "+92", "+880", "+64", "+65", "+27"];
+
 const schema = z
   .object({
     fullName: z.string().trim().min(2, "Enter your full name."),
+    username: z
+      .string()
+      .trim()
+      .min(3, "Username must be at least 3 characters.")
+      .regex(/^[a-zA-Z0-9._]+$/, "Use letters, numbers, dots or underscores only."),
     email: z.string().trim().email("Enter a valid email address."),
-    phone: z.string().trim().min(8, "Enter a valid phone number.").optional().or(z.literal("")),
+    countryCode: z.string().trim().min(2),
+    phone: z.string().trim().min(8, "Enter a valid phone number."),
     password: z.string().min(6, "Password must be at least 6 characters."),
     confirmPassword: z.string(),
   })
@@ -35,12 +43,16 @@ const schema = z
     path: ["confirmPassword"],
   });
 
-type Errors = Partial<Record<"fullName" | "email" | "phone" | "password" | "confirmPassword", string>>;
+type Errors = Partial<
+  Record<"fullName" | "username" | "email" | "countryCode" | "phone" | "password" | "confirmPassword", string>
+>;
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -50,7 +62,7 @@ function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = schema.safeParse({ fullName, email, phone, password, confirmPassword });
+    const parsed = schema.safeParse({ fullName, username, email, countryCode, phone, password, confirmPassword });
     if (!parsed.success) {
       const fieldErrors: Errors = {};
       for (const issue of parsed.error.issues) {
@@ -62,12 +74,17 @@ function RegisterPage() {
     }
     setErrors({});
     setLoading(true);
+    const fullPhone = `${parsed.data.countryCode}${parsed.data.phone.replace(/^0+/, "")}`;
     const { data, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: parsed.data.fullName },
+        data: {
+          full_name: parsed.data.fullName,
+          username: parsed.data.username,
+          phone: fullPhone,
+        },
       },
     });
     if (error) {
@@ -80,8 +97,10 @@ function RegisterPage() {
         await supabase.from("profiles").upsert({
           id: data.user.id,
           full_name: parsed.data.fullName,
+          username: parsed.data.username,
           email: parsed.data.email,
-          phone: parsed.data.phone || null,
+          country_code: parsed.data.countryCode,
+          phone: fullPhone,
         });
       } catch {
         // ignore — no session yet, RLS may block; account page will retry.
@@ -129,13 +148,30 @@ function RegisterPage() {
             {errors.fullName && <p className="text-xs font-medium text-lag-red">{errors.fullName}</p>}
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} aria-invalid={Boolean(errors.username)} />
+            {errors.username && <p className="text-xs font-medium text-lag-red">{errors.username}</p>}
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={Boolean(errors.email)} />
             {errors.email && <p className="text-xs font-medium text-lag-red">{errors.email}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="phone">Phone (optional)</Label>
-            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={Boolean(errors.phone)} />
+            <Label htmlFor="phone">Phone number</Label>
+            <div className="flex gap-2">
+              <select
+                aria-label="Country code"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="h-9 shrink-0 rounded-md border border-input bg-transparent px-2 text-sm"
+              >
+                {COUNTRY_CODES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <Input id="phone" type="tel" inputMode="tel" className="min-w-0 flex-1" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={Boolean(errors.phone)} />
+            </div>
             {errors.phone && <p className="text-xs font-medium text-lag-red">{errors.phone}</p>}
           </div>
           <div className="space-y-1.5">

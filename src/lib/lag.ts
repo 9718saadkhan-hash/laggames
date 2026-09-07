@@ -57,6 +57,9 @@ export interface PsPlusPlan {
   platform: string;
   price: number | null;
   old_price: number | null;
+  price_1m: number | null;
+  price_3m: number | null;
+  price_12m: number | null;
   description: string | null;
   features: string[];
   image_url: string | null;
@@ -65,6 +68,17 @@ export interface PsPlusPlan {
   visible: boolean;
   display_order: number;
 }
+
+/** LAG sells exactly three PS Plus categories. */
+export const PS_PLUS_TIERS = ["Essential", "Extra", "Deluxe"] as const;
+export type PsPlusTier = (typeof PS_PLUS_TIERS)[number];
+
+export const PS_PLUS_DURATIONS = [
+  { key: "price_1m" as const, label: "1 Month" },
+  { key: "price_3m" as const, label: "3 Months" },
+  { key: "price_12m" as const, label: "12 Months" },
+];
+export type PsPlusDurationKey = (typeof PS_PLUS_DURATIONS)[number]["key"];
 
 export interface OttPlan {
   id: string;
@@ -147,6 +161,7 @@ export interface OrderRow {
   duration: string | null;
   price: number | null;
   status: string;
+  notes?: string | null;
   created_at: string;
 }
 

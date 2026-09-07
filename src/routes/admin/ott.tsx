@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2, Clapperboard } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { ImagePositionField } from "@/components/lag/ImagePositionField";
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { ottQuery } from "@/lib/queries";
@@ -34,15 +36,16 @@ export const Route = createFileRoute("/admin/ott")({
 });
 
 type F = {
-  id?: string; name: string; logo_url: string; plan: string; duration: string; quality: string;
+  id?: string; name: string; logo_url: string; image_position: string; plan: string; duration: string; quality: string;
   screens: string; price: string; old_price: string; description: string; availability: string;
   visible: boolean; display_order: string;
 };
-const EMPTY: F = { name: "", logo_url: "", plan: "", duration: "", quality: "", screens: "", price: "", old_price: "", description: "", availability: "In Stock", visible: true, display_order: "0" };
+const EMPTY: F = { name: "", logo_url: "", image_position: "50% 50%", plan: "", duration: "", quality: "", screens: "", price: "", old_price: "", description: "", availability: "In Stock", visible: true, display_order: "0" };
 
 function toForm(p: OttPlan): F {
   return {
-    id: p.id, name: p.name, logo_url: p.logo_url ?? "", plan: p.plan, duration: p.duration,
+    id: p.id, name: p.name, logo_url: p.logo_url ?? "", image_position: p.image_position ?? "50% 50%",
+    plan: p.plan, duration: p.duration,
     quality: p.quality ?? "", screens: p.screens ?? "", price: p.price?.toString() ?? "",
     old_price: p.old_price?.toString() ?? "", description: p.description ?? "",
     availability: p.availability, visible: p.visible, display_order: p.display_order?.toString() ?? "0",
@@ -52,7 +55,8 @@ function toPayload(f: F) {
   if (!f.name.trim()) throw new Error("Name is required.");
   const num = (v: string) => (v.trim() === "" ? null : Number(v));
   return {
-    name: f.name.trim(), logo_url: f.logo_url || null, plan: f.plan, duration: f.duration,
+    name: f.name.trim(), logo_url: f.logo_url || null, image_position: f.image_position || "50% 50%",
+    plan: f.plan, duration: f.duration,
     quality: f.quality || null, screens: f.screens || null, price: num(f.price), old_price: num(f.old_price),
     description: f.description || null, availability: f.availability || "In Stock", visible: f.visible,
     display_order: num(f.display_order) ?? 0,
@@ -154,7 +158,21 @@ function AdminOttPage() {
             <DialogHeader><DialogTitle>{editingId ? "Edit Plan" : "Add Plan"}</DialogTitle></DialogHeader>
             <div className="grid gap-3 py-2">
               <div className="space-y-1.5"><Label htmlFor="o-name">Name</Label><Input id="o-name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label htmlFor="o-logo">Logo URL</Label><Input id="o-logo" value={form.logo_url} onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))} /></div>
+              <div className="space-y-1.5">
+                <Label>Logo / image</Label>
+                <ImageUploadField
+                  value={form.logo_url}
+                  onChange={(v) => setForm((f) => ({ ...f, logo_url: v ?? "" }))}
+                  purpose="ott"
+                  label="Upload from device"
+                  mediaFolder="ott"
+                />
+              </div>
+              <ImagePositionField
+                value={form.image_position}
+                onChange={(v) => setForm((f) => ({ ...f, image_position: v }))}
+                label="Image focal position"
+              />
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5"><Label htmlFor="o-plan">Plan</Label><Input id="o-plan" value={form.plan} onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value }))} /></div>
                 <div className="space-y-1.5"><Label htmlFor="o-duration">Duration</Label><Input id="o-duration" value={form.duration} onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))} /></div>

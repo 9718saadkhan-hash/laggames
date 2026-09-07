@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShoppingBag, Trash2 } from "lucide-react";
+import { Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
-import { ordersQuery } from "@/lib/queries";
+import { customersQuery, gamesQuery, ordersQuery } from "@/lib/queries";
 import { money, formatDate, ORDER_STATUSES, type OrderRow } from "@/lib/lag";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle as ADTitle,
@@ -37,15 +41,84 @@ function statusTone(status: string): "red" | "blue" | "neutral" {
 
 function AdminOrdersPage() {
   const { data: orders = [], isLoading, isError } = useQuery(ordersQuery());
+  const { data: customers = [] } = useQuery(customersQuery);
+  const { data: games = [] } = useQuery(gamesQuery());
   const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("all");
+  const [addOpen, setAddOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [manual, setManual] = useState({
+    userId: "",
+    productType: "Game",
+    productId: "",
+    productName: "",
+    platform: "PS5",
+    optionType: "Primary",
+    duration: "30 Days",
+    price: "",
+    date: new Date().toISOString().slice(0, 10),
+    status: String(ORDER_STATUSES[0] ?? "Pending"),
+    notes: "",
+  });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["orders"] });
+
+  const matchedCustomers = useMemo(() => {
+    const q = customerSearch.trim().toLowerCase();
+    const list = q
+      ? customers.filter((c) => {
+          const row = c as Record<string, unknown>;
+          return [row["full_name"], row["username"], row["email"], row["phone"]].some(
+            (v) => typeof v === "string" && v.toLowerCase().includes(q),
+          );
+        })
+      : customers;
+    return list.slice(0, 25);
+  }, [customers, customerSearch]);
 
   const filtered = useMemo(
     () => (filter === "all" ? orders : orders.filter((o) => o.status === filter)),
     [orders, filter],
   );
+
+  async function addManualOrder() {
+    const customer = customers.find((c) => c.id === manual.userId) as Record<string, unknown> | undefined;
+    const game = games.find((g) => g.id === manual.productId);
+    const productName = manual.productType === "Game" ? game?.title ?? manual.productName : manual.productName;
+    if (!customer) {
+      toast.error("Select a customer first.");
+      return;
+    }
+    if (!productName?.trim()) {
+      toast.error("Choose a game or enter a product name.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("orders").insert({
+      order_code: `LAG-${Date.now().toString(36).toUpperCase()}`,
+      user_id: manual.userId,
+      customer_name: (customer["full_name"] as string | null) ?? (customer["username"] as string | null) ?? null,
+      customer_phone: (customer["phone"] as string | null) ?? null,
+      product_type: manual.productType,
+      product_id: manual.productType === "Game" && manual.productId ? manual.productId : null,
+      product_name: productName.trim(),
+      platform: manual.platform || null,
+      option_type: manual.optionType || null,
+      duration: manual.duration || null,
+      price: manual.price.trim() === "" ? null : Number(manual.price),
+      status: manual.status,
+      notes: manual.notes || null,
+      created_at: new Date(`${manual.date}T12:00:00`).toISOString(),
+    });
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Order added to the customer's profile.");
+      setAddOpen(false);
+      invalidate();
+    }
+  }
 
   async function updateStatus(order: OrderRow, status: string) {
     const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
@@ -73,15 +146,20 @@ function AdminOrdersPage() {
           title="Manage Orders"
           subtitle="Track and update customer orders across the store."
           action={
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-44" aria-label="Filter by status"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {ORDER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-44" aria-label="Filter by status"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {ORDER_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="hero" onClick={() => setAddOpen(true)}>
+                <Plus className="h-4 w-4" /> Add Order
+              </Button>
+            </div>
           }
         />
 
@@ -140,6 +218,135 @@ function AdminOrdersPage() {
             ))}
           </div>
         )}
+
+        <Dialog open={addOpen} onOpenChange={setAddOpen}>
+          <DialogContent className="max-h-[88vh] w-[calc(100vw-1.5rem)] max-w-lg overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add order manually</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-3 py-2">
+              <div className="space-y-1.5">
+                <Label>Find customer</Label>
+                <Input
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  placeholder="Search name, username, email or phone"
+                  aria-label="Search customer"
+                />
+                <Select value={manual.userId} onValueChange={(v) => setManual((m) => ({ ...m, userId: v }))}>
+                  <SelectTrigger aria-label="Select customer">
+                    <SelectValue placeholder="Select customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {matchedCustomers.map((c) => {
+                      const row = c as Record<string, unknown>;
+                      return (
+                        <SelectItem key={c.id} value={c.id}>
+                          {(row["full_name"] as string) || (row["username"] as string) || (row["email"] as string) || "Customer"}
+                          {row["phone"] ? ` · ${row["phone"] as string}` : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Product type</Label>
+                  <Select value={manual.productType} onValueChange={(v) => setManual((m) => ({ ...m, productType: v }))}>
+                    <SelectTrigger aria-label="Product type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["Game", "PS Plus", "OTT", "Other"].map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {manual.productType === "Game" ? (
+                  <div className="space-y-1.5">
+                    <Label>Game</Label>
+                    <Select value={manual.productId} onValueChange={(v) => setManual((m) => ({ ...m, productId: v }))}>
+                      <SelectTrigger aria-label="Game"><SelectValue placeholder="Select game" /></SelectTrigger>
+                      <SelectContent>
+                        {games.slice(0, 200).map((g) => (
+                          <SelectItem key={g.id} value={g.id}>{g.title}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label>Product name</Label>
+                    <Input value={manual.productName} onChange={(e) => setManual((m) => ({ ...m, productName: e.target.value }))} />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label>Account</Label>
+                  <Select value={manual.optionType} onValueChange={(v) => setManual((m) => ({ ...m, optionType: v }))}>
+                    <SelectTrigger aria-label="Account type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["Primary", "Secondary", "—"].map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Duration</Label>
+                  <Select value={manual.duration} onValueChange={(v) => setManual((m) => ({ ...m, duration: v }))}>
+                    <SelectTrigger aria-label="Duration"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["30 Days", "60 Days", "Permanent", "1 Month", "3 Months", "12 Months"].map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Price paid</Label>
+                  <Input type="number" value={manual.price} onChange={(e) => setManual((m) => ({ ...m, price: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label>Platform</Label>
+                  <Input value={manual.platform} onChange={(e) => setManual((m) => ({ ...m, platform: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Purchase date</Label>
+                  <Input type="date" value={manual.date} onChange={(e) => setManual((m) => ({ ...m, date: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select value={manual.status} onValueChange={(v) => setManual((m) => ({ ...m, status: v }))}>
+                    <SelectTrigger aria-label="Order status"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {ORDER_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Notes</Label>
+                <Textarea rows={2} value={manual.notes} onChange={(e) => setManual((m) => ({ ...m, notes: e.target.value }))} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="glass" onClick={() => setAddOpen(false)}>Cancel</Button>
+              <Button variant="hero" onClick={addManualOrder} disabled={saving}>
+                {saving ? "Saving…" : "Add order"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </AdminShell>
     </AdminGate>
   );

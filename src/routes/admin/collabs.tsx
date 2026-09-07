@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2, Video } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
+import { VideoUploadField } from "@/components/lag/VideoUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { collabsQuery } from "@/lib/queries";
@@ -35,24 +37,29 @@ export const Route = createFileRoute("/admin/collabs")({
 
 type F = {
   id?: string; title: string; description: string; url: string; thumbnail_url: string;
+  storage_path: string | null; source: string;
   platform: string; visible: boolean; display_order: string;
 };
-const EMPTY: F = { title: "", description: "", url: "", thumbnail_url: "", platform: "YouTube", visible: true, display_order: "0" };
+const EMPTY: F = { title: "", description: "", url: "", thumbnail_url: "", storage_path: null, source: "upload", platform: "LAG", visible: true, display_order: "0" };
 
 function toForm(c: CollabVideo): F {
   return {
     id: c.id, title: c.title, description: c.description ?? "", url: c.url ?? "",
-    thumbnail_url: c.thumbnail_url ?? "", platform: c.platform, visible: c.visible,
+    thumbnail_url: c.thumbnail_url ?? "", storage_path: c.storage_path ?? null,
+    source: c.source ?? (c.storage_path ? "upload" : "link"),
+    platform: c.platform, visible: c.visible,
     display_order: c.display_order?.toString() ?? "0",
   };
 }
 function toPayload(f: F) {
   if (!f.title.trim()) throw new Error("Title is required.");
-  if (!f.url.trim()) throw new Error("URL is required.");
+  if (!f.storage_path && !f.url.trim()) throw new Error("Upload a video or paste a video link.");
   const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
   return {
-    title: f.title.trim(), description: f.description || null, url: f.url.trim(),
-    thumbnail_url: f.thumbnail_url || null, platform: f.platform || "YouTube", visible: f.visible,
+    title: f.title.trim(), description: f.description || null, url: f.url.trim() || null,
+    thumbnail_url: f.thumbnail_url || null, storage_path: f.storage_path,
+    source: f.storage_path ? "upload" : "link",
+    platform: f.platform || "LAG", visible: f.visible,
     display_order: num(f.display_order),
   };
 }
@@ -150,8 +157,37 @@ function AdminCollabsPage() {
             <div className="grid gap-3 py-2">
               <div className="space-y-1.5"><Label htmlFor="c-title">Title</Label><Input id="c-title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} /></div>
               <div className="space-y-1.5"><Label htmlFor="c-desc">Description</Label><Textarea id="c-desc" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label htmlFor="c-url">Video URL</Label><Input id="c-url" value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label htmlFor="c-thumb">Thumbnail URL</Label><Input id="c-thumb" value={form.thumbnail_url} onChange={(e) => setForm((f) => ({ ...f, thumbnail_url: e.target.value }))} /></div>
+              <div className="space-y-1.5">
+                <Label>Video file</Label>
+                <VideoUploadField
+                  value={{ url: form.storage_path ? form.url : null, storagePath: form.storage_path, thumbnail: form.thumbnail_url || null }}
+                  onChange={(v) =>
+                    setForm((f) => ({
+                      ...f,
+                      url: v.url ?? (v.storagePath ? "" : f.storage_path ? "" : f.url),
+                      storage_path: v.storagePath,
+                      thumbnail_url: v.thumbnail ?? "",
+                      source: v.storagePath ? "upload" : "link",
+                    }))
+                  }
+                />
+              </div>
+              {!form.storage_path && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-url">Or paste a video link (YouTube / Instagram)</Label>
+                  <Input id="c-url" value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label>Custom thumbnail (optional)</Label>
+                <ImageUploadField
+                  value={form.thumbnail_url || null}
+                  onChange={(v) => setForm((f) => ({ ...f, thumbnail_url: v ?? "" }))}
+                  purpose="game-banner"
+                  label="Upload thumbnail"
+                  mediaFolder="collabs"
+                />
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5"><Label htmlFor="c-platform">Platform</Label><Input id="c-platform" value={form.platform} onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value }))} /></div>
                 <div className="space-y-1.5"><Label htmlFor="c-order">Display Order</Label><Input id="c-order" type="number" value={form.display_order} onChange={(e) => setForm((f) => ({ ...f, display_order: e.target.value }))} /></div>

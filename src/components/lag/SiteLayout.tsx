@@ -56,6 +56,9 @@ const NAV = [
 /** Desktop bar keeps a shorter set; the hamburger holds everything. */
 const DESKTOP_NAV = NAV.filter((i) => i.label !== "About Us");
 
+/** Public LAG WhatsApp community invite. */
+const WHATSAPP_COMMUNITY = "https://chat.whatsapp.com/FhEYxa03iI0GxJ3K2Ke6sL";
+
 export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -72,8 +75,10 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 function BackdropGlow() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="absolute -top-40 -left-32 h-[26rem] w-[26rem] rounded-full bg-lag-red/12 blur-[120px]" />
-      <div className="absolute top-1/3 -right-40 h-[30rem] w-[30rem] rounded-full bg-lag-blue/12 blur-[130px]" />
+      <div className="ambient-orb -top-40 -left-32 h-[26rem] w-[26rem] bg-lag-red/15" />
+      <div className="ambient-orb top-1/3 -right-40 h-[30rem] w-[30rem] bg-lag-blue/15 [animation-delay:-12s]" />
+      <div className="ambient-orb bottom-0 left-1/3 h-[22rem] w-[22rem] bg-lag-blue/10 [animation-delay:-6s]" />
+      <div className="ambient-particles absolute inset-0" />
     </div>
   );
 }
@@ -241,6 +246,20 @@ function Header() {
                 Logout
               </button>
             )}
+
+            <div className="mt-2 border-t border-border pt-2">
+              <Button asChild variant="whatsapp" size="lg" className="w-full">
+                <a
+                  href={WHATSAPP_COMMUNITY}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Users className="h-4 w-4" aria-hidden />
+                  JOIN WHATSAPP COMMUNITY
+                </a>
+              </Button>
+            </div>
           </nav>
         )}
       </header>

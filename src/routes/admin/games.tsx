@@ -5,6 +5,8 @@ import { Plus, Pencil, Copy, Trash2, Gamepad2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { ImagePositionField } from "@/components/lag/ImagePositionField";
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { gamesQuery } from "@/lib/queries";
@@ -64,6 +66,8 @@ type GameForm = {
   description: string;
   cover_url: string;
   banner_url: string;
+  cover_position: string;
+  banner_position: string;
   gallery: string;
   trailer_url: string;
   platform: string;
@@ -97,6 +101,8 @@ const EMPTY_FORM: GameForm = {
   description: "",
   cover_url: "",
   banner_url: "",
+  cover_position: "50% 50%",
+  banner_position: "50% 50%",
   gallery: "",
   trailer_url: "",
   platform: "PS5",
@@ -132,6 +138,8 @@ function gameToForm(g: Game): GameForm {
     description: g.description ?? "",
     cover_url: g.cover_url ?? "",
     banner_url: g.banner_url ?? "",
+    cover_position: g.cover_position ?? "50% 50%",
+    banner_position: g.banner_position ?? "50% 50%",
     gallery: (g.gallery ?? []).join("\n"),
     trailer_url: g.trailer_url ?? "",
     platform: g.platform,
@@ -170,8 +178,10 @@ function formToPayload(f: GameForm) {
     description: f.description || null,
     cover_url: f.cover_url || null,
     banner_url: f.banner_url || null,
+    cover_position: f.cover_position || "50% 50%",
+    banner_position: f.banner_position || "50% 50%",
     gallery: f.gallery
-      .split(/[\n,]/)
+      .split("\n")
       .map((s) => s.trim())
       .filter(Boolean),
     trailer_url: f.trailer_url || null,
@@ -411,19 +421,81 @@ function AdminGamesPage() {
                 <Textarea id="g-desc" rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="g-cover">Cover URL</Label>
-                  <Input id="g-cover" value={form.cover_url} onChange={(e) => setForm((f) => ({ ...f, cover_url: e.target.value }))} />
+                  <Label>Cover image</Label>
+                  <ImageUploadField
+                    value={form.cover_url}
+                    onChange={(v) => setForm((f) => ({ ...f, cover_url: v ?? "" }))}
+                    purpose="game-cover"
+                    label="Upload from device"
+                    mediaFolder="games"
+                  />
+                  <ImagePositionField
+                    value={form.cover_position}
+                    onChange={(v) => setForm((f) => ({ ...f, cover_position: v }))}
+                    label="Cover focal position"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="g-banner">Banner URL</Label>
-                  <Input id="g-banner" value={form.banner_url} onChange={(e) => setForm((f) => ({ ...f, banner_url: e.target.value }))} />
+                  <Label>Banner image</Label>
+                  <ImageUploadField
+                    value={form.banner_url}
+                    onChange={(v) => setForm((f) => ({ ...f, banner_url: v ?? "" }))}
+                    purpose="game-banner"
+                    label="Upload from device"
+                    mediaFolder="games"
+                  />
+                  <ImagePositionField
+                    value={form.banner_position}
+                    onChange={(v) => setForm((f) => ({ ...f, banner_position: v }))}
+                    label="Banner focal position"
+                  />
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="g-gallery">Gallery (comma or newline separated URLs)</Label>
-                <Textarea id="g-gallery" rows={3} value={form.gallery} onChange={(e) => setForm((f) => ({ ...f, gallery: e.target.value }))} />
+              <div className="space-y-2">
+                <Label>Gallery images</Label>
+                <div className="flex flex-wrap gap-2">
+                  {form.gallery
+                    .split("\n")
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                    .map((src, i) => (
+                      <div key={`${i}-${src.slice(-16)}`} className="relative">
+                        <img src={src} alt={`Gallery ${i + 1}`} loading="lazy" className="h-16 w-24 rounded-xl border border-border object-cover" />
+                        <Button
+                          type="button"
+                          variant="nav"
+                          size="sm"
+                          className="absolute -right-1 -top-1 h-6 w-6 rounded-full p-0"
+                          aria-label={`Remove gallery image ${i + 1}`}
+                          onClick={() =>
+                            setForm((f) => ({
+                              ...f,
+                              gallery: f.gallery
+                                .split("\n")
+                                .map((s) => s.trim())
+                                .filter(Boolean)
+                                .filter((_, j) => j !== i)
+                                .join("\n"),
+                            }))
+                          }
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+                <ImageUploadField
+                  value={null}
+                  onChange={(v) => {
+                    if (!v) return;
+                    setForm((f) => ({ ...f, gallery: [f.gallery.trim(), v].filter(Boolean).join("\n") }));
+                  }}
+                  purpose="game-banner"
+                  label="Add gallery image"
+                  mediaFolder="games"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="g-trailer">Trailer URL</Label>
