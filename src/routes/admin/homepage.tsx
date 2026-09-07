@@ -473,6 +473,7 @@ function AdminHomepagePage() {
             <>
               <ComparisonSection initial={comparison} />
               <HowItWorksSection initial={howItWorks} />
+              <CategoriesSection initial={categories} />
               <AboutSection initial={about} />
             </>
           )}
