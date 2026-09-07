@@ -66,6 +66,8 @@ type GameForm = {
   description: string;
   cover_url: string;
   banner_url: string;
+  cover_position: string;
+  banner_position: string;
   gallery: string;
   trailer_url: string;
   platform: string;
