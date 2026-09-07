@@ -36,15 +36,16 @@ export const Route = createFileRoute("/admin/ott")({
 });
 
 type F = {
-  id?: string; name: string; logo_url: string; plan: string; duration: string; quality: string;
+  id?: string; name: string; logo_url: string; image_position: string; plan: string; duration: string; quality: string;
   screens: string; price: string; old_price: string; description: string; availability: string;
   visible: boolean; display_order: string;
 };
-const EMPTY: F = { name: "", logo_url: "", plan: "", duration: "", quality: "", screens: "", price: "", old_price: "", description: "", availability: "In Stock", visible: true, display_order: "0" };
+const EMPTY: F = { name: "", logo_url: "", image_position: "50% 50%", plan: "", duration: "", quality: "", screens: "", price: "", old_price: "", description: "", availability: "In Stock", visible: true, display_order: "0" };
 
 function toForm(p: OttPlan): F {
   return {
-    id: p.id, name: p.name, logo_url: p.logo_url ?? "", plan: p.plan, duration: p.duration,
+    id: p.id, name: p.name, logo_url: p.logo_url ?? "", image_position: p.image_position ?? "50% 50%",
+    plan: p.plan, duration: p.duration,
     quality: p.quality ?? "", screens: p.screens ?? "", price: p.price?.toString() ?? "",
     old_price: p.old_price?.toString() ?? "", description: p.description ?? "",
     availability: p.availability, visible: p.visible, display_order: p.display_order?.toString() ?? "0",
@@ -54,7 +55,8 @@ function toPayload(f: F) {
   if (!f.name.trim()) throw new Error("Name is required.");
   const num = (v: string) => (v.trim() === "" ? null : Number(v));
   return {
-    name: f.name.trim(), logo_url: f.logo_url || null, plan: f.plan, duration: f.duration,
+    name: f.name.trim(), logo_url: f.logo_url || null, image_position: f.image_position || "50% 50%",
+    plan: f.plan, duration: f.duration,
     quality: f.quality || null, screens: f.screens || null, price: num(f.price), old_price: num(f.old_price),
     description: f.description || null, availability: f.availability || "In Stock", visible: f.visible,
     display_order: num(f.display_order) ?? 0,
