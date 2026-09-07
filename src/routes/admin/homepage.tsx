@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Home, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { heroQuery, settingsQuery } from "@/lib/queries";
