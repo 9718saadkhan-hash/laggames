@@ -12,7 +12,6 @@ import {
   renderRotatedCrop,
   type ImagePurpose,
 } from "@/lib/media";
-import { cn } from "@/lib/utils";
 
 /**
  * Crop / zoom / reposition dialog.
