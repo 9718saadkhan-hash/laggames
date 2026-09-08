@@ -21,6 +21,7 @@
 - Floating WhatsApp reference artwork with Instagram directly above it
 - WhatsApp-style admin image adjuster with crop ratios, drag, pinch/slider zoom, rotation, reset, cancel, save, and live preview
 - Second full-access administrator account
+- Homepage category cards updated to the compact two-column collection style from the supplied reference
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight

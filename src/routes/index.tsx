@@ -109,7 +109,7 @@ function HomePage() {
           title="Pick a category"
           subtitle="Games, PlayStation Plus and OTT subscriptions — all delivered over WhatsApp."
         />
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {[
             {
               to: "/games" as const,
@@ -142,31 +142,46 @@ function HomePage() {
             <Reveal key={c.title} delay={i * 90}>
               <Link
                 to={c.to}
-                className="glass hover-lift group relative block h-full overflow-hidden rounded-3xl"
+                aria-label={`Browse ${c.title}`}
+                className="glass hover-lift group relative block aspect-[1.55/1] overflow-hidden rounded-2xl border-border/80 shadow-[inset_0_1px_0_var(--glass-highlight)]"
               >
-                <div className="relative aspect-[4/3] w-full sm:aspect-[3/4] lg:aspect-[4/3]">
-                  {c.image ? (
+                <span
+                  aria-hidden
+                  className={`absolute inset-0 opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${
+                    c.tone === "red"
+                      ? "bg-gradient-to-br from-lag-red/45 via-surface to-background"
+                      : "bg-gradient-to-br from-lag-blue/50 via-surface to-background"
+                  }`}
+                />
+                {c.image ? (
+                  <div className="absolute inset-0 overflow-hidden">
                     <img
                       src={c.image}
-                      alt={`${c.title} category`}
+                      alt=""
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover:scale-[1.04]"
+                      className="h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
                       style={{ objectPosition: c.position }}
                     />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center bg-surface-2">
-                      <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
-                    </div>
-                  )}
-                  <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-background via-background/45 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <h3 className="font-display text-xl font-bold tracking-wide">{c.title}</h3>
-                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{c.body}</p>
-                    <span className="glass-btn-pro mt-4 inline-flex items-center rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest">
-                      Explore
-                    </span>
+                    <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/15 to-transparent" />
                   </div>
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center opacity-50">
+                    <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
+                  </div>
+                )}
+                <span
+                  aria-hidden
+                  className={`absolute inset-x-4 bottom-0 h-1 rounded-t-full transition-all duration-300 group-hover:inset-x-2 ${
+                    c.tone === "red" ? "bg-lag-red shadow-[var(--glow-red)]" : "bg-lag-blue shadow-[var(--glow-blue)]"
+                  }`}
+                />
+                <div className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-5">
+                  <span className="glass inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-foreground sm:text-[10px]">
+                    Explore
+                  </span>
+                  <h3 className="mt-2 font-display text-base font-bold tracking-wide sm:text-xl">{c.title}</h3>
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-sm">{c.body}</p>
                 </div>
               </Link>
             </Reveal>
