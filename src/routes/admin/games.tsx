@@ -5,6 +5,7 @@ import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { EditionsManager } from "@/components/lag/EditionsManager";
 import { ImagePositionField } from "@/components/lag/ImagePositionField";
 import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
