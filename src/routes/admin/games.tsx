@@ -222,6 +222,7 @@ function AdminGamesPage() {
   const [form, setForm] = useState<GameForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editionsGame, setEditionsGame] = useState<Game | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["games"] });
