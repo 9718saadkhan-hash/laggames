@@ -18,8 +18,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         /** Primary CTA — bright frosted white glass. */
         hero: "glass-btn glass-btn-pro glass-btn-light hover:brightness-105",
-        /** Secondary CTA — frosted glass with blue glow. */
-        blue: "glass-btn glass-btn-pro glass-btn-blue hover:brightness-110",
+        /** Alternate CTA — the same bright frosted white glass. */
+        blue: "glass-btn glass-btn-pro glass-btn-light hover:brightness-105",
         /** Secondary / tertiary — subtle translucent glass. */
         glass: "glass-btn glass-btn-pro text-foreground hover:border-lag-blue/45",
         /** Minimal glass for navigation / icon buttons. */
