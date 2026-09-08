@@ -402,3 +402,25 @@ export function describeDevice(ua: string): { device: string; browser: string; o
             : "Unknown OS";
   return { device, browser, os };
 }
+
+/** An alternate edition of a game (Standard, Deluxe, Ultimate…) with its own prices. */
+export interface GameEdition {
+  id: string;
+  game_id: string;
+  name: string;
+  note: string | null;
+  price_30: number | null;
+  price_60: number | null;
+  price_permanent: number | null;
+  old_price: number | null;
+  visible: boolean;
+  display_order: number;
+}
+
+/** Lowest listed price across a game and its editions. */
+export function lowestEditionPrice(editions: GameEdition[]): number | null {
+  const prices = editions
+    .flatMap((e) => [e.price_30, e.price_60, e.price_permanent])
+    .filter((p): p is number => typeof p === "number");
+  return prices.length ? Math.min(...prices) : null;
+}

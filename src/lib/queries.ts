@@ -380,3 +380,20 @@ export async function touchSession(userId: string) {
     /* session bookkeeping is best effort */
   }
 }
+
+/** Editions for one game (empty when the game has no alternate editions). */
+export const gameEditionsQuery = (gameId?: string, opts?: { admin?: boolean }) =>
+  queryOptions({
+    queryKey: ["game_editions", gameId ?? "none", opts?.admin ? "admin" : "public"],
+    enabled: Boolean(gameId),
+    queryFn: async () => {
+      let q = supabase
+        .from("game_editions")
+        .select("*")
+        .eq("game_id", gameId!)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: true });
+      if (!opts?.admin) q = q.eq("visible", true);
+      return unwrap<GameEdition[]>((await q) as never);
+    },
+  });
