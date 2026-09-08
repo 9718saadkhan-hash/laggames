@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, ChevronLeft, ChevronRight, Tag } from "lucide-react";
+import { CalendarDays, Tag } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { Badge } from "@/components/lag/ui-bits";
+import logoAsset from "@/assets/lag-logo.jpg.asset.json";
+import { Badge, Reveal } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { formatDate, slugify } from "@/lib/lag";
 import { dealsQuery } from "@/lib/queries";
@@ -22,7 +23,6 @@ export function DealsHero() {
   const { data: all = [] } = useQuery(dealsQuery());
   const slides = all.filter((d) => d.visible && d.show_in_hero && isLive(d.end_date));
   const [index, setIndex] = useState(0);
-  const [ratios, setRatios] = useState<Record<string, number>>({});
   const count = slides.length;
 
   const go = useCallback(
@@ -59,128 +59,133 @@ export function DealsHero() {
     );
   }
 
-  const slide = slides[Math.min(index, count - 1)]!;
-  const external = slide.cta_link?.startsWith("http");
-  const dealSlug = slide.slug ?? slugify(slide.title);
-
   return (
     <section aria-label="Deals" className="mx-auto w-full max-w-7xl px-3 sm:px-5">
-      <div className="relative overflow-hidden rounded-3xl border border-border">
-        <div
-          className="relative w-full"
-          style={{ aspectRatio: String(ratios[slide.id] ?? 16 / 9) }}
-        >
-          <Link
-            to="/deals/$slug"
-            params={{ slug: dealSlug }}
-            aria-label={`View ${slide.title} deal`}
-            className="absolute inset-0 block"
-          >
-            {slides.map((s, i) => (
-              <img
-                key={s.id}
-                src={s.image_url ?? ""}
-                alt={`${s.title} promotional banner`}
-                loading={i === 0 ? "eager" : "lazy"}
-                onLoad={(e) => {
-                  const img = e.currentTarget;
-                  if (img.naturalWidth && img.naturalHeight)
-                    setRatios((r) => (r[s.id] ? r : { ...r, [s.id]: img.naturalWidth / img.naturalHeight }));
-                }}
-                className={cn(
-                  "absolute inset-0 h-full w-full object-contain transition-opacity duration-1000",
-                  i === index ? "opacity-100" : "opacity-0",
-                )}
-              />
-            ))}
-          </Link>
-          <div aria-hidden className="overlay-fade absolute inset-0" />
-
-          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-12">
-            <div className="max-w-xl min-w-0">
-              <div className="flex flex-wrap gap-2">
-                <Badge tone="red">{slide.badge ?? "DEALS"}</Badge>
-                {slide.discount && <Badge tone="blue">{slide.discount}</Badge>}
-                {slide.featured && <Badge>Featured</Badge>}
-              </div>
-              <h1 className="mt-3 font-display text-3xl font-bold uppercase sm:text-5xl lg:text-6xl">
-                {slide.title}
-              </h1>
-              {slide.subtitle && (
-                <p className="mt-2 font-display text-base font-semibold text-lag-blue sm:text-lg">
-                  {slide.subtitle}
-                </p>
-              )}
-              {slide.description && (
-                <p className="mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
-                  {slide.description}
-                </p>
-              )}
-              {slide.end_date && (
-                <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CalendarDays className="h-4 w-4 shrink-0" aria-hidden />
-                  Ends {formatDate(slide.end_date)}
-                </p>
-              )}
-              <div className="mt-6 flex flex-wrap gap-3">
-                {external ? (
-                  <Button asChild variant="hero" size="lg">
-                    <a href={slide.cta_link!} target="_blank" rel="noreferrer noopener">
-                      <Tag className="h-4 w-4" aria-hidden />
-                      {slide.cta_label}
-                    </a>
-                  </Button>
-                ) : (
-                  <Button asChild variant="hero" size="lg">
-                    <Link to="/deals/$slug" params={{ slug: dealSlug }}>
-                      <Tag className="h-4 w-4" aria-hidden />
-                      {slide.cta_label}
-                    </Link>
-                  </Button>
-                )}
-                <Button asChild variant="glass" size="lg">
-                  <Link to="/games">Browse games</Link>
-                </Button>
-              </div>
-            </div>
+      <div className="glass-strong overflow-hidden rounded-3xl border border-border p-4 sm:p-6">
+        {/* Header */}
+        <div className="mb-5 flex flex-col items-center text-center sm:mb-6">
+          <div className="flex items-center gap-2">
+            <img
+              src={logoAsset.url}
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 rounded-lg object-cover ring-1 ring-border"
+            />
+            <span className="font-display text-sm font-bold tracking-tight">
+              <span className="text-lag-red">L</span>
+              <span className="text-lag-blue">AG</span>
+            </span>
           </div>
-
-          {count > 1 && (
-            <>
-              <button
-                type="button"
-                aria-label="Previous deal"
-                onClick={() => go(index - 1)}
-                className="glass absolute top-1/2 left-3 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full sm:grid"
-              >
-                <ChevronLeft className="h-5 w-5" aria-hidden />
-              </button>
-              <button
-                type="button"
-                aria-label="Next deal"
-                onClick={() => go(index + 1)}
-                className="glass absolute top-1/2 right-3 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full sm:grid"
-              >
-                <ChevronRight className="h-5 w-5" aria-hidden />
-              </button>
-              <div className="absolute top-4 right-4 flex gap-1.5">
-                {slides.map((s, i) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    aria-label={`Go to deal ${i + 1}`}
-                    aria-current={i === index}
-                    onClick={() => setIndex(i)}
-                    className={cn(
-                      "h-1.5 rounded-full transition-all",
-                      i === index ? "w-7 bg-lag-red" : "w-3 bg-foreground/40",
-                    )}
-                  />
-                ))}
-              </div>
-            </>
-          )}
+          <h2 className="mt-2 font-display text-lg font-bold uppercase tracking-wide text-foreground sm:text-xl">
+            Latest Deals <span className="text-lag-red">·</span> Click to Buy
+          </h2>
+          <p className="mt-1 max-w-lg text-xs text-muted-foreground sm:text-sm">
+            Limited-time offers and promotions. Tap any card to grab the deal.
+          </p>
         </div>
+
+        {/* Deal cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {slides.map((deal, i) => {
+            const external = deal.cta_link?.startsWith("http");
+            const dealSlug = deal.slug ?? slugify(deal.title);
+            const href = external ? deal.cta_link! : `/deals/${dealSlug}`;
+
+            return (
+              <Reveal key={deal.id} delay={i * 80}>
+                <Link
+                  to={external ? undefined : "/deals/$slug"}
+                  params={external ? undefined : { slug: dealSlug }}
+                  aria-label={`View ${deal.title} deal`}
+                  className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-surface-2 sm:aspect-[16/9]"
+                >
+                  {deal.image_url ? (
+                    <>
+                      <img
+                        src={deal.image_url}
+                        alt={`${deal.title} promotional banner`}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        style={{ objectPosition: deal.image_position ?? "50% 50%" }}
+                      />
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"
+                      />
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-lag-red/20 via-surface-2 to-background" />
+                  )}
+
+                  <div className="absolute inset-0 p-4 sm:p-5">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge tone="red">{deal.badge ?? "DEAL"}</Badge>
+                      {deal.discount && <Badge tone="blue">{deal.discount}</Badge>}
+                    </div>
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                    <h3 className="font-display text-lg font-bold uppercase leading-tight sm:text-xl">
+                      {deal.title}
+                    </h3>
+                    {deal.subtitle && (
+                      <p className="mt-1 text-sm font-semibold text-lag-blue">{deal.subtitle}</p>
+                    )}
+                    {deal.end_date && (
+                      <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        Ends {formatDate(deal.end_date)}
+                      </p>
+                    )}
+                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-lag-red px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white transition group-hover:bg-lag-red/90">
+                      <Tag className="h-3 w-3" aria-hidden />
+                      {deal.cta_label || "View Deal"}
+                    </span>
+                  </div>
+                </Link>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        {/* Single-deal carousel dots (only when one hero deal is visible they are hidden) */}
+        {count > 1 && (
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              aria-label="Previous deal"
+              onClick={() => go(index - 1)}
+              className="text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
+            >
+              Prev
+            </button>
+            <div className="flex gap-1.5">
+              {slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-label={`Go to deal ${i + 1}`}
+                  aria-current={i === index}
+                  onClick={() => setIndex(i)}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all",
+                    i === index ? "w-7 bg-lag-red" : "w-3 bg-foreground/40 hover:bg-foreground/60",
+                  )}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label="Next deal"
+              onClick={() => go(index + 1)}
+              className="text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
