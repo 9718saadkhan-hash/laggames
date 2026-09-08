@@ -9,6 +9,7 @@ import {
   type UpcomingGame,
   type ContactSettings,
   type Game,
+  type GameEdition,
   type HeroBanner,
   type OrderRow,
   type OttPlan,
