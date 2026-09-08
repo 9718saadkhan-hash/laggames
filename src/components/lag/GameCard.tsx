@@ -99,6 +99,8 @@ export function GameCard({ game, className }: { game: Game; className?: string }
                 name: game.title,
                 price: from,
                 image: game.cover_url,
+                productType: "Game",
+                productId: game.id,
                 option: "Choose account and duration on WhatsApp",
               });
               toast.success(`${game.title} added to cart.`);
