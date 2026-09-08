@@ -29,9 +29,10 @@ import {
   type AccountKey,
   type DurationKey,
   type Game,
+  type GameEdition,
 } from "@/lib/lag";
 import { safePosition } from "@/lib/media";
-import { contactFrom, gameQuery, gamesQuery, settingsQuery } from "@/lib/queries";
+import { contactFrom, gameEditionsQuery, gameQuery, gamesQuery, settingsQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { BannerImage } from "@/components/lag/BannerImage";
 
@@ -53,8 +54,10 @@ export const Route = createFileRoute("/games/$slug")({
   component: GameDetailPage,
 });
 
-function priceFor(game: Game, d: DurationKey) {
-  return d === "30" ? game.price_30 : d === "60" ? game.price_60 : game.price_permanent;
+type PriceSource = Pick<Game, "price_30" | "price_60" | "price_permanent">;
+
+function priceFor(source: PriceSource, d: DurationKey) {
+  return d === "30" ? source.price_30 : d === "60" ? source.price_60 : source.price_permanent;
 }
 
 function GameDetailPage() {
@@ -65,6 +68,8 @@ function GameDetailPage() {
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
 
+  const { data: editions = [] } = useQuery(gameEditionsQuery(game?.id));
+  const [editionId, setEditionId] = useState<string | null>(null);
   const [duration, setDuration] = useState<DurationKey>("30");
   const [account, setAccount] = useState<AccountKey>("primary");
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -103,12 +108,15 @@ function GameDetailPage() {
     );
   }
 
+  const activeEdition: GameEdition | null = editions.find((e) => e.id === editionId) ?? null;
+  const priceSource: PriceSource = activeEdition ?? game;
+  const oldPrice = activeEdition ? activeEdition.old_price : game.old_price;
   const availableDurations = (["30", "60", "permanent"] as DurationKey[]).filter(
-    (d) => priceFor(game, d) !== null,
+    (d) => priceFor(priceSource, d) !== null,
   );
   const activeDuration = availableDurations.includes(duration) ? duration : (availableDurations[0] ?? "30");
-  const price = priceFor(game, activeDuration);
-  const off = discountPercent(game.old_price, price);
+  const price = priceFor(priceSource, activeDuration);
+  const off = discountPercent(oldPrice, price);
   const heroImage = game.banner_url ?? game.cover_url ?? "";
   const heroPosition = safePosition(game.banner_url ? game.banner_position : game.cover_position);
   const gallery = (game.gallery ?? []).filter((s): s is string => Boolean(s));
@@ -119,7 +127,7 @@ function GameDetailPage() {
   const orderMessage = buildOrderMessage(
     {
       productType: "game",
-      productName: game.title,
+      productName: activeEdition ? `${game.title} — ${activeEdition.name}` : game.title,
       productId: game.id,
       platform: game.platform,
       optionType: activeAccount === "primary" ? "Primary account" : "Secondary account",
@@ -135,7 +143,7 @@ function GameDetailPage() {
         user_id: user?.id ?? null,
         product_type: "game",
         product_id: game.id,
-        product_name: game.title,
+        product_name: activeEdition ? `${game.title} — ${activeEdition.name}` : game.title,
         platform: game.platform,
         option_type: activeAccount === "primary" ? "Primary" : "Secondary",
         duration: DURATION_LABEL[activeDuration],
@@ -192,6 +200,39 @@ function GameDetailPage() {
             Price &amp; select option
           </p>
 
+          {editions.length > 0 && (
+            <div className="mt-4">
+              <span className="mb-2 block text-sm font-semibold">Edition</span>
+              <div className="grid grid-cols-2 gap-2">
+                {[null, ...editions].map((e) => {
+                  const selected = (e?.id ?? null) === (activeEdition?.id ?? null);
+                  const label = e ? e.name : "Standard Edition";
+                  const from = priceFor(e ?? game, activeDuration) ?? priceFor(e ?? game, "30");
+                  return (
+                    <button
+                      key={e?.id ?? "standard"}
+                      type="button"
+                      onClick={() => setEditionId(e?.id ?? null)}
+                      aria-pressed={selected}
+                      className={cn(
+                        "rounded-2xl border px-3 py-3 text-left transition-colors",
+                        selected
+                          ? "border-lag-blue/60 bg-lag-blue/15"
+                          : "border-border bg-muted/30 hover:border-lag-blue/40",
+                      )}
+                    >
+                      <span className="block text-xs font-bold tracking-wide uppercase">{label}</span>
+                      <span className="mt-1 block font-display text-sm font-bold">{money(from)}</span>
+                      {e?.note && (
+                        <span className="mt-1 block text-[11px] text-muted-foreground">{e.note}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {hasAccountToggle && (
             <div className="mt-4">
               <span className="mb-2 block text-sm font-semibold">Account type</span>
@@ -224,7 +265,7 @@ function GameDetailPage() {
             <span className="mb-2 block text-sm font-semibold">Duration</span>
             <div className="grid grid-cols-3 gap-2">
               {(["30", "60", "permanent"] as DurationKey[]).map((d) => {
-                const p = priceFor(game, d);
+                const p = priceFor(priceSource, d);
                 return (
                   <button
                     key={d}
@@ -251,9 +292,9 @@ function GameDetailPage() {
 
           <div className="mt-5 flex items-end gap-3">
             <span className="font-display text-3xl font-bold">{money(price)}</span>
-            {game.old_price && off && (
+            {oldPrice && off && (
               <>
-                <span className="text-sm text-muted-foreground line-through">{money(game.old_price)}</span>
+                <span className="text-sm text-muted-foreground line-through">{money(oldPrice)}</span>
                 <Badge tone="red">{off}% off</Badge>
               </>
             )}
