@@ -27,3 +27,4 @@
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
 - Media library reuse directly inside each upload field
+- Game editions: per-game editions with their own 30d/60d/permanent prices, managed from admin Games
