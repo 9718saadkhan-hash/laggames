@@ -291,8 +291,11 @@ export type Database = {
           note: string | null
           old_price: number | null
           price_30: number | null
+          price_30_secondary: number | null
           price_60: number | null
+          price_60_secondary: number | null
           price_permanent: number | null
+          price_permanent_secondary: number | null
           updated_at: string
           visible: boolean
         }
@@ -305,8 +308,11 @@ export type Database = {
           note?: string | null
           old_price?: number | null
           price_30?: number | null
+          price_30_secondary?: number | null
           price_60?: number | null
+          price_60_secondary?: number | null
           price_permanent?: number | null
+          price_permanent_secondary?: number | null
           updated_at?: string
           visible?: boolean
         }
@@ -319,8 +325,11 @@ export type Database = {
           note?: string | null
           old_price?: number | null
           price_30?: number | null
+          price_30_secondary?: number | null
           price_60?: number | null
+          price_60_secondary?: number | null
           price_permanent?: number | null
+          price_permanent_secondary?: number | null
           updated_at?: string
           visible?: boolean
         }
@@ -355,8 +364,11 @@ export type Database = {
           old_price: number | null
           platform: string
           price_30: number | null
+          price_30_secondary: number | null
           price_60: number | null
+          price_60_secondary: number | null
           price_permanent: number | null
+          price_permanent_secondary: number | null
           primary_available: boolean
           primary_description: string | null
           publisher: string | null
@@ -392,8 +404,11 @@ export type Database = {
           old_price?: number | null
           platform?: string
           price_30?: number | null
+          price_30_secondary?: number | null
           price_60?: number | null
+          price_60_secondary?: number | null
           price_permanent?: number | null
+          price_permanent_secondary?: number | null
           primary_available?: boolean
           primary_description?: string | null
           publisher?: string | null
@@ -429,8 +444,11 @@ export type Database = {
           old_price?: number | null
           platform?: string
           price_30?: number | null
+          price_30_secondary?: number | null
           price_60?: number | null
+          price_60_secondary?: number | null
           price_permanent?: number | null
+          price_permanent_secondary?: number | null
           primary_available?: boolean
           primary_description?: string | null
           publisher?: string | null

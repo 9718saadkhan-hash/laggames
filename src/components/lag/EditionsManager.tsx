@@ -25,6 +25,9 @@ type Draft = {
   price_30: string;
   price_60: string;
   price_permanent: string;
+  price_30_secondary: string;
+  price_60_secondary: string;
+  price_permanent_secondary: string;
   old_price: string;
 };
 
@@ -34,6 +37,9 @@ const EMPTY: Draft = {
   price_30: "",
   price_60: "",
   price_permanent: "",
+  price_30_secondary: "",
+  price_60_secondary: "",
+  price_permanent_secondary: "",
   old_price: "",
 };
 
@@ -68,6 +74,9 @@ export function EditionsManager({
         price_30: num(draft.price_30),
         price_60: num(draft.price_60),
         price_permanent: num(draft.price_permanent),
+        price_30_secondary: num(draft.price_30_secondary),
+        price_60_secondary: num(draft.price_60_secondary),
+        price_permanent_secondary: num(draft.price_permanent_secondary),
         old_price: num(draft.old_price),
         display_order: editions.length,
       });
@@ -138,12 +147,15 @@ export function EditionsManager({
                       />
                     </div>
                   </div>
-                  <div className="grid gap-2 sm:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {(
                       [
-                        ["price_30", "Price 30d"],
-                        ["price_60", "Price 60d"],
-                        ["price_permanent", "Permanent"],
+                        ["price_30", "Primary 30d"],
+                        ["price_60", "Primary 60d"],
+                        ["price_permanent", "Primary permanent"],
+                        ["price_30_secondary", "Secondary 30d"],
+                        ["price_60_secondary", "Secondary 60d"],
+                        ["price_permanent_secondary", "Secondary permanent"],
                         ["old_price", "Old price"],
                       ] as const
                     ).map(([field, label]) => (
@@ -215,12 +227,15 @@ export function EditionsManager({
                 />
               </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(
                 [
-                  ["price_30", "Price 30d"],
-                  ["price_60", "Price 60d"],
-                  ["price_permanent", "Permanent"],
+                  ["price_30", "Primary 30d"],
+                  ["price_60", "Primary 60d"],
+                  ["price_permanent", "Primary permanent"],
+                  ["price_30_secondary", "Secondary 30d"],
+                  ["price_60_secondary", "Secondary 60d"],
+                  ["price_permanent_secondary", "Secondary permanent"],
                   ["old_price", "Old price"],
                 ] as const
               ).map(([field, label]) => (

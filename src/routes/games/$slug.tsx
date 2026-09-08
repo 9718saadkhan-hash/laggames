@@ -54,11 +54,28 @@ export const Route = createFileRoute("/games/$slug")({
   component: GameDetailPage,
 });
 
-type PriceSource = Pick<Game, "price_30" | "price_60" | "price_permanent">;
+type PriceSource = Pick<
+  Game,
+  | "price_30"
+  | "price_60"
+  | "price_permanent"
+  | "price_30_secondary"
+  | "price_60_secondary"
+  | "price_permanent_secondary"
+>;
 
-function priceFor(source: PriceSource, d: DurationKey) {
-  return d === "30" ? source.price_30 : d === "60" ? source.price_60 : source.price_permanent;
+function priceFor(source: PriceSource, d: DurationKey, account: AccountKey = "primary") {
+  const primary = d === "30" ? source.price_30 : d === "60" ? source.price_60 : source.price_permanent;
+  if (account === "primary") return primary;
+  const secondary =
+    d === "30"
+      ? source.price_30_secondary
+      : d === "60"
+        ? source.price_60_secondary
+        : source.price_permanent_secondary;
+  return secondary ?? primary;
 }
+
 
 function GameDetailPage() {
   const { slug } = Route.useParams();
@@ -111,18 +128,18 @@ function GameDetailPage() {
   const activeEdition: GameEdition | null = editions.find((e) => e.id === editionId) ?? null;
   const priceSource: PriceSource = activeEdition ?? game;
   const oldPrice = activeEdition ? activeEdition.old_price : game.old_price;
+  const hasAccountToggle = game.primary_available && game.secondary_available;
+  const activeAccount = account === "primary" && !game.primary_available ? "secondary" : account;
   const availableDurations = (["30", "60", "permanent"] as DurationKey[]).filter(
-    (d) => priceFor(priceSource, d) !== null,
+    (d) => priceFor(priceSource, d, activeAccount) !== null,
   );
   const activeDuration = availableDurations.includes(duration) ? duration : (availableDurations[0] ?? "30");
-  const price = priceFor(priceSource, activeDuration);
+  const price = priceFor(priceSource, activeDuration, activeAccount);
   const off = discountPercent(oldPrice, price);
   const heroImage = game.banner_url ?? game.cover_url ?? "";
   const heroPosition = safePosition(game.banner_url ? game.banner_position : game.cover_position);
   const gallery = (game.gallery ?? []).filter((s): s is string => Boolean(s));
 
-  const hasAccountToggle = game.primary_available && game.secondary_available;
-  const activeAccount = account === "primary" && !game.primary_available ? "secondary" : account;
 
   const orderMessage = buildOrderMessage(
     {
@@ -265,7 +282,7 @@ function GameDetailPage() {
             <span className="mb-2 block text-sm font-semibold">Duration</span>
             <div className="grid grid-cols-3 gap-2">
               {(["30", "60", "permanent"] as DurationKey[]).map((d) => {
-                const p = priceFor(priceSource, d);
+                const p = priceFor(priceSource, d, activeAccount);
                 return (
                   <button
                     key={d}

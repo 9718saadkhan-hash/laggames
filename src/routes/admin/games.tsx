@@ -86,6 +86,9 @@ type GameForm = {
   price_30: string;
   price_60: string;
   price_permanent: string;
+  price_30_secondary: string;
+  price_60_secondary: string;
+  price_permanent_secondary: string;
   old_price: string;
   availability: string;
   featured: boolean;
@@ -121,6 +124,9 @@ const EMPTY_FORM: GameForm = {
   price_30: "",
   price_60: "",
   price_permanent: "",
+  price_30_secondary: "",
+  price_60_secondary: "",
+  price_permanent_secondary: "",
   old_price: "",
   availability: "In Stock",
   featured: false,
@@ -158,6 +164,9 @@ function gameToForm(g: Game): GameForm {
     price_30: g.price_30?.toString() ?? "",
     price_60: g.price_60?.toString() ?? "",
     price_permanent: g.price_permanent?.toString() ?? "",
+    price_30_secondary: g.price_30_secondary?.toString() ?? "",
+    price_60_secondary: g.price_60_secondary?.toString() ?? "",
+    price_permanent_secondary: g.price_permanent_secondary?.toString() ?? "",
     old_price: g.old_price?.toString() ?? "",
     availability: g.availability,
     featured: g.featured,
@@ -201,6 +210,9 @@ function formToPayload(f: GameForm) {
     price_30: num(f.price_30),
     price_60: num(f.price_60),
     price_permanent: num(f.price_permanent),
+    price_30_secondary: num(f.price_30_secondary),
+    price_60_secondary: num(f.price_60_secondary),
+    price_permanent_secondary: num(f.price_permanent_secondary),
     old_price: num(f.old_price),
     availability: f.availability || "In Stock",
     featured: f.featured,
@@ -585,6 +597,7 @@ function AdminGamesPage() {
                 </div>
               </div>
 
+              <p className="text-sm font-semibold">Primary account prices</p>
               <div className="grid gap-3 sm:grid-cols-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="g-p30">Price 30d</Label>
@@ -601,6 +614,22 @@ function AdminGamesPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="g-old">Old Price</Label>
                   <Input id="g-old" type="number" value={form.old_price} onChange={(e) => setForm((f) => ({ ...f, old_price: e.target.value }))} />
+                </div>
+              </div>
+
+              <p className="text-sm font-semibold">Secondary account prices (leave blank to use primary)</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-s30">Secondary 30d</Label>
+                  <Input id="g-s30" type="number" value={form.price_30_secondary} onChange={(e) => setForm((f) => ({ ...f, price_30_secondary: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-s60">Secondary 60d</Label>
+                  <Input id="g-s60" type="number" value={form.price_60_secondary} onChange={(e) => setForm((f) => ({ ...f, price_60_secondary: e.target.value }))} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="g-sperm">Secondary Permanent</Label>
+                  <Input id="g-sperm" type="number" value={form.price_permanent_secondary} onChange={(e) => setForm((f) => ({ ...f, price_permanent_secondary: e.target.value }))} />
                 </div>
               </div>
               {discount && <Badge tone="red">Auto discount: {discount}%</Badge>}
