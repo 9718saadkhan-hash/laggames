@@ -635,6 +635,12 @@ function AdminGamesPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <EditionsManager
+          game={editionsGame}
+          open={editionsGame !== null}
+          onOpenChange={(v) => !v && setEditionsGame(null)}
+        />
       </AdminShell>
     </AdminGate>
   );
