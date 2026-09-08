@@ -20,19 +20,7 @@ function isLive(end: string | null) {
 export function DealsHero() {
   const { data: all = [] } = useQuery(dealsQuery());
   const slides = all.filter((d) => d.visible && d.show_in_hero && isLive(d.end_date));
-  const [index, setIndex] = useState(0);
   const count = slides.length;
-
-  const go = useCallback(
-    (next: number) => setIndex((i) => (count ? (next + count) % count : 0)),
-    [count],
-  );
-
-  useEffect(() => {
-    if (count < 2) return;
-    const t = window.setInterval(() => setIndex((i) => (i + 1) % count), 6500);
-    return () => window.clearInterval(t);
-  }, [count]);
 
   if (!count) {
     return (
