@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   BadgeCheck,
   Check,
-  ChevronRight,
   Flame,
   Gamepad2,
   Headphones,
@@ -110,7 +109,7 @@ function HomePage() {
           title="Pick a category"
           subtitle="Games, PlayStation Plus and OTT subscriptions — all delivered over WhatsApp."
         />
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {[
             {
               to: "/games" as const,
@@ -144,49 +143,46 @@ function HomePage() {
               <Link
                 to={c.to}
                 aria-label={`Browse ${c.title}`}
-                className="glass hover-lift group relative flex h-28 items-center overflow-hidden rounded-2xl border-border/80 px-4 shadow-[inset_0_1px_0_var(--glass-highlight)] sm:h-36 sm:px-5 lg:h-40"
+                className="glass hover-lift group relative block aspect-[1.55/1] overflow-hidden rounded-2xl border-border/80 shadow-[inset_0_1px_0_var(--glass-highlight)]"
               >
                 <span
                   aria-hidden
                   className={`absolute inset-0 opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${
                     c.tone === "red"
-                      ? "bg-gradient-to-r from-lag-red/25 via-background/70 to-lag-red/10"
-                      : "bg-gradient-to-r from-lag-blue/25 via-background/70 to-lag-blue/10"
+                      ? "bg-gradient-to-br from-lag-red/45 via-surface to-background"
+                      : "bg-gradient-to-br from-lag-blue/50 via-surface to-background"
                   }`}
                 />
-                {c.image && (
-                  <div className="absolute inset-y-0 right-0 w-[48%] overflow-hidden">
+                {c.image ? (
+                  <div className="absolute inset-0 overflow-hidden">
                     <img
                       src={c.image}
                       alt=""
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105 group-hover:opacity-95"
+                      className="h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
                       style={{ objectPosition: c.position }}
                     />
-                    <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-transparent" />
+                    <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/15 to-transparent" />
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center opacity-50">
+                    <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
                   </div>
                 )}
                 <span
                   aria-hidden
-                  className={`absolute inset-y-3 left-0 w-1 rounded-r-full ${
+                  className={`absolute inset-x-4 bottom-0 h-1 rounded-t-full transition-all duration-300 group-hover:inset-x-2 ${
                     c.tone === "red" ? "bg-lag-red shadow-[var(--glow-red)]" : "bg-lag-blue shadow-[var(--glow-blue)]"
                   }`}
                 />
-                <div className="relative z-10 flex min-w-0 flex-1 items-center gap-3 sm:block">
-                  <GlassIcon icon={c.icon} tone={c.tone} size="sm" />
-                  <div className="min-w-0 sm:mt-3">
-                    <h3 className="font-display text-lg font-bold tracking-wide sm:text-xl">{c.title}</h3>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{c.body}</p>
-                  </div>
+                <div className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-5">
+                  <span className="glass inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-foreground sm:text-[10px]">
+                    Explore
+                  </span>
+                  <h3 className="mt-2 font-display text-base font-bold tracking-wide sm:text-xl">{c.title}</h3>
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-sm">{c.body}</p>
                 </div>
-                <span
-                  className={`glass relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full transition-transform duration-300 group-hover:translate-x-1 ${
-                    c.tone === "red" ? "text-lag-red" : "text-lag-blue"
-                  }`}
-                >
-                  <ChevronRight className="h-4 w-4" aria-hidden />
-                </span>
               </Link>
             </Reveal>
           ))}
