@@ -90,61 +90,76 @@ export function DealsHero() {
           {slides.map((deal, i) => {
             const external = deal.cta_link?.startsWith("http");
             const dealSlug = deal.slug ?? slugify(deal.title);
-            const href = external ? deal.cta_link! : `/deals/${dealSlug}`;
+
+            const card = (
+              <>
+                {deal.image_url ? (
+                  <>
+                    <img
+                      src={deal.image_url}
+                      alt={`${deal.title} promotional banner`}
+                      loading={i === 0 ? "eager" : "lazy"}
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      style={{ objectPosition: deal.image_position ?? "50% 50%" }}
+                    />
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"
+                    />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-lag-red/20 via-surface-2 to-background" />
+                )}
+
+                <div className="absolute inset-0 p-4 sm:p-5">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge tone="red">{deal.badge ?? "DEAL"}</Badge>
+                    {deal.discount && <Badge tone="blue">{deal.discount}</Badge>}
+                  </div>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                  <h3 className="font-display text-lg font-bold uppercase leading-tight sm:text-xl">
+                    {deal.title}
+                  </h3>
+                  {deal.subtitle && (
+                    <p className="mt-1 text-sm font-semibold text-lag-blue">{deal.subtitle}</p>
+                  )}
+                  {deal.end_date && (
+                    <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      Ends {formatDate(deal.end_date)}
+                    </p>
+                  )}
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-lag-red px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white transition group-hover:bg-lag-red/90">
+                    <Tag className="h-3 w-3" aria-hidden />
+                    {deal.cta_label || "View Deal"}
+                  </span>
+                </div>
+              </>
+            );
+
+            const classes =
+              "group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-surface-2 sm:aspect-[16/9]";
 
             return (
               <Reveal key={deal.id} delay={i * 80}>
-                <Link
-                  to={external ? undefined : "/deals/$slug"}
-                  params={external ? undefined : { slug: dealSlug }}
-                  aria-label={`View ${deal.title} deal`}
-                  className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-surface-2 sm:aspect-[16/9]"
-                >
-                  {deal.image_url ? (
-                    <>
-                      <img
-                        src={deal.image_url}
-                        alt={`${deal.title} promotional banner`}
-                        loading={i === 0 ? "eager" : "lazy"}
-                        decoding="async"
-                        className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        style={{ objectPosition: deal.image_position ?? "50% 50%" }}
-                      />
-                      <span
-                        aria-hidden
-                        className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"
-                      />
-                    </>
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-lag-red/20 via-surface-2 to-background" />
-                  )}
-
-                  <div className="absolute inset-0 p-4 sm:p-5">
-                    <div className="flex flex-wrap gap-2">
-                      <Badge tone="red">{deal.badge ?? "DEAL"}</Badge>
-                      {deal.discount && <Badge tone="blue">{deal.discount}</Badge>}
-                    </div>
-                  </div>
-
-                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                    <h3 className="font-display text-lg font-bold uppercase leading-tight sm:text-xl">
-                      {deal.title}
-                    </h3>
-                    {deal.subtitle && (
-                      <p className="mt-1 text-sm font-semibold text-lag-blue">{deal.subtitle}</p>
-                    )}
-                    {deal.end_date && (
-                      <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                        Ends {formatDate(deal.end_date)}
-                      </p>
-                    )}
-                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-lag-red px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white transition group-hover:bg-lag-red/90">
-                      <Tag className="h-3 w-3" aria-hidden />
-                      {deal.cta_label || "View Deal"}
-                    </span>
-                  </div>
-                </Link>
+                {external ? (
+                  <a
+                    href={deal.cta_link!}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={`View ${deal.title} deal`}
+                    className={classes}
+                  >
+                    {card}
+                  </a>
+                ) : (
+                  <Link to="/deals/$slug" params={{ slug: dealSlug }} aria-label={`View ${deal.title} deal`} className={classes}>
+                    {card}
+                  </Link>
+                )}
               </Reveal>
             );
           })}
