@@ -115,7 +115,6 @@ function HomePage() {
               to: "/games" as const,
               icon: Gamepad2,
               title: "GAMES",
-              body: `${visible.length} PS4 & PS5 titles`,
               tone: "red" as const,
               image: categories.games_image ?? null,
               position: categories.games_position ?? "50% 50%",
@@ -124,7 +123,6 @@ function HomePage() {
               to: "/ps-plus" as const,
               icon: Sparkles,
               title: "PS PLUS",
-              body: "Essential · Extra · Deluxe",
               tone: "blue" as const,
               image: categories.ps_plus_image ?? null,
               position: categories.ps_plus_position ?? "50% 50%",
@@ -133,7 +131,6 @@ function HomePage() {
               to: "/ott" as const,
               icon: Tv,
               title: "OTT",
-              body: `${ott.filter((p) => p.visible).length} streaming plans`,
               tone: "red" as const,
               image: categories.ott_image ?? null,
               position: categories.ott_position ?? "50% 50%",
@@ -170,18 +167,11 @@ function HomePage() {
                     <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
                   </div>
                 )}
-                <span
-                  aria-hidden
-                  className={`absolute inset-x-4 bottom-0 h-1 rounded-t-full transition-all duration-300 group-hover:inset-x-2 ${
-                    c.tone === "red" ? "bg-lag-red shadow-[var(--glow-red)]" : "bg-lag-blue shadow-[var(--glow-blue)]"
-                  }`}
-                />
                 <div className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-5">
                   <span className="glass inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-foreground sm:text-[10px]">
                     Explore
                   </span>
                   <h3 className="mt-2 font-display text-base font-bold tracking-wide sm:text-xl">{c.title}</h3>
-                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-sm">{c.body}</p>
                 </div>
               </Link>
             </Reveal>
