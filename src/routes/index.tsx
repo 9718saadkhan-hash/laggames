@@ -170,18 +170,11 @@ function HomePage() {
                     <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
                   </div>
                 )}
-                <span
-                  aria-hidden
-                  className={`absolute inset-x-4 bottom-0 h-1 rounded-t-full transition-all duration-300 group-hover:inset-x-2 ${
-                    c.tone === "red" ? "bg-lag-red shadow-[var(--glow-red)]" : "bg-lag-blue shadow-[var(--glow-blue)]"
-                  }`}
-                />
                 <div className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-5">
                   <span className="glass inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-foreground sm:text-[10px]">
                     Explore
                   </span>
                   <h3 className="mt-2 font-display text-base font-bold tracking-wide sm:text-xl">{c.title}</h3>
-                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground sm:text-sm">{c.body}</p>
                 </div>
               </Link>
             </Reveal>
