@@ -1,14 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, Tag } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
 
 import logoAsset from "@/assets/lag-logo.jpg.asset.json";
 import { Badge, Reveal } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { formatDate, slugify } from "@/lib/lag";
 import { dealsQuery } from "@/lib/queries";
-import { cn } from "@/lib/utils";
 
 function isLive(end: string | null) {
   if (!end) return true;
