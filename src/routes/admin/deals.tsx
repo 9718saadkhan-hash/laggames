@@ -18,6 +18,7 @@ import {
   AlertDialogTitle as ADTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -121,7 +122,10 @@ function toPayload(f: F) {
 function AdminDealsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { data: deals = [], isLoading, isError } = useQuery(dealsQuery({ admin: true }));
+  const { data: allDeals = [], isLoading, isError } = useQuery(dealsQuery({ admin: true }));
+  const { query, setQuery, results: deals } = useAdminSearch(allDeals, (d) => [
+    d.title, d.subtitle, d.slug, d.badge, d.discount,
+  ]);
   const { data: links = [] } = useQuery(dealGamesQuery);
   const { data: games = [] } = useQuery(gamesQuery({ admin: true }));
 
@@ -248,6 +252,8 @@ function AdminDealsPage() {
             </Button>
           }
         />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search deals by title, badge, discount…" count={deals.length} label="deals" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading deals…</p>

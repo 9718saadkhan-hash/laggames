@@ -314,6 +314,8 @@ function AdminGamesPage() {
           }
         />
 
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search games by title, genre, platform…" count={games.length} label="games" />
+
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading games…</p>
 

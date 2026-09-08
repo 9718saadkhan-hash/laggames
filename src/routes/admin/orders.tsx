@@ -9,6 +9,7 @@ import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { customersQuery, gamesQuery, ordersQuery } from "@/lib/queries";
 import { money, formatDate, ORDER_STATUSES, type OrderRow } from "@/lib/lag";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,10 +78,13 @@ function AdminOrdersPage() {
     return list.slice(0, 25);
   }, [customers, customerSearch]);
 
-  const filtered = useMemo(
+  const byStatus = useMemo(
     () => (filter === "all" ? orders : orders.filter((o) => o.status === filter)),
     [orders, filter],
   );
+  const { query, setQuery, results: filtered } = useAdminSearch(byStatus, (o) => [
+    o.order_code, o.customer_name, o.customer_phone, o.product_name, o.product_type, o.status, o.platform, o.duration,
+  ]);
 
   async function addManualOrder() {
     const customer = customers.find((c) => c.id === manual.userId) as Record<string, unknown> | undefined;
@@ -162,6 +166,8 @@ function AdminOrdersPage() {
             </div>
           }
         />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search orders by code, customer or product…" count={filtered.length} label="orders" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading orders…</p>

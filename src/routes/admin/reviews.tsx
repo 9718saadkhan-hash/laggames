@@ -9,6 +9,7 @@ import { SectionHeading, EmptyState, Badge, StarRating } from "@/components/lag/
 import { supabase } from "@/integrations/supabase/client";
 import { reviewsQuery } from "@/lib/queries";
 import { formatDate, type Review } from "@/lib/lag";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -48,7 +49,10 @@ function AdminReviewsPage() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["reviews"] });
 
-  const filtered = filter === "all" ? reviews : reviews.filter((r) => r.status === filter);
+  const byStatus = filter === "all" ? reviews : reviews.filter((r) => r.status === filter);
+  const { query, setQuery, results: filtered } = useAdminSearch(byStatus, (r) => [
+    r.name, r.review, r.status, r.admin_note,
+  ]);
 
   async function setStatus(r: Review, status: string) {
     const { error } = await supabase.from("reviews").update({ status }).eq("id", r.id);
@@ -113,6 +117,8 @@ function AdminReviewsPage() {
             </Select>
           }
         />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search reviews by customer name or text…" count={filtered.length} label="reviews" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading reviews…</p>

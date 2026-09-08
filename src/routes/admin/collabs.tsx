@@ -11,6 +11,7 @@ import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { collabsQuery } from "@/lib/queries";
 import { type CollabVideo } from "@/lib/lag";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,7 +66,10 @@ function toPayload(f: F) {
 }
 
 function AdminCollabsPage() {
-  const { data: videos = [], isLoading, isError } = useQuery(collabsQuery);
+  const { data: allVideos = [], isLoading, isError } = useQuery(collabsQuery);
+  const { query, setQuery, results: videos } = useAdminSearch(allVideos, (c) => [
+    c.title, c.description, c.platform, c.url,
+  ]);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<F>(EMPTY);
@@ -110,6 +114,8 @@ function AdminCollabsPage() {
       <AdminShell>
         <SectionHeading eyebrow="Community" title="Manage Collabs" subtitle="Curate creator collaboration videos shown on the site."
           action={<Button variant="hero" onClick={() => { setEditingId(null); setForm(EMPTY); setOpen(true); }}><Plus className="h-4 w-4" /> Add Video</Button>} />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search collab videos by title, platform…" count={videos.length} label="videos" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading videos…</p>
