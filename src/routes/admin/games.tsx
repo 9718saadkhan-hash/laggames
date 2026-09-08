@@ -363,9 +363,18 @@ function AdminGamesPage() {
                     </label>
                   </div>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
                   <Button variant="glass" size="sm" onClick={() => openEdit(g)} aria-label={`Edit ${g.title}`}>
                     <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() => setEditionsGame(g)}
+                    aria-label={`Manage editions for ${g.title}`}
+                  >
+                    <Layers className="h-4 w-4" />
+                    <span className="hidden sm:inline">Editions</span>
                   </Button>
                   <Button variant="glass" size="sm" onClick={() => handleDuplicate(g)} aria-label={`Duplicate ${g.title}`}>
                     <Copy className="h-4 w-4" />
