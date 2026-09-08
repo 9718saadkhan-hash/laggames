@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Pencil, Copy, Trash2, Gamepad2 } from "lucide-react";
+import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
+import { EditionsManager } from "@/components/lag/EditionsManager";
 import { ImagePositionField } from "@/components/lag/ImagePositionField";
 import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
@@ -221,6 +222,7 @@ function AdminGamesPage() {
   const [form, setForm] = useState<GameForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editionsGame, setEditionsGame] = useState<Game | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["games"] });
@@ -361,9 +363,18 @@ function AdminGamesPage() {
                     </label>
                   </div>
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
                   <Button variant="glass" size="sm" onClick={() => openEdit(g)} aria-label={`Edit ${g.title}`}>
                     <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() => setEditionsGame(g)}
+                    aria-label={`Manage editions for ${g.title}`}
+                  >
+                    <Layers className="h-4 w-4" />
+                    <span className="hidden sm:inline">Editions</span>
                   </Button>
                   <Button variant="glass" size="sm" onClick={() => handleDuplicate(g)} aria-label={`Duplicate ${g.title}`}>
                     <Copy className="h-4 w-4" />
@@ -624,6 +635,12 @@ function AdminGamesPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <EditionsManager
+          game={editionsGame}
+          open={editionsGame !== null}
+          onOpenChange={(v) => !v && setEditionsGame(null)}
+        />
       </AdminShell>
     </AdminGate>
   );

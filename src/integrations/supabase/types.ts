@@ -281,6 +281,59 @@ export type Database = {
         }
         Relationships: []
       }
+      game_editions: {
+        Row: {
+          created_at: string
+          display_order: number
+          game_id: string
+          id: string
+          name: string
+          note: string | null
+          old_price: number | null
+          price_30: number | null
+          price_60: number | null
+          price_permanent: number | null
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          game_id: string
+          id?: string
+          name: string
+          note?: string | null
+          old_price?: number | null
+          price_30?: number | null
+          price_60?: number | null
+          price_permanent?: number | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          game_id?: string
+          id?: string
+          name?: string
+          note?: string | null
+          old_price?: number | null
+          price_30?: number | null
+          price_60?: number | null
+          price_permanent?: number | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_editions_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           availability: string
