@@ -22,6 +22,7 @@
 - WhatsApp-style admin image adjuster with crop ratios, drag, pinch/slider zoom, rotation, reset, cancel, save, and live preview
 - Second full-access administrator account
 - Homepage category cards updated to the compact two-column collection style from the supplied reference
+- Homepage deal cards changed to 4:5 with marked labels removed; primary actions use frosted white styling
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
