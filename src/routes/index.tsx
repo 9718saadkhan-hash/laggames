@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   BadgeCheck,
   Check,
+  ChevronRight,
   Flame,
   Gamepad2,
   Headphones,
@@ -142,32 +143,50 @@ function HomePage() {
             <Reveal key={c.title} delay={i * 90}>
               <Link
                 to={c.to}
-                className="glass hover-lift group relative block h-full overflow-hidden rounded-3xl"
+                aria-label={`Browse ${c.title}`}
+                className="glass hover-lift group relative flex h-28 items-center overflow-hidden rounded-2xl border-border/80 px-4 shadow-[inset_0_1px_0_var(--glass-highlight)] sm:h-36 sm:px-5 lg:h-40"
               >
-                <div className="relative aspect-[4/3] w-full sm:aspect-[3/4] lg:aspect-[4/3]">
-                  {c.image ? (
+                <span
+                  aria-hidden
+                  className={`absolute inset-0 opacity-70 transition-opacity duration-300 group-hover:opacity-100 ${
+                    c.tone === "red"
+                      ? "bg-gradient-to-r from-lag-red/25 via-background/70 to-lag-red/10"
+                      : "bg-gradient-to-r from-lag-blue/25 via-background/70 to-lag-blue/10"
+                  }`}
+                />
+                {c.image && (
+                  <div className="absolute inset-y-0 right-0 w-[48%] overflow-hidden">
                     <img
                       src={c.image}
-                      alt={`${c.title} category`}
+                      alt=""
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover transition-transform duration-500 will-change-transform group-hover:scale-[1.04]"
+                      className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105 group-hover:opacity-95"
                       style={{ objectPosition: c.position }}
                     />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center bg-surface-2">
-                      <GlassIcon icon={c.icon} tone={c.tone} size="lg" />
-                    </div>
-                  )}
-                  <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-background via-background/45 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <h3 className="font-display text-xl font-bold tracking-wide">{c.title}</h3>
-                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{c.body}</p>
-                    <span className="glass-btn-pro mt-4 inline-flex items-center rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest">
-                      Explore
-                    </span>
+                    <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-transparent" />
+                  </div>
+                )}
+                <span
+                  aria-hidden
+                  className={`absolute inset-y-3 left-0 w-1 rounded-r-full ${
+                    c.tone === "red" ? "bg-lag-red shadow-[var(--glow-red)]" : "bg-lag-blue shadow-[var(--glow-blue)]"
+                  }`}
+                />
+                <div className="relative z-10 flex min-w-0 flex-1 items-center gap-3 sm:block">
+                  <GlassIcon icon={c.icon} tone={c.tone} size="sm" />
+                  <div className="min-w-0 sm:mt-3">
+                    <h3 className="font-display text-lg font-bold tracking-wide sm:text-xl">{c.title}</h3>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{c.body}</p>
                   </div>
                 </div>
+                <span
+                  className={`glass relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full transition-transform duration-300 group-hover:translate-x-1 ${
+                    c.tone === "red" ? "text-lag-red" : "text-lag-blue"
+                  }`}
+                >
+                  <ChevronRight className="h-4 w-4" aria-hidden />
+                </span>
               </Link>
             </Reveal>
           ))}
