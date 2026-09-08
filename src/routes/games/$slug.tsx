@@ -54,11 +54,28 @@ export const Route = createFileRoute("/games/$slug")({
   component: GameDetailPage,
 });
 
-type PriceSource = Pick<Game, "price_30" | "price_60" | "price_permanent">;
+type PriceSource = Pick<
+  Game,
+  | "price_30"
+  | "price_60"
+  | "price_permanent"
+  | "price_30_secondary"
+  | "price_60_secondary"
+  | "price_permanent_secondary"
+>;
 
-function priceFor(source: PriceSource, d: DurationKey) {
-  return d === "30" ? source.price_30 : d === "60" ? source.price_60 : source.price_permanent;
+function priceFor(source: PriceSource, d: DurationKey, account: AccountKey = "primary") {
+  const primary = d === "30" ? source.price_30 : d === "60" ? source.price_60 : source.price_permanent;
+  if (account === "primary") return primary;
+  const secondary =
+    d === "30"
+      ? source.price_30_secondary
+      : d === "60"
+        ? source.price_60_secondary
+        : source.price_permanent_secondary;
+  return secondary ?? primary;
 }
+
 
 function GameDetailPage() {
   const { slug } = Route.useParams();
