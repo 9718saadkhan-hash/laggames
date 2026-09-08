@@ -11,6 +11,7 @@ import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { ottQuery } from "@/lib/queries";
 import { money, type OttPlan } from "@/lib/lag";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,7 +65,10 @@ function toPayload(f: F) {
 }
 
 function AdminOttPage() {
-  const { data: plans = [], isLoading, isError } = useQuery(ottQuery);
+  const { data: allPlans = [], isLoading, isError } = useQuery(ottQuery);
+  const { query, setQuery, results: plans } = useAdminSearch(allPlans, (p) => [
+    p.name, p.plan, p.duration, p.quality, p.screens, p.availability,
+  ]);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<F>(EMPTY);
@@ -109,6 +113,8 @@ function AdminOttPage() {
       <AdminShell>
         <SectionHeading eyebrow="Subscriptions" title="Manage OTT Plans" subtitle="Configure streaming plans, pricing and availability."
           action={<Button variant="hero" onClick={() => { setEditingId(null); setForm(EMPTY); setOpen(true); }}><Plus className="h-4 w-4" /> Add Plan</Button>} />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search OTT plans by name, plan, duration…" count={plans.length} label="plans" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading plans…</p>

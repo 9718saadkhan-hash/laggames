@@ -18,6 +18,7 @@ import {
   AlertDialogTitle as ADTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -133,7 +134,10 @@ function toPayload(f: F) {
 function AdminUpcomingPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { data: items = [], isLoading, isError } = useQuery(upcomingGamesQuery({ admin: true }));
+  const { data: allItems = [], isLoading, isError } = useQuery(upcomingGamesQuery({ admin: true }));
+  const { query, setQuery, results: items } = useAdminSearch(allItems, (g) => [
+    g.title, g.slug, g.genre, g.platform, g.publisher, g.developer,
+  ]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<F>(EMPTY);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -286,6 +290,8 @@ function AdminUpcomingPage() {
             </Button>
           }
         />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search upcoming games by title, genre…" count={items.length} label="games" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading upcoming games…</p>

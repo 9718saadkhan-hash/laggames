@@ -11,6 +11,7 @@ import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { psPlusQuery } from "@/lib/queries";
 import { PS_PLUS_TIERS, money, type PsPlusPlan } from "@/lib/lag";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -119,7 +120,10 @@ function toPayload(f: F) {
 }
 
 function AdminPsPlusPage() {
-  const { data: plans = [], isLoading } = useQuery(psPlusQuery);
+  const { data: allPlans = [], isLoading } = useQuery(psPlusQuery);
+  const { query, setQuery, results: plans } = useAdminSearch(allPlans, (p) => [
+    p.name, p.tier, p.duration, p.region, p.platform, p.availability,
+  ]);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<F>(EMPTY);
@@ -184,6 +188,8 @@ function AdminPsPlusPage() {
             </Button>
           }
         />
+
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search PS Plus plans by name, tier, region…" count={plans.length} label="plans" />
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
