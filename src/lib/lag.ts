@@ -37,7 +37,11 @@ export interface Game {
   price_30: number | null;
   price_60: number | null;
   price_permanent: number | null;
+  price_30_secondary?: number | null;
+  price_60_secondary?: number | null;
+  price_permanent_secondary?: number | null;
   old_price: number | null;
+
   availability: string;
   featured: boolean;
   trending: boolean;
@@ -412,6 +416,9 @@ export interface GameEdition {
   price_30: number | null;
   price_60: number | null;
   price_permanent: number | null;
+  price_30_secondary?: number | null;
+  price_60_secondary?: number | null;
+  price_permanent_secondary?: number | null;
   old_price: number | null;
   visible: boolean;
   display_order: number;
@@ -420,7 +427,15 @@ export interface GameEdition {
 /** Lowest listed price across a game and its editions. */
 export function lowestEditionPrice(editions: GameEdition[]): number | null {
   const prices = editions
-    .flatMap((e) => [e.price_30, e.price_60, e.price_permanent])
+    .flatMap((e) => [
+      e.price_30,
+      e.price_60,
+      e.price_permanent,
+      e.price_30_secondary,
+      e.price_60_secondary,
+      e.price_permanent_secondary,
+    ])
     .filter((p): p is number => typeof p === "number");
   return prices.length ? Math.min(...prices) : null;
 }
+
