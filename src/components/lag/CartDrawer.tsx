@@ -1,4 +1,10 @@
-import { MessageCircle, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Loader2, MessageCircle, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +21,53 @@ import { contactFrom, settingsQuery } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 
 export function CartDrawer() {
-  const { items, count, total, changeQuantity, removeItem } = useCart();
+  const { items, count, total, changeQuantity, removeItem, clear } = useCart();
   const { data: settings } = useQuery(settingsQuery);
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [placing, setPlacing] = useState(false);
   const contact = contactFrom(settings);
-  const checkoutUrl = whatsappLink(contact.whatsapp, buildCartMessage(items, contact.brand));
+
+  async function checkout() {
+    if (items.length === 0) return;
+    setPlacing(true);
+    const orderCode = `LAG-${Date.now().toString(36).toUpperCase()}`;
+    let saved = false;
+
+    if (user) {
+      const rows = items.map((item) => ({
+        order_code: orderCode,
+        user_id: user.id,
+        customer_name: profile?.full_name ?? null,
+        customer_phone: profile?.phone ?? null,
+        product_type: item.productType ?? "Game",
+        product_id: item.productId ?? null,
+        product_name: item.name,
+        option_type: item.option ?? null,
+        price: item.price === null ? null : item.price * item.quantity,
+        status: "Pending",
+        notes: `Quantity: ${item.quantity}`,
+      }));
+      const { error } = await supabase.from("orders").insert(rows);
+      if (error) {
+        setPlacing(false);
+        toast.error("Could not save your order. Please try again.");
+        return;
+      }
+      saved = true;
+      void queryClient.invalidateQueries({ queryKey: ["orders"] });
+    }
+
+    const url = whatsappLink(contact.whatsapp, buildCartMessage(items, contact.brand, saved ? orderCode : undefined));
+    window.open(url, "_blank", "noopener,noreferrer");
+    setPlacing(false);
+    if (saved) {
+      clear();
+      toast.success(`Order ${orderCode} placed. Finish the chat on WhatsApp to confirm.`);
+    } else {
+      toast.success("Opening WhatsApp with your order. Sign in to keep an order history.");
+    }
+  }
 
   return (
     <Sheet>
@@ -73,12 +122,15 @@ export function CartDrawer() {
               <span>Total</span>
               <span className="text-xl">{money(total)}</span>
             </div>
-            <Button asChild variant="whatsapp" size="lg" className="w-full">
-              <a href={checkoutUrl} target="_blank" rel="noreferrer noopener">
-                <MessageCircle aria-hidden />
-                Checkout on WhatsApp
-              </a>
+            <Button variant="whatsapp" size="lg" className="w-full" onClick={() => void checkout()} disabled={placing}>
+              {placing ? <Loader2 className="animate-spin" aria-hidden /> : <MessageCircle aria-hidden />}
+              {placing ? "Placing order…" : "Checkout on WhatsApp"}
             </Button>
+            {!user && (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Sign in before checkout to save this order to your account.
+              </p>
+            )}
           </div>
         )}
       </SheetContent>

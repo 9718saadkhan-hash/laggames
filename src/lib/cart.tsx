@@ -6,6 +6,8 @@ export interface CartItem {
   price: number | null;
   image: string | null;
   option?: string;
+  productType?: string;
+  productId?: string | null;
   quantity: number;
 }
 
@@ -66,12 +68,24 @@ export function useCart() {
   return context;
 }
 
-export function buildCartMessage(items: CartItem[], brand: string) {
+export function buildCartMessage(items: CartItem[], brand: string, orderCode?: string) {
   const lines = items.map((item, index) => {
     const option = item.option ? ` — ${item.option}` : "";
     const price = item.price === null ? "Price on request" : `₹${item.price.toLocaleString("en-IN")}`;
     return `${index + 1}. ${item.name}${option}\n   ${item.quantity} × ${price}`;
   });
   const total = items.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0);
-  return [`Hi ${brand} 👋`, "", "I would like to order:", "", ...lines, "", `Total: ₹${total.toLocaleString("en-IN")}`, "", "Please confirm availability and payment details."].join("\n");
+  return [
+    `Hi ${brand} 👋`,
+    "",
+    orderCode ? `Order ID: ${orderCode}` : null,
+    orderCode ? "" : null,
+    "I would like to order:",
+    "",
+    ...lines,
+    "",
+    `Total: ₹${total.toLocaleString("en-IN")}`,
+    "",
+    "Please confirm availability and payment details.",
+  ].filter((line) => line !== null).join("\n");
 }
