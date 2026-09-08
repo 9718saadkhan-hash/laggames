@@ -11,6 +11,7 @@ import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { gamesQuery } from "@/lib/queries";
 import { money, discountPercent, PLATFORMS, type Game } from "@/lib/lag";
+import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,7 +212,10 @@ function formToPayload(f: GameForm) {
 }
 
 function AdminGamesPage() {
-  const { data: games = [], isLoading } = useQuery(gamesQuery({ admin: true }));
+  const { data: allGames = [], isLoading } = useQuery(gamesQuery({ admin: true }));
+  const { query, setQuery, results: games } = useAdminSearch(allGames, (g) => [
+    g.title, g.slug, g.genre, g.platform, g.publisher, g.developer, g.availability,
+  ]);
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<GameForm>(EMPTY_FORM);
@@ -312,6 +316,7 @@ function AdminGamesPage() {
 
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading games…</p>
+
         ) : games.length === 0 ? (
           <EmptyState icon={Gamepad2} title="No games yet" body="Add your first game to get started." />
         ) : (
