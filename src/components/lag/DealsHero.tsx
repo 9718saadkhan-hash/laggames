@@ -151,42 +151,6 @@ export function DealsHero() {
           })}
         </div>
 
-        {/* Single-deal carousel dots (only when one hero deal is visible they are hidden) */}
-        {count > 1 && (
-          <div className="mt-5 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              aria-label="Previous deal"
-              onClick={() => go(index - 1)}
-              className="text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
-            >
-              Prev
-            </button>
-            <div className="flex gap-1.5">
-              {slides.map((s, i) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  aria-label={`Go to deal ${i + 1}`}
-                  aria-current={i === index}
-                  onClick={() => setIndex(i)}
-                  className={cn(
-                    "h-1.5 rounded-full transition-all",
-                    i === index ? "w-7 bg-lag-red" : "w-3 bg-foreground/40 hover:bg-foreground/60",
-                  )}
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              aria-label="Next deal"
-              onClick={() => go(index + 1)}
-              className="text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
-            >
-              Next
-            </button>
-          </div>
-        )}
       </div>
     </section>
   );
