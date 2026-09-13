@@ -391,6 +391,13 @@
   contain-intrinsic-size: auto 640px;
 }
 
+/** Same idea per grid card, so long catalogue grids stay smooth. */
+@utility card-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
+
 /** Smooth, snappy horizontal media rails. */
 @utility rail {
   display: flex;
