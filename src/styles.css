@@ -124,7 +124,11 @@
 
   html {
     scroll-behavior: smooth;
+    /* Stable gutter avoids width jumps (layout shift) when content grows. */
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
   }
+
 
   body {
     background-color: var(--color-background);
@@ -390,6 +394,13 @@
   content-visibility: auto;
   contain-intrinsic-size: auto 640px;
 }
+
+/** Same idea per grid card, so long catalogue grids stay smooth. */
+@utility card-perf {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
 
 /** Smooth, snappy horizontal media rails. */
 @utility rail {

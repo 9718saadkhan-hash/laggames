@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Heart, ShoppingCart } from "lucide-react";
+import { memo } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,18 @@ import { safePosition } from "@/lib/media";
 import { wishlistQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
-export function GameCard({ game, className }: { game: Game; className?: string }) {
+function GameCardBase({ game, className }: { game: Game; className?: string }) {
   const { user } = useAuth();
   const { addItem } = useCart();
   const queryClient = useQueryClient();
-  const { data: wishlist } = useQuery(wishlistQuery(user?.id));
-  const saved = wishlist?.some((w) => w.game_id === game.id) ?? false;
+  // Subscribe only to this game's saved flag, so wishlist changes elsewhere
+  // don't re-render every card in a long grid.
+  const { data: saved = false } = useQuery({
+    ...wishlistQuery(user?.id),
+    select: (rows) => rows.some((w) => w.game_id === game.id),
+  });
   const from = lowestGamePrice(game);
+
 
   const toggle = useMutation({
     mutationFn: async () => {
@@ -47,10 +53,11 @@ export function GameCard({ game, className }: { game: Game; className?: string }
   return (
     <article
       className={cn(
-        "glass hover-lift group relative flex flex-col overflow-hidden rounded-2xl",
+        "glass hover-lift card-perf group relative flex flex-col overflow-hidden rounded-2xl",
         className,
       )}
     >
+
       <Link
         to="/games/$slug"
         params={{ slug: game.slug }}
@@ -62,6 +69,8 @@ export function GameCard({ game, className }: { game: Game; className?: string }
             src={game.cover_url}
             alt={`${game.title} artwork`}
             loading="lazy"
+            fetchPriority="low"
+
             style={{ objectPosition: safePosition(game.cover_position) }}
             decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -115,3 +124,7 @@ export function GameCard({ game, className }: { game: Game; className?: string }
     </article>
   );
 }
+
+/** Memoised: long catalogue grids only re-render the cards that changed. */
+export const GameCard = memo(GameCardBase);
+
