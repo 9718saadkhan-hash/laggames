@@ -149,12 +149,12 @@ function ReviewsPage() {
                     <StarRating value={r.rating} />
                   </div>
                   {r.image_url && (
-                    <div className="mt-3 overflow-hidden rounded-2xl border border-border">
+                    <div className="mt-3 overflow-hidden rounded-2xl border border-border aspect-video">
                       <img
                         src={r.image_url}
                         alt={`Photo shared by ${r.name}`}
                         loading="lazy"
-                        className="h-48 w-full object-cover"
+                        className="h-full w-full object-cover"
                         style={{ objectPosition: safePosition(r.image_position) }}
                       />
                     </div>
