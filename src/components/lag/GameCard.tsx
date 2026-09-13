@@ -124,3 +124,7 @@ function GameCardBase({ game, className }: { game: Game; className?: string }) {
     </article>
   );
 }
+
+/** Memoised: long catalogue grids only re-render the cards that changed. */
+export const GameCard = memo(GameCardBase);
+
