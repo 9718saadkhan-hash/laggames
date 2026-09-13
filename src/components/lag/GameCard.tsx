@@ -53,10 +53,11 @@ function GameCardBase({ game, className }: { game: Game; className?: string }) {
   return (
     <article
       className={cn(
-        "glass hover-lift group relative flex flex-col overflow-hidden rounded-2xl",
+        "glass hover-lift card-perf group relative flex flex-col overflow-hidden rounded-2xl",
         className,
       )}
     >
+
       <Link
         to="/games/$slug"
         params={{ slug: game.slug }}
@@ -68,6 +69,8 @@ function GameCardBase({ game, className }: { game: Game; className?: string }) {
             src={game.cover_url}
             alt={`${game.title} artwork`}
             loading="lazy"
+            fetchPriority="low"
+
             style={{ objectPosition: safePosition(game.cover_position) }}
             decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
