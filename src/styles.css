@@ -124,7 +124,11 @@
 
   html {
     scroll-behavior: smooth;
+    /* Stable gutter avoids width jumps (layout shift) when content grows. */
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
   }
+
 
   body {
     background-color: var(--color-background);
