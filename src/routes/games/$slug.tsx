@@ -224,7 +224,9 @@ function GameDetailPage() {
                 {[null, ...editions].map((e) => {
                   const selected = (e?.id ?? null) === (activeEdition?.id ?? null);
                   const label = e ? e.name : "Standard Edition";
-                  const from = priceFor(e ?? game, activeDuration) ?? priceFor(e ?? game, "30");
+                  const from =
+                    priceFor(e ?? game, activeDuration, activeAccount) ??
+                    priceFor(e ?? game, "30", activeAccount);
                   return (
                     <button
                       key={e?.id ?? "standard"}
