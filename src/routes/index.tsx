@@ -193,7 +193,7 @@ function HomePage() {
 
 
       {/* Why choose us */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading eyebrow="Why LAG" title="Why gamers choose us" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {WHY.map((w, i) => (
@@ -210,7 +210,7 @@ function HomePage() {
 
       {/* Comparison */}
       {(comparison.rows?.length ?? 0) > 0 && (
-        <section className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
+        <section className="section-perf mx-auto max-w-4xl px-4 py-14 sm:px-6">
           <SectionHeading eyebrow="Compare" title={comparison.title ?? "LAG vs other stores"} />
           <div className="glass-strong overflow-hidden rounded-3xl">
             <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center gap-2 border-b border-border px-4 py-3 text-[11px] font-bold tracking-widest uppercase sm:grid-cols-[minmax(0,1fr)_7rem_7rem] sm:px-6">
@@ -245,7 +245,7 @@ function HomePage() {
       )}
 
       {/* How it works */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading
           eyebrow="How it works"
           title="Three steps to playing"
@@ -284,7 +284,7 @@ function HomePage() {
       </section>
 
       {/* Reviews */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <SectionHeading
           eyebrow="Community"
           title="What gamers say"
@@ -339,7 +339,7 @@ function HomePage() {
 
 
       {/* About + CTA */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <section className="section-perf mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="glass-strong grid gap-6 rounded-3xl p-6 sm:p-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           <div className="min-w-0">
             <p className="mb-2 text-[11px] font-bold tracking-[0.24em] text-lag-red">About LAG</p>
@@ -387,7 +387,7 @@ function GameRow({
   loading?: boolean;
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <section className="section-perf mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <SectionHeading
         eyebrow={eyebrow}
         title={title}
