@@ -313,6 +313,18 @@ function HomePage() {
                   <figcaption className="min-w-0 truncate font-display font-bold">{r.name}</figcaption>
                   <StarRating value={r.rating} />
                 </div>
+                <p className="mt-1 text-xs text-muted-foreground">{formatDate(r.created_at)}</p>
+                {r.image_url && (
+                  <div className="mt-3 overflow-hidden rounded-2xl border border-border aspect-video">
+                    <img
+                      src={r.image_url}
+                      alt={`Photo shared by ${r.name}`}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                      style={{ objectPosition: safePosition(r.image_position) }}
+                    />
+                  </div>
+                )}
                 <blockquote className="mt-3 text-sm text-muted-foreground">{r.review}</blockquote>
                 {r.featured && (
                   <div className="mt-3">
