@@ -18,7 +18,7 @@ import {
   type CustomerActivity,
   type CustomerSession,
 } from "@/lib/lag";
-import { describeDevice } from "@/lib/lag";
+import { describeDevice, sortGamesByOrder } from "@/lib/lag";
 import type { MediaItem } from "@/lib/media";
 
 function unwrap<T>(res: { data: T | null; error: { message: string } | null }): T {
