@@ -11,7 +11,7 @@ import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { gamesQuery } from "@/lib/queries";
-import { money, discountPercent, PLATFORMS, type Game } from "@/lib/lag";
+import { money, discountPercent, hasManualOrder, PLATFORMS, slugify as _slugifyUnused, type Game } from "@/lib/lag";
 import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
