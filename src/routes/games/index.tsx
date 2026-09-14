@@ -8,7 +8,7 @@ import { EmptyState, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { lowestGamePrice, PLATFORMS } from "@/lib/lag";
+import { compareGameOrder, lowestGamePrice, PLATFORMS } from "@/lib/lag";
 import { gamesQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +87,7 @@ function GamesPage() {
         const pb = lowestGamePrice(b) ?? Number.MAX_SAFE_INTEGER;
         return sort === "low" ? pa - pb : pb - pa;
       }
-      return Number(b.featured) - Number(a.featured) || a.display_order - b.display_order;
+      return Number(b.featured) - Number(a.featured) || compareGameOrder(a, b);
     });
     return list;
   }, [visible, q, platform, genre, tag, maxPrice, sort]);

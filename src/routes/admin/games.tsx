@@ -11,7 +11,7 @@ import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { gamesQuery } from "@/lib/queries";
-import { money, discountPercent, PLATFORMS, type Game } from "@/lib/lag";
+import { money, discountPercent, hasManualOrder, PLATFORMS, type Game } from "@/lib/lag";
 import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,7 +134,7 @@ const EMPTY_FORM: GameForm = {
   hot_deal: false,
   new_release: false,
   visible: true,
-  display_order: "0",
+  display_order: "",
 };
 
 function gameToForm(g: Game): GameForm {
@@ -174,7 +174,7 @@ function gameToForm(g: Game): GameForm {
     hot_deal: g.hot_deal,
     new_release: g.new_release,
     visible: g.visible,
-    display_order: g.display_order?.toString() ?? "0",
+    display_order: typeof g.display_order === "number" ? g.display_order.toString() : "",
   };
 }
 
@@ -220,7 +220,7 @@ function formToPayload(f: GameForm) {
     hot_deal: f.hot_deal,
     new_release: f.new_release,
     visible: f.visible,
-    display_order: num(f.display_order) ?? 0,
+    display_order: num(f.display_order),
   };
 }
 
@@ -348,6 +348,11 @@ function AdminGamesPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display font-bold">{g.title}</h3>
                     <Badge tone="blue">{g.platform}</Badge>
+                    {hasManualOrder(g.display_order) ? (
+                      <Badge tone="red">#{g.display_order}</Badge>
+                    ) : (
+                      <Badge>A–Z Auto</Badge>
+                    )}
                     {g.old_price && discountPercent(g.old_price, g.price_permanent ?? g.price_60 ?? g.price_30) && (
                       <Badge tone="red">
                         -{discountPercent(g.old_price, g.price_permanent ?? g.price_60 ?? g.price_30)}%
@@ -653,7 +658,17 @@ function AdminGamesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="g-order">Display Order</Label>
-                <Input id="g-order" type="number" value={form.display_order} onChange={(e) => setForm((f) => ({ ...f, display_order: e.target.value }))} />
+                <Input
+                  id="g-order"
+                  type="number"
+                  placeholder="Blank = automatic A–Z"
+                  value={form.display_order}
+                  onChange={(e) => setForm((f) => ({ ...f, display_order: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional: Set a number to manually prioritize this game. Leave blank to automatically sort
+                  alphabetically.
+                </p>
               </div>
             </div>
             <DialogFooter>

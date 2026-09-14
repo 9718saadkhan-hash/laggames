@@ -18,7 +18,7 @@ import {
   type CustomerActivity,
   type CustomerSession,
 } from "@/lib/lag";
-import { describeDevice } from "@/lib/lag";
+import { describeDevice, sortGamesByOrder } from "@/lib/lag";
 import type { MediaItem } from "@/lib/media";
 
 function unwrap<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -30,12 +30,14 @@ export const gamesQuery = (opts?: { admin?: boolean }) =>
   queryOptions({
     queryKey: ["games", opts?.admin ? "admin" : "public"],
     queryFn: async () =>
-      unwrap<Game[]>(
-        (await supabase
-          .from("games")
-          .select("*")
-          .order("display_order", { ascending: true })
-          .order("created_at", { ascending: false })) as never,
+      sortGamesByOrder(
+        unwrap<Game[]>(
+          (await supabase
+            .from("games")
+            .select("*")
+            .order("display_order", { ascending: true, nullsFirst: false })
+            .order("title", { ascending: true })) as never,
+        ),
       ),
   });
 

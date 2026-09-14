@@ -353,7 +353,7 @@ export type Database = {
           created_at: string
           description: string | null
           developer: string | null
-          display_order: number
+          display_order: number | null
           featured: boolean
           gallery: string[]
           game_size: string | null
@@ -393,7 +393,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           developer?: string | null
-          display_order?: number
+          display_order?: number | null
           featured?: boolean
           gallery?: string[]
           game_size?: string | null
@@ -433,7 +433,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           developer?: string | null
-          display_order?: number
+          display_order?: number | null
           featured?: boolean
           gallery?: string[]
           game_size?: string | null
