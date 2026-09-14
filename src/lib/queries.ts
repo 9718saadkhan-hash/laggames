@@ -30,12 +30,14 @@ export const gamesQuery = (opts?: { admin?: boolean }) =>
   queryOptions({
     queryKey: ["games", opts?.admin ? "admin" : "public"],
     queryFn: async () =>
-      unwrap<Game[]>(
-        (await supabase
-          .from("games")
-          .select("*")
-          .order("display_order", { ascending: true })
-          .order("created_at", { ascending: false })) as never,
+      sortGamesByOrder(
+        unwrap<Game[]>(
+          (await supabase
+            .from("games")
+            .select("*")
+            .order("display_order", { ascending: true, nullsFirst: false })
+            .order("title", { ascending: true })) as never,
+        ),
       ),
   });
 

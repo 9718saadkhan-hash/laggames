@@ -48,8 +48,36 @@ export interface Game {
   hot_deal: boolean;
   new_release: boolean;
   visible: boolean;
-  display_order: number;
+  /** Manual priority. null/blank = no priority, sorted alphabetically after the prioritised games. */
+  display_order: number | null;
   created_at: string;
+}
+
+/** True when a game has a real manual priority (blank/null means "auto A–Z"). */
+export function hasManualOrder(value?: number | null): boolean {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+/**
+ * Display Order as a priority system:
+ * prioritised games first (ascending, ties broken A–Z), then all blank ones A–Z.
+ */
+export function compareGameOrder(
+  a: { title: string; display_order?: number | null },
+  b: { title: string; display_order?: number | null },
+): number {
+  const am = hasManualOrder(a.display_order);
+  const bm = hasManualOrder(b.display_order);
+  if (am !== bm) return am ? -1 : 1;
+  if (am && bm && a.display_order !== b.display_order) {
+    return (a.display_order as number) - (b.display_order as number);
+  }
+  return a.title.localeCompare(b.title, "en", { sensitivity: "base" });
+}
+
+/** Sort a list of games by the Display Order priority system. */
+export function sortGamesByOrder<T extends { title: string; display_order?: number | null }>(list: T[]): T[] {
+  return [...list].sort(compareGameOrder);
 }
 
 export interface PsPlusPlan {
