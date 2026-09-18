@@ -76,13 +76,19 @@ function AutofillPage() {
   const [log, setLog] = useState<AutofillResult[]>([]);
   const cancelRef = useRef(false);
 
-  const { query, setQuery, filter } = useAdminSearch();
-  const incomplete = useMemo(() => list.filter((g) => missingFields(g).length > 0), [list]);
-  const needsReview = useMemo(
-    () => list.filter((g) => g.metadata_status === "needs_review"),
+  const incomplete = useMemo(
+    () => list.filter((g: MetaGame) => missingFields(g).length > 0),
     [list],
   );
-  const visible = filter(incomplete, (g) => [g.title, g.slug, g.platform, g.genre]);
+  const needsReview = useMemo(
+    () => list.filter((g: MetaGame) => g.metadata_status === "needs_review"),
+    [list],
+  );
+  const {
+    query,
+    setQuery,
+    results: visible,
+  } = useAdminSearch<MetaGame>(incomplete, (g) => [g.title, g.slug, g.platform, g.genre]);
 
   const counts = useMemo(() => {
     let updated = 0;
