@@ -320,7 +320,7 @@ function AutofillPage() {
             <AdminSearch value={query} onChange={setQuery} count={visible.length} />
           </div>
           <ul className="mt-3 space-y-2">
-            {visible.map((g) => (
+            {visible.map((g: MetaGame) => (
               <li
                 key={g.id}
                 className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-sm"
