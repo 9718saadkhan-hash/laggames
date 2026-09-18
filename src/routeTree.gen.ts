@@ -25,6 +25,7 @@ import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminActivityRouteImport } from './routes/admin/activity'
+import { Route as AdminAutofillRouteImport } from './routes/admin/autofill'
 import { Route as AdminCollabsRouteImport } from './routes/admin/collabs'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminDealsRouteImport } from './routes/admin/deals'
@@ -122,6 +123,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminActivityRoute = AdminActivityRouteImport.update({
   id: '/admin/activity',
   path: '/admin/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAutofillRoute = AdminAutofillRouteImport.update({
+  id: '/admin/autofill',
+  path: '/admin/autofill',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCollabsRoute = AdminCollabsRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/autofill': typeof AdminAutofillRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/autofill': typeof AdminAutofillRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/reviews': typeof ReviewsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/activity': typeof AdminActivityRoute
+  '/admin/autofill': typeof AdminAutofillRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/wishlist'
     | '/admin/activity'
+    | '/admin/autofill'
     | '/admin/collabs'
     | '/admin/customers'
     | '/admin/deals'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/wishlist'
     | '/admin/activity'
+    | '/admin/autofill'
     | '/admin/collabs'
     | '/admin/customers'
     | '/admin/deals'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/wishlist'
     | '/admin/activity'
+    | '/admin/autofill'
     | '/admin/collabs'
     | '/admin/customers'
     | '/admin/deals'
@@ -451,6 +463,7 @@ export interface RootRouteChildren {
   ReviewsRoute: typeof ReviewsRoute
   WishlistRoute: typeof WishlistRoute
   AdminActivityRoute: typeof AdminActivityRoute
+  AdminAutofillRoute: typeof AdminAutofillRoute
   AdminCollabsRoute: typeof AdminCollabsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDealsRoute: typeof AdminDealsRoute
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/activity'
       fullPath: '/admin/activity'
       preLoaderRoute: typeof AdminActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/autofill': {
+      id: '/admin/autofill'
+      path: '/admin/autofill'
+      fullPath: '/admin/autofill'
+      preLoaderRoute: typeof AdminAutofillRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/collabs': {
@@ -731,6 +751,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewsRoute: ReviewsRoute,
   WishlistRoute: WishlistRoute,
   AdminActivityRoute: AdminActivityRoute,
+  AdminAutofillRoute: AdminAutofillRoute,
   AdminCollabsRoute: AdminCollabsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDealsRoute: AdminDealsRoute,
