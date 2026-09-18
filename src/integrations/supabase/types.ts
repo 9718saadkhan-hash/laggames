@@ -360,6 +360,12 @@ export type Database = {
           genre: string | null
           hot_deal: boolean
           id: string
+          igdb_id: number | null
+          metadata_fields: Json | null
+          metadata_note: string | null
+          metadata_source: string | null
+          metadata_status: string | null
+          metadata_updated_at: string | null
           new_release: boolean
           old_price: number | null
           platform: string
@@ -400,6 +406,12 @@ export type Database = {
           genre?: string | null
           hot_deal?: boolean
           id?: string
+          igdb_id?: number | null
+          metadata_fields?: Json | null
+          metadata_note?: string | null
+          metadata_source?: string | null
+          metadata_status?: string | null
+          metadata_updated_at?: string | null
           new_release?: boolean
           old_price?: number | null
           platform?: string
@@ -440,6 +452,12 @@ export type Database = {
           genre?: string | null
           hot_deal?: boolean
           id?: string
+          igdb_id?: number | null
+          metadata_fields?: Json | null
+          metadata_note?: string | null
+          metadata_source?: string | null
+          metadata_status?: string | null
+          metadata_updated_at?: string | null
           new_release?: boolean
           old_price?: number | null
           platform?: string
