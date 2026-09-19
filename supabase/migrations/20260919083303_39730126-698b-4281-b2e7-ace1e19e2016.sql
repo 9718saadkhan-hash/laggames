@@ -1,0 +1,1 @@
+-- Replace the dropped public "media read" with an admin-only read rule;-- public display of videos keeps working through the pre-signed links stored in the database.create policy "media admin read" on storage.objectsfor select to authenticatedusing (bucket_id = 'media' and public.has_role(auth.uid(), 'admin'));
