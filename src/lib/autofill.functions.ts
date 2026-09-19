@@ -252,6 +252,26 @@ export const autofillGames = createServerFn({ method: "POST" })
         continue;
       }
 
+      // Install size is not published by any game database — never spend a lookup on it alone.
+      if (missing.length === 1 && missing[0] === "game_size") {
+        const sizeNote = "Install size must be entered manually — no database publishes it.";
+        await supabaseAdmin
+          .from("games")
+          .update({ metadata_status: "needs_review", metadata_note: sizeNote })
+          .eq("id", game.id);
+        results.push({
+          id: game.id,
+          title: game.title,
+          status: "needs_review",
+          filled: [],
+          unresolved: missing,
+          note: sizeNote,
+          match: null,
+          confidence: 100,
+        });
+        continue;
+      }
+
       const platformIds = IGDB_PLATFORMS[game.platform] ?? [167, 48];
       let candidates: IgdbGame[] = [];
       try {
@@ -337,8 +357,16 @@ export const autofillGames = createServerFn({ method: "POST" })
         ...((game.metadata_fields as Record<string, string> | null) ?? {}),
         ...Object.fromEntries(filled.map((f) => [f, "IGDB"])),
       };
+      const LABEL: Record<AutofillField, string> = {
+        genre: "Genre",
+        game_size: "Game Size (enter manually — not published anywhere)",
+        developer: "Developer",
+        publisher: "Publisher",
+        rating: "Rating (not enough reviews to be reliable)",
+        release_date: "Release Date",
+      };
       const note = unresolved.length
-        ? `Not available from IGDB: ${unresolved.join(", ")}`
+        ? `Still needs you: ${unresolved.map((f) => LABEL[f]).join(", ")}`
         : null;
 
       const { error: updateError } = await supabaseAdmin
