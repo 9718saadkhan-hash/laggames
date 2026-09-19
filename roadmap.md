@@ -23,6 +23,8 @@
 - Second full-access administrator account
 - Homepage category cards updated to the compact two-column collection style from the supplied reference
 - Homepage deal cards changed to 4:5 with marked labels removed; primary actions use frosted white styling
+- Auto-fill now includes missing short and full descriptions from verified IGDB summaries
+- Floating Instagram and WhatsApp controls removed from admin pages only
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight

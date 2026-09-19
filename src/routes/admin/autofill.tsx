@@ -45,6 +45,8 @@ const FIELD_LABEL: Record<AutofillField, string> = {
   publisher: "Publisher",
   rating: "Rating",
   release_date: "Release Date",
+  short_description: "Short Description",
+  description: "Description",
 };
 
 type MetaGame = Game & {
