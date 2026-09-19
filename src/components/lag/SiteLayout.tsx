@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   Gamepad2,
   Heart,
@@ -58,13 +58,16 @@ const DESKTOP_NAV = NAV.filter((i) => i.label !== "About Us");
 const WHATSAPP_COMMUNITY = "https://chat.whatsapp.com/FhEYxa03iI0GxJ3K2Ke6sL";
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const isAdminRoute = location.pathname === "/admin" || location.pathname.startsWith("/admin/");
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <BackdropGlow />
       <Header />
       <main className="relative w-full min-w-0 flex-1 pb-28 md:pb-0">{children}</main>
       <Footer />
-      <FloatingWhatsApp />
+      {!isAdminRoute ? <FloatingWhatsApp /> : null}
       <MobileTabBar />
     </div>
   );

@@ -3,7 +3,7 @@
  *
  * Retrieves missing game metadata from IGDB (Twitch-authenticated) and fills ONLY
  * the empty fields of existing games. Never overwrites data that already exists,
- * never touches prices, images, descriptions, ordering, flags or visibility.
+ * never touches existing values, prices, images, ordering, flags or visibility.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -17,6 +17,8 @@ export const AUTOFILL_FIELDS = [
   "publisher",
   "rating",
   "release_date",
+  "short_description",
+  "description",
 ] as const;
 export type AutofillField = (typeof AUTOFILL_FIELDS)[number];
 
@@ -92,13 +94,15 @@ interface IgdbGame {
   release_dates?: { platform?: number; date?: number }[];
   alternative_names?: { name?: string }[];
   version_parent?: number;
+  summary?: string;
+  storyline?: string;
 }
 
 const FIELDS =
   "fields name,genres.name,platforms,total_rating,total_rating_count,aggregated_rating," +
   "aggregated_rating_count,first_release_date,involved_companies.developer," +
   "involved_companies.publisher,involved_companies.company.name,release_dates.platform," +
-  "release_dates.date,alternative_names.name,version_parent";
+  "release_dates.date,alternative_names.name,version_parent,summary,storyline";
 
 /** IGDB query with exponential backoff on rate limits / transient failures. */
 async function igdbQuery(body: string): Promise<IgdbGame[]> {
@@ -207,6 +211,28 @@ function pickReleaseDate(g: IgdbGame, platformIds: number[]): string | null {
   return null;
 }
 
+function cleanDescription(value?: string): string | null {
+  if (!value?.trim()) return null;
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  return cleaned.length >= 40 ? cleaned : null;
+}
+
+/** Keep only complete source sentences so shortened text never invents or alters facts. */
+function pickShortDescription(g: IgdbGame): string | null {
+  const source = cleanDescription(g.summary);
+  if (!source) return null;
+  const sentences = source.match(/[^.!?]+[.!?]+(?:["']|$)?/g)?.map((part) => part.trim()) ?? [];
+  const concise = sentences.slice(0, 2).join(" ");
+  if (concise.length >= 40 && concise.length <= 360) return concise;
+  if (sentences[0] && sentences[0].length >= 40) return sentences[0];
+  return source.length <= 360 ? source : null;
+}
+
+/** IGDB summary is preferred because it is factual, public-facing, and less spoiler-prone than storyline. */
+function pickDescription(g: IgdbGame): string | null {
+  return cleanDescription(g.summary);
+}
+
 const isEmpty = (v: unknown) => v === null || v === undefined || (typeof v === "string" && !v.trim());
 
 /* ----------------------------------------------------------- server function */
@@ -227,7 +253,7 @@ export const autofillGames = createServerFn({ method: "POST" })
     const { data: games, error } = await supabaseAdmin
       .from("games")
       .select(
-        "id,title,platform,genre,game_size,developer,publisher,rating,release_date,metadata_fields",
+        "id,title,platform,genre,game_size,developer,publisher,rating,release_date,short_description,description,metadata_fields",
       )
       .in("id", data.ids);
     if (error) throw new Error(error.message);
@@ -344,6 +370,8 @@ export const autofillGames = createServerFn({ method: "POST" })
         else if (field === "publisher") value = pickCompany(found, "publisher");
         else if (field === "rating") value = pickRating(found);
         else if (field === "release_date") value = pickReleaseDate(found, platformIds);
+        else if (field === "short_description") value = pickShortDescription(found);
+        else if (field === "description") value = pickDescription(found);
         else value = null; // game_size: no database publishes reliable install sizes
 
         if (value === null || value === "") unresolved.push(field);
@@ -364,6 +392,8 @@ export const autofillGames = createServerFn({ method: "POST" })
         publisher: "Publisher",
         rating: "Rating (not enough reviews to be reliable)",
         release_date: "Release Date",
+        short_description: "Short Description (no reliable IGDB summary found)",
+        description: "Description (no reliable IGDB summary found)",
       };
       const note = unresolved.length
         ? `Still needs you: ${unresolved.map((f) => LABEL[f]).join(", ")}`
