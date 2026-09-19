@@ -357,8 +357,16 @@ export const autofillGames = createServerFn({ method: "POST" })
         ...((game.metadata_fields as Record<string, string> | null) ?? {}),
         ...Object.fromEntries(filled.map((f) => [f, "IGDB"])),
       };
+      const LABEL: Record<AutofillField, string> = {
+        genre: "Genre",
+        game_size: "Game Size (enter manually — not published anywhere)",
+        developer: "Developer",
+        publisher: "Publisher",
+        rating: "Rating (not enough reviews to be reliable)",
+        release_date: "Release Date",
+      };
       const note = unresolved.length
-        ? `Not available from IGDB: ${unresolved.join(", ")}`
+        ? `Still needs you: ${unresolved.map((f) => LABEL[f]).join(", ")}`
         : null;
 
       const { error: updateError } = await supabaseAdmin
