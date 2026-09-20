@@ -239,7 +239,54 @@ const isEmpty = (v: unknown) => v === null || v === undefined || (typeof v === "
 
 /* ----------------------------------------------------------- server function */
 
-const Input = z.object({ ids: z.array(z.string().uuid()).min(1).max(8) });
+const Input = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(8),
+  /** Retry mode searches extra title variants instead of repeating the same failed lookup. */
+  retry: z.boolean().optional(),
+});
+
+const LABEL: Record<AutofillField, string> = {
+  genre: "Genre",
+  game_size: "Game Size (enter manually — not published anywhere)",
+  developer: "Developer",
+  publisher: "Publisher",
+  rating: "Rating (not enough reviews to be reliable)",
+  release_date: "Release Date",
+  short_description: "Short Description (no reliable IGDB summary found)",
+  description: "Description (no reliable IGDB summary found)",
+};
+
+/** Alternative spellings of a stored title, used only when the plain search fails. */
+function titleVariants(title: string): string[] {
+  const base = title.replace(/"/g, " ").trim();
+  const out = [base];
+  const noPlatform = base.replace(/\b(ps4|ps5|playstation\s*[45]?)\b/gi, " ").replace(/\s+/g, " ").trim();
+  const noEdition = noPlatform
+    .replace(/\b(standard|deluxe|ultimate|gold|complete|definitive|remastered|goty)\b/gi, " ")
+    .replace(/\b(edition|bundle|version)\b/gi, " ")
+    .replace(/[-–—]\s*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const noSubtitle = noEdition.split(/[:\-–—]/)[0]?.trim() ?? "";
+  const roman = noEdition.replace(/\b1\b/g, "").replace(/\s+/g, " ").trim();
+  for (const v of [noPlatform, noEdition, roman, noSubtitle]) {
+    if (v.length >= 3 && !out.includes(v)) out.push(v);
+  }
+  return out;
+}
+
+async function searchCandidates(title: string, retry: boolean): Promise<IgdbGame[]> {
+  const variants = retry ? titleVariants(title) : [title.replace(/"/g, " ").trim()];
+  const seen = new Map<number, IgdbGame>();
+  for (const variant of variants) {
+    const rows = await igdbQuery(`search "${variant}"; ${FIELDS}; limit 12;`);
+    for (const row of rows) if (!seen.has(row.id)) seen.set(row.id, row);
+    if (seen.size && !retry) break;
+    if (seen.size >= 20) break;
+    if (retry) await sleep(280);
+  }
+  return Array.from(seen.values());
+}
 
 export const autofillGames = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -266,6 +313,8 @@ export const autofillGames = createServerFn({ method: "POST" })
       const missing = AUTOFILL_FIELDS.filter(
         (f) => isEmpty((game as unknown as Record<string, unknown>)[f]),
       );
+      const alreadyFilled = AUTOFILL_FIELDS.filter((f) => !missing.includes(f));
+
       if (missing.length === 0) {
         results.push({
           id: game.id,
@@ -273,6 +322,7 @@ export const autofillGames = createServerFn({ method: "POST" })
           status: "skipped",
           filled: [],
           unresolved: [],
+          alreadyFilled,
           note: "All fields already filled",
           match: null,
           confidence: 100,
@@ -293,6 +343,7 @@ export const autofillGames = createServerFn({ method: "POST" })
           status: "needs_review",
           filled: [],
           unresolved: missing,
+          alreadyFilled,
           note: sizeNote,
           match: null,
           confidence: 100,
@@ -303,8 +354,7 @@ export const autofillGames = createServerFn({ method: "POST" })
       const platformIds = IGDB_PLATFORMS[game.platform] ?? [167, 48];
       let candidates: IgdbGame[] = [];
       try {
-        const safeTitle = game.title.replace(/"/g, " ").trim();
-        candidates = await igdbQuery(`search "${safeTitle}"; ${FIELDS}; limit 12;`);
+        candidates = await searchCandidates(game.title, data.retry === true);
       } catch (err) {
         results.push({
           id: game.id,
@@ -312,6 +362,7 @@ export const autofillGames = createServerFn({ method: "POST" })
           status: "needs_review",
           filled: [],
           unresolved: missing,
+          alreadyFilled,
           note: err instanceof Error ? err.message : "Lookup failed",
           match: null,
           confidence: 0,
@@ -353,6 +404,7 @@ export const autofillGames = createServerFn({ method: "POST" })
           status: best ? "needs_review" : "no_data",
           filled: [],
           unresolved: missing,
+          alreadyFilled,
           note,
           match: best?.game.name ?? null,
           confidence: best?.score ?? 0,
@@ -387,16 +439,6 @@ export const autofillGames = createServerFn({ method: "POST" })
         ...((game.metadata_fields as Record<string, string> | null) ?? {}),
         ...Object.fromEntries(filled.map((f) => [f, "IGDB"])),
       };
-      const LABEL: Record<AutofillField, string> = {
-        genre: "Genre",
-        game_size: "Game Size (enter manually — not published anywhere)",
-        developer: "Developer",
-        publisher: "Publisher",
-        rating: "Rating (not enough reviews to be reliable)",
-        release_date: "Release Date",
-        short_description: "Short Description (no reliable IGDB summary found)",
-        description: "Description (no reliable IGDB summary found)",
-      };
       const note = unresolved.length
         ? `Still needs you: ${unresolved.map((f) => LABEL[f]).join(", ")}`
         : null;
@@ -420,6 +462,7 @@ export const autofillGames = createServerFn({ method: "POST" })
           status: "needs_review",
           filled: [],
           unresolved: missing,
+          alreadyFilled,
           note: updateError.message,
           match: found.name,
           confidence: best.score,
@@ -433,6 +476,7 @@ export const autofillGames = createServerFn({ method: "POST" })
         status: unresolved.length && !filled.length ? "needs_review" : "updated",
         filled,
         unresolved,
+        alreadyFilled,
         note,
         match: found.name,
         confidence: best.score,
