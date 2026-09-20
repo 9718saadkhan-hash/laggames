@@ -122,7 +122,7 @@ function AutofillPage() {
         const chunk = ids.slice(i, i + CHUNK);
         setCurrent(byId.get(chunk[0]!) ?? null);
         try {
-          const res = await run({ data: { ids: chunk } });
+          const res = await run({ data: { ids: chunk, retry } });
           setLog((prev) => [...res, ...prev]);
         } catch (err) {
           const message = err instanceof Error ? err.message : "Request failed";
