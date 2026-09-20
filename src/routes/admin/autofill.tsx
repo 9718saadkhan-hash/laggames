@@ -197,9 +197,9 @@ function AutofillPage() {
             <Button
               variant="outline"
               disabled={running || !needsReview.length}
-              onClick={() => process(needsReview.map((g) => g.id))}
+              onClick={() => process(needsReview.map((g) => g.id), true)}
             >
-              Retry Needs Review ({needsReview.length})
+              Retry Auto-Fill ({needsReview.length})
             </Button>
             {running ? (
               <Button variant="destructive" onClick={() => (cancelRef.current = true)}>
