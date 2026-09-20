@@ -104,7 +104,7 @@ function AutofillPage() {
     return { updated, review, none };
   }, [log]);
 
-  async function process(ids: string[]) {
+  async function process(ids: string[], retry = false) {
     if (!ids.length) {
       toast.info("Nothing to process — every game already has this information.");
       return;
@@ -122,7 +122,7 @@ function AutofillPage() {
         const chunk = ids.slice(i, i + CHUNK);
         setCurrent(byId.get(chunk[0]!) ?? null);
         try {
-          const res = await run({ data: { ids: chunk } });
+          const res = await run({ data: { ids: chunk, retry } });
           setLog((prev) => [...res, ...prev]);
         } catch (err) {
           const message = err instanceof Error ? err.message : "Request failed";
@@ -133,6 +133,7 @@ function AutofillPage() {
               status: "needs_review",
               filled: [],
               unresolved: [],
+              alreadyFilled: [],
               note: message,
               match: null,
               confidence: 0,
@@ -196,9 +197,9 @@ function AutofillPage() {
             <Button
               variant="outline"
               disabled={running || !needsReview.length}
-              onClick={() => process(needsReview.map((g) => g.id))}
+              onClick={() => process(needsReview.map((g) => g.id), true)}
             >
-              Retry Needs Review ({needsReview.length})
+              Retry Auto-Fill ({needsReview.length})
             </Button>
             {running ? (
               <Button variant="destructive" onClick={() => (cancelRef.current = true)}>
