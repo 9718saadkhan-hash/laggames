@@ -28,6 +28,8 @@ export interface AutofillResult {
   status: "updated" | "needs_review" | "no_data" | "skipped";
   filled: AutofillField[];
   unresolved: AutofillField[];
+  /** Fields that already had a value and were left untouched. */
+  alreadyFilled: AutofillField[];
   note: string | null;
   match: string | null;
   confidence: number;
