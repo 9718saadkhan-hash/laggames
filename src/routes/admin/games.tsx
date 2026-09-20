@@ -1,8 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers } from "lucide-react";
+import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+import {
+  autofillGames,
+  type AutofillField,
+  type AutofillResult,
+} from "@/lib/autofill.functions";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
 import { EditionsManager } from "@/components/lag/EditionsManager";
