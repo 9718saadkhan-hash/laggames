@@ -133,6 +133,7 @@ function AutofillPage() {
               status: "needs_review",
               filled: [],
               unresolved: [],
+              alreadyFilled: [],
               note: message,
               match: null,
               confidence: 0,
