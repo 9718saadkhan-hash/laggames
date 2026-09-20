@@ -104,7 +104,7 @@ function AutofillPage() {
     return { updated, review, none };
   }, [log]);
 
-  async function process(ids: string[]) {
+  async function process(ids: string[], retry = false) {
     if (!ids.length) {
       toast.info("Nothing to process — every game already has this information.");
       return;
