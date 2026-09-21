@@ -67,6 +67,31 @@ function slugify(s: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+const AUTOFILL_LABEL: Record<AutofillField, string> = {
+  genre: "Genre",
+  game_size: "Game Size",
+  developer: "Developer",
+  publisher: "Publisher",
+  rating: "Rating",
+  release_date: "Release Date",
+  short_description: "Short Description",
+  description: "Description",
+};
+
+function autofillSummary(r: AutofillResult): string {
+  const lines: string[] = [];
+  if (r.filled.length)
+    lines.push(`Updated: ${r.filled.map((f) => `✓ ${AUTOFILL_LABEL[f]}`).join(", ")}`);
+  if (r.alreadyFilled.length)
+    lines.push(
+      `Already available: ${r.alreadyFilled.map((f) => `✓ ${AUTOFILL_LABEL[f]}`).join(", ")}`,
+    );
+  if (r.unresolved.length)
+    lines.push(`Still missing: ${r.unresolved.map((f) => `⚠ ${AUTOFILL_LABEL[f]}`).join(", ")}`);
+  if (r.note) lines.push(r.note);
+  return lines.join("\n");
+}
+
 type GameForm = {
   id?: string;
   slug: string;
@@ -242,9 +267,41 @@ function AdminGamesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editionsGame, setEditionsGame] = useState<Game | null>(null);
+  const runAutofill = useServerFn(autofillGames);
+  const [autofillingId, setAutofillingId] = useState<string | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["games"] });
+  }
+
+  /** Fill only this game's empty metadata fields; existing values stay untouched. */
+  async function autofillOne(id: string, title: string) {
+    setAutofillingId(id);
+    try {
+      const results = await runAutofill({ data: { ids: [id], retry: true } });
+      const result = results[0];
+      if (!result) {
+        toast.error("That game could not be found.");
+        return;
+      }
+      invalidate();
+      if (editingId === id) {
+        const { data } = await supabase.from("games").select("*").eq("id", id).maybeSingle();
+        if (data) setForm(gameToForm(data as Game));
+      }
+      const description = <span className="whitespace-pre-line">{autofillSummary(result)}</span>;
+      if (result.filled.length) {
+        toast.success(`${title} — metadata updated successfully.`, { description });
+      } else if (result.status === "skipped") {
+        toast.info(`${title} — nothing was missing.`, { description });
+      } else {
+        toast.warning(`${title} — needs manual entry.`, { description });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Auto-fill failed.");
+    } finally {
+      setAutofillingId(null);
+    }
   }
 
   function openCreate() {
@@ -400,6 +457,20 @@ function AdminGamesPage() {
                     <Layers className="h-4 w-4" />
                     <span className="hidden sm:inline">Editions</span>
                   </Button>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    disabled={autofillingId === g.id}
+                    onClick={() => autofillOne(g.id, g.title)}
+                    aria-label={`Auto-fill missing information for ${g.title}`}
+                  >
+                    {autofillingId === g.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">Auto-Fill</span>
+                  </Button>
                   <Button variant="glass" size="sm" onClick={() => handleDuplicate(g)} aria-label={`Duplicate ${g.title}`}>
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -431,6 +502,27 @@ function AdminGamesPage() {
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit Game" : "Add Game"}</DialogTitle>
             </DialogHeader>
+            {editingId ? (
+              <div className="rounded-2xl bg-surface-2 p-3">
+                <Button
+                  variant="blue"
+                  size="sm"
+                  disabled={autofillingId === editingId}
+                  onClick={() => autofillOne(editingId, form.title)}
+                >
+                  {autofillingId === editingId ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Auto-Fill Missing Information
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Fills only the empty fields for this game. Anything you already entered stays
+                  exactly as it is.
+                </p>
+              </div>
+            ) : null}
             <div className="grid gap-4 py-2">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
