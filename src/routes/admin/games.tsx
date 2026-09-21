@@ -457,6 +457,20 @@ function AdminGamesPage() {
                     <Layers className="h-4 w-4" />
                     <span className="hidden sm:inline">Editions</span>
                   </Button>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    disabled={autofillingId === g.id}
+                    onClick={() => autofillOne(g.id, g.title)}
+                    aria-label={`Auto-fill missing information for ${g.title}`}
+                  >
+                    {autofillingId === g.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    <span className="hidden sm:inline">Auto-Fill</span>
+                  </Button>
                   <Button variant="glass" size="sm" onClick={() => handleDuplicate(g)} aria-label={`Duplicate ${g.title}`}>
                     <Copy className="h-4 w-4" />
                   </Button>
