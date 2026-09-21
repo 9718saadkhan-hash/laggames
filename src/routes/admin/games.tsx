@@ -67,6 +67,31 @@ function slugify(s: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+const AUTOFILL_LABEL: Record<AutofillField, string> = {
+  genre: "Genre",
+  game_size: "Game Size",
+  developer: "Developer",
+  publisher: "Publisher",
+  rating: "Rating",
+  release_date: "Release Date",
+  short_description: "Short Description",
+  description: "Description",
+};
+
+function autofillSummary(r: AutofillResult): string {
+  const lines: string[] = [];
+  if (r.filled.length)
+    lines.push(`Updated: ${r.filled.map((f) => `✓ ${AUTOFILL_LABEL[f]}`).join(", ")}`);
+  if (r.alreadyFilled.length)
+    lines.push(
+      `Already available: ${r.alreadyFilled.map((f) => `✓ ${AUTOFILL_LABEL[f]}`).join(", ")}`,
+    );
+  if (r.unresolved.length)
+    lines.push(`Still missing: ${r.unresolved.map((f) => `⚠ ${AUTOFILL_LABEL[f]}`).join(", ")}`);
+  if (r.note) lines.push(r.note);
+  return lines.join("\n");
+}
+
 type GameForm = {
   id?: string;
   slug: string;
