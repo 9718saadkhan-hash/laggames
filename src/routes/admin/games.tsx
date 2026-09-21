@@ -267,9 +267,41 @@ function AdminGamesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editionsGame, setEditionsGame] = useState<Game | null>(null);
+  const runAutofill = useServerFn(autofillGames);
+  const [autofillingId, setAutofillingId] = useState<string | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["games"] });
+  }
+
+  /** Fill only this game's empty metadata fields; existing values stay untouched. */
+  async function autofillOne(id: string, title: string) {
+    setAutofillingId(id);
+    try {
+      const results = await runAutofill({ data: { ids: [id], retry: true } });
+      const result = results[0];
+      if (!result) {
+        toast.error("That game could not be found.");
+        return;
+      }
+      invalidate();
+      if (editingId === id) {
+        const { data } = await supabase.from("games").select("*").eq("id", id).maybeSingle();
+        if (data) setForm(gameToForm(data as Game));
+      }
+      const description = <span className="whitespace-pre-line">{autofillSummary(result)}</span>;
+      if (result.filled.length) {
+        toast.success(`${title} — metadata updated successfully.`, { description });
+      } else if (result.status === "skipped") {
+        toast.info(`${title} — nothing was missing.`, { description });
+      } else {
+        toast.warning(`${title} — needs manual entry.`, { description });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Auto-fill failed.");
+    } finally {
+      setAutofillingId(null);
+    }
   }
 
   function openCreate() {
