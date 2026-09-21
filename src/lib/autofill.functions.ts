@@ -22,6 +22,9 @@ export const AUTOFILL_FIELDS = [
 ] as const;
 export type AutofillField = (typeof AUTOFILL_FIELDS)[number];
 
+/** Game Size is never published by any database — it can stay empty without failing a game. */
+export const NON_SIZE_FIELDS = AUTOFILL_FIELDS.filter((f) => f !== "game_size");
+
 export interface AutofillResult {
   id: string;
   title: string;
@@ -30,9 +33,12 @@ export interface AutofillResult {
   unresolved: AutofillField[];
   /** Fields that already had a value and were left untouched. */
   alreadyFilled: AutofillField[];
+  /** True when the only thing left blank is Game Size. */
+  sizePending: boolean;
   note: string | null;
   match: string | null;
   confidence: number;
+  sources: string[];
 }
 
 const IGDB_PLATFORMS: Record<string, number[]> = {
