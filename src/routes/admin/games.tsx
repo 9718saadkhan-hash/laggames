@@ -502,6 +502,27 @@ function AdminGamesPage() {
             <DialogHeader>
               <DialogTitle>{editingId ? "Edit Game" : "Add Game"}</DialogTitle>
             </DialogHeader>
+            {editingId ? (
+              <div className="rounded-2xl bg-surface-2 p-3">
+                <Button
+                  variant="blue"
+                  size="sm"
+                  disabled={autofillingId === editingId}
+                  onClick={() => autofillOne(editingId, form.title)}
+                >
+                  {autofillingId === editingId ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  Auto-Fill Missing Information
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Fills only the empty fields for this game. Anything you already entered stays
+                  exactly as it is.
+                </p>
+              </div>
+            ) : null}
             <div className="grid gap-4 py-2">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
