@@ -134,6 +134,8 @@ function AutofillPage() {
               filled: [],
               unresolved: [],
               alreadyFilled: [],
+              sizePending: false,
+              sources: [],
               note: message,
               match: null,
               confidence: 0,

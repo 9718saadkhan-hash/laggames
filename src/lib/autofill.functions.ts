@@ -243,6 +243,121 @@ function pickDescription(g: IgdbGame): string | null {
 
 const isEmpty = (v: unknown) => v === null || v === undefined || (typeof v === "string" && !v.trim());
 
+/* ------------------------------------------------- fallback source: RAWG.io */
+
+interface RawgGame {
+  id: number;
+  name: string;
+  slug?: string;
+  released?: string | null;
+  rating?: number;
+  ratings_count?: number;
+  platforms?: { platform?: { slug?: string } }[];
+  genres?: { name?: string }[];
+  developers?: { name?: string }[];
+  publishers?: { name?: string }[];
+  description_raw?: string;
+}
+
+const RAWG_PLATFORM_SLUGS: Record<string, string[]> = {
+  PS4: ["playstation4"],
+  PS5: ["playstation5"],
+  "PS4 & PS5": ["playstation5", "playstation4"],
+};
+
+async function rawgFetch<T>(path: string): Promise<T | null> {
+  const key = process.env["RAWG_API_KEY"];
+  if (!key) return null;
+  const url = `https://api.rawg.io/api${path}${path.includes("?") ? "&" : "?"}key=${encodeURIComponent(key)}`;
+  let delay = 600;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (res.ok) return (await res.json()) as T;
+    if (res.status === 429 || res.status >= 500) {
+      await sleep(delay);
+      delay *= 2;
+      continue;
+    }
+    return null;
+  }
+  return null;
+}
+
+/** Verify a RAWG candidate by title and platform before trusting any of its data. */
+function rawgScore(candidate: RawgGame, title: string, platformSlugs: string[]): number {
+  const target = norm(title);
+  const name = norm(candidate.name ?? "");
+  let score = 0;
+  if (name === target) score += 55;
+  else if (name.startsWith(target) || target.startsWith(name)) score += 30;
+  else if (name.includes(target) || target.includes(name)) score += 14;
+  else return 0;
+  const slugs = (candidate.platforms ?? []).map((p) => p.platform?.slug ?? "");
+  if (platformSlugs.some((s) => slugs.includes(s))) score += 30;
+  else if (slugs.length) score -= 15;
+  if (candidate.developers?.length || candidate.publishers?.length) score += 8;
+  if (candidate.released) score += 4;
+  return Math.max(0, Math.min(100, score));
+}
+
+async function rawgLookup(
+  title: string,
+  platform: string,
+  retry: boolean,
+): Promise<RawgGame | null> {
+  const platformSlugs = RAWG_PLATFORM_SLUGS[platform] ?? ["playstation5", "playstation4"];
+  const variants = retry ? titleVariants(title) : titleVariants(title).slice(0, 2);
+  for (const variant of variants) {
+    const list = await rawgFetch<{ results?: RawgGame[] }>(
+      `/games?search=${encodeURIComponent(variant)}&search_precise=true&page_size=8`,
+    );
+    const rows = list?.results ?? [];
+    if (!rows.length) continue;
+    const best = rows
+      .map((r) => ({ row: r, score: rawgScore(r, title, platformSlugs) }))
+      .sort((a, b) => b.score - a.score)[0];
+    if (best && best.score >= 70) {
+      // Detail call carries developers/publishers/description that the list omits.
+      const detail = await rawgFetch<RawgGame>(`/games/${best.row.slug ?? best.row.id}`);
+      return { ...best.row, ...(detail ?? {}) };
+    }
+    await sleep(250);
+  }
+  return null;
+}
+
+function rawgValue(g: RawgGame, field: AutofillField): string | number | null {
+  if (field === "genre") {
+    const names = (g.genres ?? []).map((x) => x.name).filter(Boolean) as string[];
+    return names.length ? names.join(", ") : null;
+  }
+  if (field === "developer") {
+    const names = (g.developers ?? []).map((x) => x.name).filter(Boolean) as string[];
+    return names.length ? Array.from(new Set(names)).join(", ") : null;
+  }
+  if (field === "publisher") {
+    const names = (g.publishers ?? []).map((x) => x.name).filter(Boolean) as string[];
+    return names.length ? Array.from(new Set(names)).join(", ") : null;
+  }
+  if (field === "rating") {
+    if (typeof g.rating === "number" && g.rating > 0 && (g.ratings_count ?? 0) >= 5) {
+      return Math.round(g.rating * 10) / 10; // RAWG is already 0–5
+    }
+    return null;
+  }
+  if (field === "release_date") return g.released ? g.released.slice(0, 10) : null;
+  if (field === "short_description" || field === "description") {
+    const cleaned = cleanDescription(g.description_raw);
+    if (!cleaned) return null;
+    if (field === "description") return cleaned;
+    const sentences = cleaned.match(/[^.!?]+[.!?]+/g)?.map((p) => p.trim()) ?? [];
+    const concise = sentences.slice(0, 2).join(" ");
+    if (concise.length >= 40 && concise.length <= 360) return concise;
+    return cleaned.length <= 360 ? cleaned : null;
+  }
+  return null; // game_size is never published
+}
+
 /* ----------------------------------------------------------- server function */
 
 const Input = z.object({
@@ -253,43 +368,44 @@ const Input = z.object({
 
 const LABEL: Record<AutofillField, string> = {
   genre: "Genre",
-  game_size: "Game Size (enter manually — not published anywhere)",
+  game_size: "Game Size (manual entry required)",
   developer: "Developer",
   publisher: "Publisher",
   rating: "Rating (not enough reviews to be reliable)",
   release_date: "Release Date",
-  short_description: "Short Description (no reliable IGDB summary found)",
-  description: "Description (no reliable IGDB summary found)",
+  short_description: "Short Description (no reliable summary found)",
+  description: "Description (no reliable summary found)",
 };
 
-/** Alternative spellings of a stored title, used only when the plain search fails. */
+/** Alternative spellings of a stored title, used to widen the search. */
 function titleVariants(title: string): string[] {
   const base = title.replace(/"/g, " ").trim();
   const out = [base];
   const noPlatform = base.replace(/\b(ps4|ps5|playstation\s*[45]?)\b/gi, " ").replace(/\s+/g, " ").trim();
   const noEdition = noPlatform
-    .replace(/\b(standard|deluxe|ultimate|gold|complete|definitive|remastered|goty)\b/gi, " ")
+    .replace(/\b(standard|deluxe|ultimate|gold|complete|definitive|goty)\b/gi, " ")
     .replace(/\b(edition|bundle|version)\b/gi, " ")
     .replace(/[-–—]\s*$/, "")
     .replace(/\s+/g, " ")
     .trim();
+  // "Alan Wake 1" → "Alan Wake"; also try the remastered release name.
+  const noTrailingOne = noEdition.replace(/\s+1$/, "").replace(/\s+/g, " ").trim();
+  const remastered = `${noTrailingOne} Remastered`;
   const noSubtitle = noEdition.split(/[:\-–—]/)[0]?.trim() ?? "";
-  const roman = noEdition.replace(/\b1\b/g, "").replace(/\s+/g, " ").trim();
-  for (const v of [noPlatform, noEdition, roman, noSubtitle]) {
+  for (const v of [noPlatform, noEdition, noTrailingOne, remastered, noSubtitle]) {
     if (v.length >= 3 && !out.includes(v)) out.push(v);
   }
   return out;
 }
 
 async function searchCandidates(title: string, retry: boolean): Promise<IgdbGame[]> {
-  const variants = retry ? titleVariants(title) : [title.replace(/"/g, " ").trim()];
+  const variants = titleVariants(title);
   const seen = new Map<number, IgdbGame>();
   for (const variant of variants) {
     const rows = await igdbQuery(`search "${variant}"; ${FIELDS}; limit 12;`);
     for (const row of rows) if (!seen.has(row.id)) seen.set(row.id, row);
-    if (seen.size && !retry) break;
-    if (seen.size >= 20) break;
-    if (retry) await sleep(280);
+    if (seen.size >= (retry ? 24 : 12)) break;
+    await sleep(280);
   }
   return Array.from(seen.values());
 }
@@ -320,37 +436,26 @@ export const autofillGames = createServerFn({ method: "POST" })
         (f) => isEmpty((game as unknown as Record<string, unknown>)[f]),
       );
       const alreadyFilled = AUTOFILL_FIELDS.filter((f) => !missing.includes(f));
+      const wanted = missing.filter((f) => f !== "game_size");
+      const sizeMissing = missing.includes("game_size");
 
-      if (missing.length === 0) {
+      // Nothing left to look up: either fully complete, or only Game Size is pending.
+      if (wanted.length === 0) {
+        const note = sizeMissing ? "Game Size: manual entry required" : null;
+        await supabaseAdmin
+          .from("games")
+          .update({ metadata_status: "complete", metadata_note: note })
+          .eq("id", game.id);
         results.push({
           id: game.id,
           title: game.title,
           status: "skipped",
           filled: [],
-          unresolved: [],
+          unresolved: sizeMissing ? ["game_size"] : [],
           alreadyFilled,
-          note: "All fields already filled",
-          match: null,
-          confidence: 100,
-        });
-        continue;
-      }
-
-      // Install size is not published by any game database — never spend a lookup on it alone.
-      if (missing.length === 1 && missing[0] === "game_size") {
-        const sizeNote = "Install size must be entered manually — no database publishes it.";
-        await supabaseAdmin
-          .from("games")
-          .update({ metadata_status: "needs_review", metadata_note: sizeNote })
-          .eq("id", game.id);
-        results.push({
-          id: game.id,
-          title: game.title,
-          status: "needs_review",
-          filled: [],
-          unresolved: missing,
-          alreadyFilled,
-          note: sizeNote,
+          sizePending: sizeMissing,
+          sources: [],
+          note: sizeMissing ? "Metadata complete · Game Size: manual entry required" : "All fields already filled",
           match: null,
           confidence: 100,
         });
@@ -358,105 +463,118 @@ export const autofillGames = createServerFn({ method: "POST" })
       }
 
       const platformIds = IGDB_PLATFORMS[game.platform] ?? [167, 48];
-      let candidates: IgdbGame[] = [];
+      const patch: Record<string, string | number | null> = {};
+      const filled: AutofillField[] = [];
+      const fieldSource: Record<string, string> = {};
+      const sourcesUsed: string[] = [];
+      let matchName: string | null = null;
+      let confidence = 0;
+      const notes: string[] = [];
+
+      /* ---- source 1: IGDB ---- */
+      let igdbCandidates: IgdbGame[] = [];
       try {
-        candidates = await searchCandidates(game.title, data.retry === true);
+        igdbCandidates = await searchCandidates(game.title, data.retry === true);
       } catch (err) {
-        results.push({
-          id: game.id,
-          title: game.title,
-          status: "needs_review",
-          filled: [],
-          unresolved: missing,
-          alreadyFilled,
-          note: err instanceof Error ? err.message : "Lookup failed",
-          match: null,
-          confidence: 0,
-        });
-        continue;
+        notes.push(err instanceof Error ? err.message : "IGDB lookup failed");
       }
 
-      const scored = candidates
+      const scored = igdbCandidates
         .map((c) => ({ game: c, ...scoreCandidate(c, game.title, platformIds) }))
         .sort((a, b) => b.score - a.score);
       const best = scored[0];
       const runnerUp = scored[1];
-
-      // Ambiguous: two different entries both look like exact platform matches.
       const ambiguous =
         !!best && !!runnerUp && best.exact && runnerUp.exact && best.score - runnerUp.score < 10;
 
-      if (!best || best.score < 70 || ambiguous) {
-        const note = !best
-          ? "No match found on IGDB"
-          : ambiguous
-            ? `Multiple possible matches: ${scored
-                .slice(0, 3)
-                .map((s) => s.game.name)
-                .join(" / ")}`
-            : `Low confidence match: ${best.game.name}`;
-        await supabaseAdmin
-          .from("games")
-          .update({
-            metadata_status: "needs_review",
-            metadata_note: note,
-            metadata_source: "IGDB",
-            metadata_updated_at: new Date().toISOString(),
-          })
-          .eq("id", game.id);
-        results.push({
-          id: game.id,
-          title: game.title,
-          status: best ? "needs_review" : "no_data",
-          filled: [],
-          unresolved: missing,
-          alreadyFilled,
-          note,
-          match: best?.game.name ?? null,
-          confidence: best?.score ?? 0,
-        });
-        continue;
-      }
-
-      const found = best.game;
-      const patch: Record<string, string | number | null> = {};
-      const filled: AutofillField[] = [];
-      const unresolved: AutofillField[] = [];
-
-      for (const field of missing) {
-        let value: string | number | null = null;
-        if (field === "genre") value = pickGenre(found);
-        else if (field === "developer") value = pickCompany(found, "developer");
-        else if (field === "publisher") value = pickCompany(found, "publisher");
-        else if (field === "rating") value = pickRating(found);
-        else if (field === "release_date") value = pickReleaseDate(found, platformIds);
-        else if (field === "short_description") value = pickShortDescription(found);
-        else if (field === "description") value = pickDescription(found);
-        else value = null; // game_size: no database publishes reliable install sizes
-
-        if (value === null || value === "") unresolved.push(field);
-        else {
-          patch[field] = value;
-          filled.push(field);
+      if (best && best.score >= 70 && !ambiguous) {
+        const found = best.game;
+        matchName = found.name;
+        confidence = best.score;
+        for (const field of wanted) {
+          let value: string | number | null = null;
+          if (field === "genre") value = pickGenre(found);
+          else if (field === "developer") value = pickCompany(found, "developer");
+          else if (field === "publisher") value = pickCompany(found, "publisher");
+          else if (field === "rating") value = pickRating(found);
+          else if (field === "release_date") value = pickReleaseDate(found, platformIds);
+          else if (field === "short_description") value = pickShortDescription(found);
+          else if (field === "description") value = pickDescription(found);
+          if (value !== null && value !== "") {
+            patch[field] = value;
+            filled.push(field);
+            fieldSource[field] = "IGDB";
+          }
         }
+        if (filled.length) sourcesUsed.push("IGDB");
+        if (Object.keys(patch).length) patch["igdb_id"] = found.id;
+      } else if (best) {
+        notes.push(
+          ambiguous
+            ? `IGDB had multiple possible matches: ${scored.slice(0, 3).map((s) => s.game.name).join(" / ")}`
+            : `IGDB best guess was too weak: ${best.game.name}`,
+        );
+      } else if (!notes.length) {
+        notes.push("No confident IGDB match");
       }
+
+      /* ---- source 2: RAWG, only for the fields still missing ---- */
+      let stillMissing = wanted.filter((f) => !filled.includes(f));
+      if (stillMissing.length) {
+        try {
+          const rawg = await rawgLookup(game.title, game.platform, data.retry === true);
+          if (rawg) {
+            matchName = matchName ?? rawg.name;
+            confidence = Math.max(confidence, 70);
+            for (const field of stillMissing) {
+              const value = rawgValue(rawg, field);
+              if (value !== null && value !== "") {
+                patch[field] = value;
+                filled.push(field);
+                fieldSource[field] = "RAWG";
+              }
+            }
+            if (Object.values(fieldSource).includes("RAWG")) sourcesUsed.push("RAWG");
+          }
+        } catch {
+          notes.push("Fallback source lookup failed");
+        }
+        stillMissing = wanted.filter((f) => !filled.includes(f));
+      }
+
+      const sizePending = sizeMissing;
+      const unresolved: AutofillField[] = [...stillMissing, ...(sizeMissing ? (["game_size"] as AutofillField[]) : [])];
+      // Only non-size gaps can send a game to review.
+      const status: AutofillResult["status"] = stillMissing.length
+        ? filled.length
+          ? "needs_review"
+          : matchName
+            ? "needs_review"
+            : "no_data"
+        : "updated";
+
+      const noteParts: string[] = [];
+      if (stillMissing.length) {
+        noteParts.push(`Still needs you: ${stillMissing.map((f) => LABEL[f]).join(", ")}`);
+        if (notes.length) noteParts.push(notes[0]!);
+      } else {
+        noteParts.push("Metadata complete");
+      }
+      if (sizePending) noteParts.push("Game Size: manual entry required");
+      const note = noteParts.join(" · ");
 
       const sources = {
         ...((game.metadata_fields as Record<string, string> | null) ?? {}),
-        ...Object.fromEntries(filled.map((f) => [f, "IGDB"])),
+        ...fieldSource,
       };
-      const note = unresolved.length
-        ? `Still needs you: ${unresolved.map((f) => LABEL[f]).join(", ")}`
-        : null;
 
       const { error: updateError } = await supabaseAdmin
         .from("games")
         .update({
           ...patch,
-          igdb_id: found.id,
-          metadata_source: "IGDB",
+          metadata_source: sourcesUsed.length ? sourcesUsed.join(" + ") : "IGDB",
           metadata_updated_at: new Date().toISOString(),
-          metadata_status: unresolved.length ? "needs_review" : "complete",
+          metadata_status: stillMissing.length ? "needs_review" : "complete",
           metadata_note: note,
           metadata_fields: sources,
         })
@@ -467,11 +585,13 @@ export const autofillGames = createServerFn({ method: "POST" })
           title: game.title,
           status: "needs_review",
           filled: [],
-          unresolved: missing,
+          unresolved,
           alreadyFilled,
+          sizePending,
           note: updateError.message,
-          match: found.name,
-          confidence: best.score,
+          match: matchName,
+          confidence,
+          sources: sourcesUsed,
         });
         continue;
       }
@@ -479,13 +599,15 @@ export const autofillGames = createServerFn({ method: "POST" })
       results.push({
         id: game.id,
         title: game.title,
-        status: unresolved.length && !filled.length ? "needs_review" : "updated",
+        status,
         filled,
         unresolved,
         alreadyFilled,
+        sizePending,
         note,
-        match: found.name,
-        confidence: best.score,
+        match: matchName,
+        confidence,
+        sources: sourcesUsed,
       });
 
       await sleep(280); // stay well inside IGDB's 4 requests/second limit
