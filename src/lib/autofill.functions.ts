@@ -454,6 +454,7 @@ export const autofillGames = createServerFn({ method: "POST" })
           unresolved: sizeMissing ? ["game_size"] : [],
           alreadyFilled,
           sizePending: sizeMissing,
+          sources: [],
           note: sizeMissing ? "Metadata complete · Game Size: manual entry required" : "All fields already filled",
           match: null,
           confidence: 100,
