@@ -147,34 +147,87 @@ function norm(value: string): string {
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/&/g, "and")
-    .replace(/\b(ps4|ps5|playstation\s*[45]?|edition|standard)\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
+const ROMAN: Record<string, number> = {
+  i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9, x: 10,
+};
+
+const PLATFORM_WORDS = /\b(ps4|ps5|playstation\s*[45]?|xbox|series\s*[sx]|pc|switch)\b/g;
+const EDITION_WORDS =
+  /\b(standard|deluxe|ultimate|gold|complete|definitive|goty|game of the year|anniversary|legacy|digital|bundle|edition|version|pack)\b/g;
+
+/**
+ * Identity of a title: the series name, its entry number and whether it is a
+ * remaster/remake. Two releases only describe the same game when all three agree,
+ * so sequels, prequels, roman-numeral entries and remasters never cross-match.
+ */
+interface Identity {
+  core: string;
+  number: number;
+  remaster: "remastered" | "remake" | null;
+}
+
+function parseIdentity(title: string): Identity {
+  let t = norm(title).replace(PLATFORM_WORDS, " ");
+  let remaster: Identity["remaster"] = null;
+  if (/\bremaster(ed)?\b/.test(t)) remaster = "remastered";
+  else if (/\bremake\b/.test(t)) remaster = "remake";
+  t = t
+    .replace(/\bremaster(ed)?\b|\bremake\b/g, " ")
+    .replace(EDITION_WORDS, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Entry number: "part ii", or a trailing digit / roman numeral. Absent means entry 1.
+  let number = 1;
+  const part = t.match(/\bpart\s+([0-9]{1,2}|[ivx]{1,4})\b/);
+  const trailing = t.match(/\s([0-9]{1,2}|[ivx]{1,4})$/);
+  const token = part?.[1] ?? trailing?.[1];
+  if (token) {
+    const parsed = /^[0-9]+$/.test(token) ? Number(token) : ROMAN[token];
+    if (parsed && parsed <= 20) {
+      number = parsed;
+      t = part
+        ? t.replace(/\bpart\s+([0-9]{1,2}|[ivx]{1,4})\b/, " ")
+        : t.replace(/\s([0-9]{1,2}|[ivx]{1,4})$/, " ");
+    }
+  }
+  return { core: t.replace(/\s+/g, " ").trim(), number, remaster };
+}
+
+function identityMatches(a: Identity, b: Identity): boolean {
+  return Boolean(a.core) && a.core === b.core && a.number === b.number && a.remaster === b.remaster;
+}
+
+/**
+ * A candidate is only considered at all when its identity matches. Anything else
+ * scores 0 and is rejected outright instead of being used as a weak guess.
+ */
 function scoreCandidate(
   candidate: IgdbGame,
   title: string,
   platformIds: number[],
 ): { score: number; exact: boolean } {
-  const target = norm(title);
+  const target = parseIdentity(title);
   const names = [candidate.name, ...(candidate.alternative_names ?? []).map((a) => a.name ?? "")]
-    .filter(Boolean)
-    .map(norm);
-  const exact = names.includes(target);
-  let score = 0;
-  if (exact) score += 55;
-  else if (names.some((n) => n.startsWith(target) || target.startsWith(n))) score += 28;
-  else if (names.some((n) => n.includes(target) || target.includes(n))) score += 14;
+    .filter((n): n is string => Boolean(n));
+  if (!names.some((n) => identityMatches(parseIdentity(n), target))) {
+    return { score: 0, exact: false };
+  }
 
+  let score = 60;
   const platforms = candidate.platforms ?? [];
   if (platformIds.some((p) => platforms.includes(p))) score += 30;
-  else if (platforms.length) score -= 15;
-
-  if (candidate.involved_companies?.length) score += 8;
-  if (candidate.genres?.length) score += 4;
+  else if (platforms.length) score -= 40; // a release for other platforms only
+  if (candidate.involved_companies?.length) score += 6;
+  if (candidate.genres?.length) score += 3;
   if (candidate.first_release_date) score += 3;
-  if (candidate.version_parent) score -= 10;
+  if (candidate.version_parent) score -= 25; // DLC / bundled version entry
+  const exact = names.some((n) => norm(n) === norm(title));
   return { score: Math.max(0, Math.min(100, score)), exact };
 }
 
@@ -285,17 +338,12 @@ async function rawgFetch<T>(path: string): Promise<T | null> {
 
 /** Verify a RAWG candidate by title and platform before trusting any of its data. */
 function rawgScore(candidate: RawgGame, title: string, platformSlugs: string[]): number {
-  const target = norm(title);
-  const name = norm(candidate.name ?? "");
-  let score = 0;
-  if (name === target) score += 55;
-  else if (name.startsWith(target) || target.startsWith(name)) score += 30;
-  else if (name.includes(target) || target.includes(name)) score += 14;
-  else return 0;
+  if (!identityMatches(parseIdentity(candidate.name ?? ""), parseIdentity(title))) return 0;
+  let score = 60;
   const slugs = (candidate.platforms ?? []).map((p) => p.platform?.slug ?? "");
   if (platformSlugs.some((s) => slugs.includes(s))) score += 30;
-  else if (slugs.length) score -= 15;
-  if (candidate.developers?.length || candidate.publishers?.length) score += 8;
+  else if (slugs.length) score -= 40;
+  if (candidate.developers?.length || candidate.publishers?.length) score += 6;
   if (candidate.released) score += 4;
   return Math.max(0, Math.min(100, score));
 }
@@ -377,24 +425,39 @@ const LABEL: Record<AutofillField, string> = {
   description: "Description (no reliable summary found)",
 };
 
-/** Alternative spellings of a stored title, used to widen the search. */
+/**
+ * Search spellings of a stored title. Meaningful parts (entry number, roman
+ * numeral, subtitle, remaster/remake) are always preserved — only punctuation,
+ * platform words and edition wording vary.
+ */
 function titleVariants(title: string): string[] {
+  const out: string[] = [];
+  const push = (value: string) => {
+    const t = value.replace(/\s+/g, " ").trim();
+    if (t.length >= 2 && !out.includes(t)) out.push(t);
+  };
   const base = title.replace(/"/g, " ").trim();
-  const out = [base];
-  const noPlatform = base.replace(/\b(ps4|ps5|playstation\s*[45]?)\b/gi, " ").replace(/\s+/g, " ").trim();
-  const noEdition = noPlatform
-    .replace(/\b(standard|deluxe|ultimate|gold|complete|definitive|goty)\b/gi, " ")
-    .replace(/\b(edition|bundle|version)\b/gi, " ")
-    .replace(/[-–—]\s*$/, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  // "Alan Wake 1" → "Alan Wake"; also try the remastered release name.
-  const noTrailingOne = noEdition.replace(/\s+1$/, "").replace(/\s+/g, " ").trim();
-  const remastered = `${noTrailingOne} Remastered`;
-  const noSubtitle = noEdition.split(/[:\-–—]/)[0]?.trim() ?? "";
-  for (const v of [noPlatform, noEdition, noTrailingOne, remastered, noSubtitle]) {
-    if (v.length >= 3 && !out.includes(v)) out.push(v);
+  push(base);
+  push(base.replace(/[:\-–—_]+/g, " "));
+  push(base.replace(/\b(ps4|ps5|playstation\s*[45]?)\b/gi, " "));
+  push(
+    base
+      .replace(/\b(standard|deluxe|ultimate|gold|complete|definitive|goty)?\s*(edition|bundle|version)\b/gi, " ")
+      .replace(/[-–—:]\s*$/, ""),
+  );
+  // Same entry number written the other way round (2 <-> II), so both spellings are searchable.
+  const digit = base.match(/(?:^|\s)([0-9]{1,2})(?=\s|$)/);
+  if (digit?.[1]) {
+    const roman = Object.entries(ROMAN).find(([, v]) => v === Number(digit[1]))?.[0];
+    if (roman) push(base.replace(new RegExp(`(^|\\s)${digit[1]}(?=\\s|$)`), `$1${roman.toUpperCase()}`));
   }
+  const roman = base.match(/\s([ivx]{1,4})$/i);
+  if (roman?.[1]) {
+    const n = ROMAN[roman[1].toLowerCase()];
+    if (n) push(base.replace(/\s[ivx]{1,4}$/i, ` ${n}`));
+  }
+  // "Game 1" is usually catalogued as "Game" — still entry 1, so identity stays intact.
+  push(base.replace(/\s1$/, ""));
   return out;
 }
 
@@ -484,8 +547,13 @@ export const autofillGames = createServerFn({ method: "POST" })
         .sort((a, b) => b.score - a.score);
       const best = scored[0];
       const runnerUp = scored[1];
+      // Two equally strong, differently named candidates: never guess between them.
       const ambiguous =
-        !!best && !!runnerUp && best.exact && runnerUp.exact && best.score - runnerUp.score < 10;
+        !!best &&
+        !!runnerUp &&
+        runnerUp.score >= 70 &&
+        best.score - runnerUp.score < 8 &&
+        norm(best.game.name) !== norm(runnerUp.game.name);
 
       if (best && best.score >= 70 && !ambiguous) {
         const found = best.game;
