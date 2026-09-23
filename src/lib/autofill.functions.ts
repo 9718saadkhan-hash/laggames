@@ -453,7 +453,7 @@ async function wikidataLabels(ids: string[]): Promise<Record<string, string>> {
 }
 
 function wikidataDate(entity: WikidataEntity): string | null {
-  const dates = (entity.claims?.P577 ?? [])
+  const dates = (entity.claims?.["P577"] ?? [])
     .map((claim) => claim.mainsnak?.datavalue?.value)
     .filter((value): value is { time: string; precision?: number } =>
       typeof value === "object" && value !== null && "time" in value && typeof value.time === "string",
@@ -616,10 +616,10 @@ function titleVariants(title: string): string[] {
     const roman = Object.entries(ROMAN).find(([, v]) => v === Number(digit[1]))?.[0];
     if (roman) push(base.replace(new RegExp(`(^|\\s)${digit[1]}(?=\\s|$)`), `$1${roman.toUpperCase()}`));
   }
-  const roman = base.match(/\s([ivx]{1,4})$/i);
+  const roman = base.match(/\s([ivx]{1,7})$/i);
   if (roman?.[1]) {
     const n = ROMAN[roman[1].toLowerCase()];
-    if (n) push(base.replace(/\s[ivx]{1,4}$/i, ` ${n}`));
+    if (n) push(base.replace(/\s[ivx]{1,7}$/i, ` ${n}`));
   }
   // "Game 1" is usually catalogued as "Game" — still entry 1, so identity stays intact.
   push(base.replace(/\s1$/, ""));
@@ -697,11 +697,13 @@ export const autofillGames = createServerFn({ method: "POST" })
       const sourcesUsed: string[] = [];
       let matchName: string | null = null;
       let confidence = 0;
-      const notes: string[] = [];
+       const notes: string[] = [];
+       const attemptedSources: string[] = [];
 
       /* ---- source 1: IGDB ---- */
       let igdbCandidates: IgdbGame[] = [];
       try {
+         attemptedSources.push("IGDB");
         igdbCandidates = await searchCandidates(game.title, data.retry === true);
       } catch (err) {
         notes.push(err instanceof Error ? err.message : "IGDB lookup failed");
@@ -742,19 +744,16 @@ export const autofillGames = createServerFn({ method: "POST" })
         if (filled.length) sourcesUsed.push("IGDB");
         if (Object.keys(patch).length) patch["igdb_id"] = found.id;
       } else if (best) {
-        notes.push(
-          ambiguous
-            ? `IGDB had multiple possible matches: ${scored.slice(0, 3).map((s) => s.game.name).join(" / ")}`
-            : `IGDB best guess was too weak: ${best.game.name}`,
-        );
+        notes.push(ambiguous ? "IGDB returned multiple possible matches" : "IGDB had no verified match");
       } else if (!notes.length) {
         notes.push("No confident IGDB match");
       }
 
       /* ---- source 2: RAWG, only for the fields still missing ---- */
       let stillMissing = wanted.filter((f) => !filled.includes(f));
-      if (stillMissing.length) {
+      if (stillMissing.length && process.env["RAWG_API_KEY"]) {
         try {
+          attemptedSources.push("RAWG");
           const rawg = await rawgLookup(game.title, game.platform, data.retry === true);
           if (rawg) {
             matchName = matchName ?? rawg.name;
@@ -775,6 +774,32 @@ export const autofillGames = createServerFn({ method: "POST" })
         stillMissing = wanted.filter((f) => !filled.includes(f));
       }
 
+      /* ---- source 3: Wikipedia + Wikidata, for fields still missing ---- */
+      if (stillMissing.length) {
+        try {
+          attemptedSources.push("Wikipedia/Wikidata");
+          const wiki = await wikipediaLookup(game.title, game.platform);
+          if (wiki) {
+            matchName = matchName ?? wiki.title;
+            confidence = Math.max(confidence, 82);
+            for (const field of stillMissing) {
+              const value = wikiValue(wiki, field);
+              if (value !== null && value !== "") {
+                patch[field] = value;
+                filled.push(field);
+                fieldSource[field] = "Wikipedia/Wikidata";
+              }
+            }
+            if (Object.values(fieldSource).includes("Wikipedia/Wikidata")) {
+              sourcesUsed.push("Wikipedia/Wikidata");
+            }
+          }
+        } catch {
+          notes.push("Wikipedia/Wikidata lookup failed");
+        }
+        stillMissing = wanted.filter((f) => !filled.includes(f));
+      }
+
       const sizePending = sizeMissing;
       const unresolved: AutofillField[] = [...stillMissing, ...(sizeMissing ? (["game_size"] as AutofillField[]) : [])];
       // Only non-size gaps can send a game to review.
@@ -789,7 +814,8 @@ export const autofillGames = createServerFn({ method: "POST" })
       const noteParts: string[] = [];
       if (stillMissing.length) {
         noteParts.push(`Still needs you: ${stillMissing.map((f) => LABEL[f]).join(", ")}`);
-        if (notes.length) noteParts.push(notes[0]!);
+        if (notes.length) noteParts.push(notes.join(" · "));
+        if (!process.env["RAWG_API_KEY"]) noteParts.push("RAWG not checked: RAWG_API_KEY is not configured");
       } else {
         noteParts.push("Metadata complete");
       }
@@ -805,7 +831,7 @@ export const autofillGames = createServerFn({ method: "POST" })
         .from("games")
         .update({
           ...patch,
-          metadata_source: sourcesUsed.length ? sourcesUsed.join(" + ") : "IGDB",
+          metadata_source: sourcesUsed.length ? Array.from(new Set(sourcesUsed)).join(" + ") : null,
           metadata_updated_at: new Date().toISOString(),
           metadata_status: stillMissing.length ? "needs_review" : "complete",
           metadata_note: note,
@@ -840,7 +866,7 @@ export const autofillGames = createServerFn({ method: "POST" })
         note,
         match: matchName,
         confidence,
-        sources: sourcesUsed,
+        sources: Array.from(new Set([...sourcesUsed, ...attemptedSources])),
       });
 
       await sleep(280); // stay well inside IGDB's 4 requests/second limit
