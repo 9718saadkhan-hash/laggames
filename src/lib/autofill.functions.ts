@@ -209,6 +209,17 @@ function sameSeriesEntry(a: Identity, b: Identity): boolean {
   return Boolean(a.core) && a.core === b.core && a.number === b.number;
 }
 
+function sourceText(candidate: IgdbGame): string {
+  return norm([candidate.name, candidate.summary, candidate.storyline].filter(Boolean).join(" "));
+}
+
+function variantCompatible(candidate: IgdbGame, target: Identity): boolean {
+  if (!target.remaster) return true;
+  const text = sourceText(candidate);
+  if (target.remaster === "remastered") return /\bremaster(ed)?\b/.test(text);
+  return /\bremake\b/.test(text);
+}
+
 /**
  * A candidate is only considered at all when its identity matches. Anything else
  * scores 0 and is rejected outright instead of being used as a weak guess.
@@ -224,6 +235,9 @@ function scoreCandidate(
   const identityMatch = names.some((n) => identityMatches(parseIdentity(n), target));
   const sameEntry = names.some((n) => sameSeriesEntry(parseIdentity(n), target));
   if (!sameEntry) {
+    return { score: 0, exact: false };
+  }
+  if (!identityMatch && !variantCompatible(candidate, target)) {
     return { score: 0, exact: false };
   }
 
@@ -472,6 +486,17 @@ function pageSupportsPlatform(extract: string, platform: string): boolean {
   return /\bplaystation 4\b/.test(text) && /\bplaystation 5\b/.test(text);
 }
 
+function canonicalVariantCompatible(title: string, pageTitle: string, extract: string): boolean {
+  const target = parseIdentity(title);
+  const source = parseIdentity(pageTitle);
+  if (identityMatches(source, target)) return true;
+  if (!sameSeriesEntry(source, target)) return false;
+  const text = norm(`${pageTitle} ${extract}`);
+  if (target.remaster === "remastered") return /\bremaster(ed)?\b/.test(text);
+  if (target.remaster === "remake") return /\bremake\b/.test(text);
+  return true;
+}
+
 async function wikipediaLookup(title: string, platform: string): Promise<WikiMetadata | null> {
   const variants = titleVariants(title);
   for (const variant of variants) {
@@ -604,12 +629,15 @@ function titleVariants(title: string): string[] {
   const base = title.replace(/"/g, " ").trim();
   push(base);
   push(base.replace(/[:\-–—_]+/g, " "));
+  push(base.replace(/\((ps4|ps5|playstation\s*[45]?)[^)]+\)/gi, " "));
   push(base.replace(/\b(ps4|ps5|playstation\s*[45]?)\b/gi, " "));
   push(
     base
       .replace(/\b(standard|deluxe|ultimate|gold|complete|definitive|goty)?\s*(edition|bundle|version)\b/gi, " ")
       .replace(/[-–—:]\s*$/, ""),
   );
+  if (/\bremaster(ed)?\b/i.test(base)) push(base.replace(/\bremaster(ed)?\b/gi, " "));
+  if (/\bremake\b/i.test(base)) push(base.replace(/\bremake\b/gi, " "));
   // Same entry number written the other way round (2 <-> II), so both spellings are searchable.
   const digit = base.match(/(?:^|\s)([0-9]{1,2})(?=\s|$)/);
   if (digit?.[1]) {
