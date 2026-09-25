@@ -364,6 +364,9 @@ function rawgScore(candidate: RawgGame, title: string, platformSlugs: string[]):
   const source = parseIdentity(candidate.name ?? "");
   const target = parseIdentity(title);
   if (!sameSeriesEntry(source, target)) return 0;
+  if (!identityMatches(source, target) && target.remaster && !/\bremaster(ed)?\b|\bremake\b/.test(norm(candidate.name ?? ""))) {
+    return 0;
+  }
   let score = identityMatches(source, target) ? 72 : 62;
   const slugs = (candidate.platforms ?? []).map((p) => p.platform?.slug ?? "");
   if (platformSlugs.some((s) => slugs.includes(s))) score += 30;
@@ -518,6 +521,7 @@ async function wikipediaLookup(title: string, platform: string): Promise<WikiMet
       const page = Object.values(pageBody?.query?.pages ?? {})[0];
       const extract = page?.extract?.trim() ?? "";
       if (!extract || !pageSupportsPlatform(extract, platform)) continue;
+      if (!canonicalVariantCompatible(title, page?.title ?? pageTitle, extract)) continue;
 
       const item = page?.pageprops?.wikibase_item;
       let entity: WikidataEntity = {};
