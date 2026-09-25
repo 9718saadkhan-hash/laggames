@@ -25,12 +25,12 @@ export const Route = createFileRoute("/admin/autofill")({
       { title: "Auto-Fill Game Info — LAG Admin" },
       {
         name: "description",
-        content: "Automatically fill missing game metadata from IGDB for the LAG catalogue.",
+        content: "Automatically fill missing game metadata from verified sources for the LAG catalogue.",
       },
       { property: "og:title", content: "Auto-Fill Game Info — LAG Admin" },
       {
         property: "og:description",
-        content: "Automatically fill missing game metadata from IGDB for the LAG catalogue.",
+        content: "Automatically fill missing game metadata from verified sources for the LAG catalogue.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -166,7 +166,7 @@ function AutofillPage() {
         <SectionHeading
           eyebrow="Automation"
           title="Auto-Fill Game Information"
-          subtitle="Fills only empty fields from IGDB. Your existing values are never overwritten."
+          subtitle="Fills only empty fields from verified game sources. Your existing values are never overwritten."
         />
 
         <div className="glass mt-6 rounded-2xl p-5">
@@ -211,9 +211,8 @@ function AutofillPage() {
           </div>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Safe to stop anytime — running it again only picks up the games that are still missing
-            information. Install sizes are not published by any game database, so Game Size stays
-            blank and is flagged for review.
+            Safe to stop anytime — running it again only picks up games still missing information.
+            Game Size can stay blank as manual entry and does not count as Needs Review.
           </p>
 
           {total > 0 ? (
