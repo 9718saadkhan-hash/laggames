@@ -162,6 +162,14 @@ const PLATFORM_WORDS = /\b(ps4|ps5|playstation\s*[45]?|xbox|series\s*[sx]|pc|swi
 const EDITION_WORDS =
   /\b(standard|deluxe|ultimate|gold|complete|definitive|goty|game of the year|anniversary|legacy|digital|bundle|edition|version|pack)\b/g;
 
+/** "Resident Evil 4 Remake + Separate Ways DLC" → "Resident Evil 4 Remake". */
+function stripAddons(title: string): string {
+  return title
+    .replace(/\s*\+\s*.*$/, "")
+    .replace(/\s*(?:with|incl\.?|including)\s+.*\b(dlc|expansion|season pass)\b.*$/i, "")
+    .trim();
+}
+
 /**
  * Identity of a title: the series name, its entry number and whether it is a
  * remaster/remake. Two releases only describe the same game when all three agree,
@@ -174,7 +182,10 @@ interface Identity {
 }
 
 function parseIdentity(title: string): Identity {
-  let t = norm(title).replace(PLATFORM_WORDS, " ");
+  // Add-on bundles ("Game + DLC") and edition abbreviations ("UE") describe the same base game.
+  let t = norm(stripAddons(title))
+    .replace(PLATFORM_WORDS, " ")
+    .replace(/\b(ue|de|ce|se)$/, " ");
   let remaster: Identity["remaster"] = null;
   if (/\bremaster(ed)?\b/.test(t)) remaster = "remastered";
   else if (/\bremake\b/.test(t)) remaster = "remake";
@@ -542,7 +553,17 @@ async function wikipediaLookup(title: string, platform: string): Promise<WikiMet
       return {
         title: page?.title ?? row.title,
         extract,
-        genre: join(genres),
+        // Match the site's genre style: "fighting game" → "Fighting", "action-adventure game" → "Action-Adventure".
+        genre: (() => {
+          const raw = join(genres);
+          if (!raw) return null;
+          const cleaned = raw
+            .split(", ")
+            .map((g) => g.replace(/\s*(video\s+)?games?$/i, "").trim())
+            .filter(Boolean)
+            .map((g) => g.replace(/(^|[\s-])([a-z])/g, (_m, p: string, c: string) => p + c.toUpperCase()));
+          return cleaned.length ? Array.from(new Set(cleaned)).join(", ") : null;
+        })(),
         developer: join(developers),
         publisher: join(publishers),
         releaseDate: wikidataDate(entity),
@@ -630,7 +651,11 @@ function titleVariants(title: string): string[] {
     const t = value.replace(/\s+/g, " ").trim();
     if (t.length >= 2 && !out.includes(t)) out.push(t);
   };
-  const base = title.replace(/"/g, " ").trim();
+  const original = title.replace(/"/g, " ").trim();
+  push(original);
+  const base = stripAddons(original)
+    .replace(/\s+\b(UE|DE|CE|SE)\b\s*$/i, " ")
+    .trim();
   push(base);
   push(base.replace(/[:\-–—_]+/g, " "));
   push(base.replace(/\((ps4|ps5|playstation\s*[45]?)[^)]+\)/gi, " "));
