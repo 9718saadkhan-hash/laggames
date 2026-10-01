@@ -553,7 +553,17 @@ async function wikipediaLookup(title: string, platform: string): Promise<WikiMet
       return {
         title: page?.title ?? row.title,
         extract,
-        genre: join(genres),
+        // Match the site's genre style: "fighting game" → "Fighting", "action-adventure game" → "Action-Adventure".
+        genre: (() => {
+          const raw = join(genres);
+          if (!raw) return null;
+          const cleaned = raw
+            .split(", ")
+            .map((g) => g.replace(/\s*(video\s+)?games?$/i, "").trim())
+            .filter(Boolean)
+            .map((g) => g.replace(/(^|[\s-])([a-z])/g, (_m, p: string, c: string) => p + c.toUpperCase()));
+          return cleaned.length ? Array.from(new Set(cleaned)).join(", ") : null;
+        })(),
         developer: join(developers),
         publisher: join(publishers),
         releaseDate: wikidataDate(entity),
