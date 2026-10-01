@@ -162,6 +162,14 @@ const PLATFORM_WORDS = /\b(ps4|ps5|playstation\s*[45]?|xbox|series\s*[sx]|pc|swi
 const EDITION_WORDS =
   /\b(standard|deluxe|ultimate|gold|complete|definitive|goty|game of the year|anniversary|legacy|digital|bundle|edition|version|pack)\b/g;
 
+/** "Resident Evil 4 Remake + Separate Ways DLC" → "Resident Evil 4 Remake". */
+function stripAddons(title: string): string {
+  return title
+    .replace(/\s*\+\s*.*$/, "")
+    .replace(/\s*(?:with|incl\.?|including)\s+.*\b(dlc|expansion|season pass)\b.*$/i, "")
+    .trim();
+}
+
 /**
  * Identity of a title: the series name, its entry number and whether it is a
  * remaster/remake. Two releases only describe the same game when all three agree,
