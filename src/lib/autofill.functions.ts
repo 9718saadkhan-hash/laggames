@@ -174,7 +174,10 @@ interface Identity {
 }
 
 function parseIdentity(title: string): Identity {
-  let t = norm(title).replace(PLATFORM_WORDS, " ");
+  // Add-on bundles ("Game + DLC") and edition abbreviations ("UE") describe the same base game.
+  let t = norm(stripAddons(title))
+    .replace(PLATFORM_WORDS, " ")
+    .replace(/\b(ue|de|ce|se)$/, " ");
   let remaster: Identity["remaster"] = null;
   if (/\bremaster(ed)?\b/.test(t)) remaster = "remastered";
   else if (/\bremake\b/.test(t)) remaster = "remake";
@@ -630,7 +633,11 @@ function titleVariants(title: string): string[] {
     const t = value.replace(/\s+/g, " ").trim();
     if (t.length >= 2 && !out.includes(t)) out.push(t);
   };
-  const base = title.replace(/"/g, " ").trim();
+  const original = title.replace(/"/g, " ").trim();
+  push(original);
+  const base = stripAddons(original)
+    .replace(/\s+\b(UE|DE|CE|SE)\b\s*$/i, " ")
+    .trim();
   push(base);
   push(base.replace(/[:\-–—_]+/g, " "));
   push(base.replace(/\((ps4|ps5|playstation\s*[45]?)[^)]+\)/gi, " "));
