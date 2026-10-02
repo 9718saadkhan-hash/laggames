@@ -25,6 +25,7 @@
 - Homepage deal cards changed to 4:5 with marked labels removed; primary actions use frosted white styling
 - Auto-fill now includes missing short and full descriptions from verified IGDB summaries
 - Floating Instagram and WhatsApp controls removed from admin pages only
+- Image uploads limited to compressed 1080p/1.5K output without stretching, distortion, or upscaling
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
