@@ -11,6 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const ACCEPTED_IMAGE_TYPES = "image/jpeg,image/jpg,image/png,image/webp";
 export const ACCEPTED_VIDEO_TYPES = "video/mp4,video/webm,video/quicktime";
 
+/** Optimized website-photo ceiling: no uploaded image is enlarged or exported at 4K. */
+export const IMAGE_UPLOAD_MAX_EDGE = 1536;
+export const IMAGE_UPLOAD_QUALITY = 0.76;
+
 const ALLOWED_IMAGE = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime", "video/mov"];
 
@@ -64,15 +68,15 @@ export const PURPOSE_PRESET: Record<
   logo: { ratio: "1:1", label: "Logo", maxSize: 512 },
   favicon: { ratio: "1:1", label: "Favicon", maxSize: 256 },
   "game-cover": { ratio: "2:3", label: "Game cover", maxSize: 900 },
-  "game-banner": { ratio: "16:9", label: "Game hero banner", maxSize: 1600 },
-  "game-screenshot": { ratio: "16:9", label: "Screenshot", maxSize: 1600 },
-  "deal-banner": { ratio: "21:9", label: "Deal banner", maxSize: 1800 },
-  "hero-banner": { ratio: "16:9", label: "Homepage banner", maxSize: 1600 },
+  "game-banner": { ratio: "16:9", label: "Game hero banner", maxSize: IMAGE_UPLOAD_MAX_EDGE },
+  "game-screenshot": { ratio: "16:9", label: "Screenshot", maxSize: IMAGE_UPLOAD_MAX_EDGE },
+  "deal-banner": { ratio: "21:9", label: "Deal banner", maxSize: IMAGE_UPLOAD_MAX_EDGE },
+  "hero-banner": { ratio: "16:9", label: "Homepage banner", maxSize: IMAGE_UPLOAD_MAX_EDGE },
   "ps-plus": { ratio: "4:3", label: "PS Plus card image", maxSize: 1100 },
   ott: { ratio: "1:1", label: "OTT logo / image", maxSize: 800 },
   "collab-thumb": { ratio: "16:9", label: "Collab thumbnail", maxSize: 1280 },
   review: { ratio: "4:3", label: "Review photo", maxSize: 1200 },
-  generic: { ratio: "free", label: "Image", maxSize: 1400 },
+  generic: { ratio: "free", label: "Image", maxSize: IMAGE_UPLOAD_MAX_EDGE },
 };
 
 export function ratioValue(key: string): number | null {
@@ -131,7 +135,7 @@ export async function renderCrop(
 ): Promise<string> {
   const img = await loadImage(src);
   const maxSize = opts.maxSize ?? 1400;
-  const quality = opts.quality ?? 0.82;
+  const quality = opts.quality ?? IMAGE_UPLOAD_QUALITY;
   const scale = Math.min(1, maxSize / Math.max(crop.width, crop.height));
   const w = Math.max(1, Math.round(crop.width * scale));
   const h = Math.max(1, Math.round(crop.height * scale));
@@ -169,7 +173,7 @@ export async function renderRotatedCrop(
   rotatedContext.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
 
   const maxSize = opts.maxSize ?? 1400;
-  const quality = opts.quality ?? 0.82;
+  const quality = opts.quality ?? IMAGE_UPLOAD_QUALITY;
   const outputScale = Math.min(1, maxSize / Math.max(crop.width, crop.height));
   const output = document.createElement("canvas");
   output.width = Math.max(1, Math.round(crop.width * outputScale));
@@ -204,8 +208,8 @@ export async function renderFullImage(
   const cos = Math.abs(Math.cos(radians));
   const boundW = Math.ceil(img.naturalWidth * cos + img.naturalHeight * sin);
   const boundH = Math.ceil(img.naturalWidth * sin + img.naturalHeight * cos);
-  const maxSize = opts.maxSize ?? 1920;
-  const quality = opts.quality ?? 0.92;
+  const maxSize = opts.maxSize ?? IMAGE_UPLOAD_MAX_EDGE;
+  const quality = opts.quality ?? IMAGE_UPLOAD_QUALITY;
   const scale = Math.min(1, maxSize / Math.max(boundW, boundH));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(boundW * scale));

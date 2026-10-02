@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import {
+  IMAGE_UPLOAD_MAX_EDGE,
+  IMAGE_UPLOAD_QUALITY,
   PURPOSE_PRESET,
   loadImage,
   renderFullImage,
@@ -246,14 +248,14 @@ export function ImageCropper({
     if (!src) return;
     setBusy(true);
     try {
+      const maxSize = Math.min(preset.maxSize, IMAGE_UPLOAD_MAX_EDGE);
+      const outputOptions = { maxSize, quality: preset.quality ?? IMAGE_UPLOAD_QUALITY };
       const out =
         mode === "full"
-          ? await renderFullImage(src, rotation, { maxSize: Math.max(preset.maxSize, 1920) })
+          ? await renderFullImage(src, rotation, outputOptions)
           : area
-            ? await renderRotatedCrop(src, area, rotation, {
-                maxSize: Math.max(preset.maxSize, 1920),
-              })
-            : await renderFullImage(src, rotation, { maxSize: Math.max(preset.maxSize, 1920) });
+            ? await renderRotatedCrop(src, area, rotation, outputOptions)
+            : await renderFullImage(src, rotation, outputOptions);
       onSave(out);
     } finally {
       setBusy(false);
@@ -371,6 +373,9 @@ export function ImageCropper({
         </div>
 
         <div className="space-y-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <p className="text-center text-xs text-muted-foreground">
+            Optimized photo · maximum 1.5K (1536 px) · original proportions preserved
+          </p>
           {mode === "custom" && (
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="font-semibold">Exact size</span>

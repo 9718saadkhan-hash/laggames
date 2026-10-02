@@ -122,7 +122,8 @@ export function ImageUploadField({
         onChange={(e) => void handleFile(e.target.files?.[0])}
       />
       <p className="mt-2 text-xs text-muted-foreground">
-        JPG, PNG or WEBP from your device. Recommended ratio for {preset.label}: {preset.ratio}.
+        JPG, PNG or WEBP. Saved as an optimized 1.5K image without stretching or upscaling.
+        Recommended ratio for {preset.label}: {preset.ratio}.
       </p>
 
       <ImageCropper
