@@ -24,7 +24,7 @@ export const Route = createFileRoute("/admin/image-compressor")({
   component: CompressorPage,
 });
 
-type Section = "Games" | "Upcoming" | "Deals" | "Home Banners" | "PS Plus" | "OTT" | "Reviews" | "Collabs" | "Categories";
+type Section = "Games" | "Upcoming" | "Deals" | "Home Banners" | "PS Plus" | "OTT" | "Reviews" | "Collabs" | "Categories" | "Customers" | "Media" | "Site Content";
 
 type ImgItem = {
   id: string; // unique
@@ -45,13 +45,15 @@ type Backup = {
 
 const SOURCES: { section: Section; table: string; label: string; fields: string[]; arrays?: string[] }[] = [
   { section: "Games", table: "games", label: "title", fields: ["cover_url", "banner_url"], arrays: ["gallery"] },
-  { section: "Upcoming", table: "upcoming_games", label: "title", fields: ["cover_url", "banner_url"] },
+  { section: "Upcoming", table: "upcoming_games", label: "title", fields: ["cover_url", "banner_url"], arrays: ["gallery"] },
   { section: "Deals", table: "deals", label: "title", fields: ["image_url"] },
   { section: "Home Banners", table: "hero_banners", label: "title", fields: ["image_url"] },
   { section: "PS Plus", table: "ps_plus_plans", label: "name", fields: ["image_url"] },
   { section: "OTT", table: "ott_plans", label: "name", fields: ["logo_url"] },
-  { section: "Reviews", table: "reviews", label: "name", fields: ["image_url"] },
+  { section: "Reviews", table: "reviews", label: "name", fields: ["image_url", "avatar_url"] },
   { section: "Collabs", table: "collab_videos", label: "title", fields: ["thumbnail_url"] },
+  { section: "Customers", table: "profiles", label: "full_name", fields: ["avatar_url"] },
+  { section: "Media", table: "media_library", label: "name", fields: ["url"] },
 ];
 
 const isImg = (s: unknown): s is string =>
@@ -97,7 +99,9 @@ function getAt(obj: any, path: string) {
 function setAt(obj: any, path: string, v: unknown) {
   const ks = path.split("."); let o = obj;
   ks.slice(0, -1).forEach((k) => (o = o[k]));
-  o[ks[ks.length - 1]] = v;
+  const leaf = ks.at(-1);
+  if (leaf === undefined) return;
+  o[leaf] = v;
 }
 function walkJson(v: any, base: string, out: string[]) {
   if (isImg(v)) out.push(base);
@@ -152,12 +156,14 @@ function CompressorPage() {
           });
         }
       }
-      const { data: cat } = await db.from("site_settings").select("key,value").eq("key", "categories").maybeSingle();
-      if (cat) {
-        const paths: string[] = []; walkJson(cat.value, "", paths);
+      const { data: settings } = await db.from("site_settings").select("key,value");
+      for (const setting of settings ?? []) {
+        const paths: string[] = []; walkJson(setting.value, "", paths);
         for (const p of paths) {
-          const parent = getAt(cat.value, p.split(".").slice(0, -1).join(".")) ?? {};
-          found.push({ id: `site_settings:categories:${p}`, section: "Categories", label: `${parent.title ?? parent.name ?? parent.label ?? "Category"} · photo`, table: "site_settings", rowKey: "categories", keyCol: "key", field: "value", path: p, url: getAt(cat.value, p) });
+          const parentPath = p.split(".").slice(0, -1).join(".");
+          const parent = parentPath ? getAt(setting.value, parentPath) : setting.value;
+          const isCategory = setting.key === "categories";
+          found.push({ id: `site_settings:${setting.key}:${p}`, section: isCategory ? "Categories" : "Site Content", label: `${parent?.title ?? parent?.name ?? parent?.label ?? setting.key} · photo`, table: "site_settings", rowKey: setting.key, keyCol: "key", field: "value", path: p, url: getAt(setting.value, p) });
         }
       }
       setItems(found);
@@ -204,8 +210,10 @@ function CompressorPage() {
     setBusy("bulk"); setProgress({ done: 0, total: list.length });
     let ok = 0, skip = 0, saved = 0;
     for (let i = 0; i < list.length; i++) {
-      const before = sizes[list[i].id] ?? 0;
-      const r = await compressOne(list[i]);
+      const item = list[i];
+      if (!item) continue;
+      const before = sizes[item.id] ?? 0;
+      const r = await compressOne(item);
       if (r === "ok") ok++; if (r === "skip") skip++;
       setProgress({ done: i + 1, total: list.length });
       if (r === "ok") saved += before;
@@ -232,7 +240,7 @@ function CompressorPage() {
   }
 
   const backupFor = (it: ImgItem) => backups.find((b) => b.source_table === it.table && b.row_key === it.rowKey && b.field === it.field && b.path === it.path && b.compressed === it.url);
-  const sections: (Section | "All")[] = ["All", "Games", "Upcoming", "Deals", "Home Banners", "PS Plus", "OTT", "Categories", "Reviews", "Collabs"];
+  const sections: (Section | "All")[] = ["All", "Games", "Upcoming", "Deals", "Home Banners", "PS Plus", "OTT", "Categories", "Reviews", "Collabs", "Customers", "Media", "Site Content"];
 
   return (
     <AdminGate>

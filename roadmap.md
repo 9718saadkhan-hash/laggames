@@ -26,6 +26,7 @@
 - Auto-fill now includes missing short and full descriptions from verified IGDB summaries
 - Floating Instagram and WhatsApp controls removed from admin pages only
 - Image uploads limited to compressed 1080p/1.5K output without stretching, distortion, or upscaling
+- Admin Image Compressor scans every website photo section, supports individual/selected/bulk compression, reports savings, and keeps restorable originals
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
