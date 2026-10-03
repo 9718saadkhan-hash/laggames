@@ -239,7 +239,7 @@ function CompressorPage() {
     }
     setBusy(null); setProgress(null); setSelected(new Set());
     void qc.invalidateQueries();
-    toast.success(`Compressed ${ok} photo(s)${skip ? `, ${skip} already optimized` : ""}.`);
+    toast.success(`Compressed ${ok} photo(s)${skip ? `, ${skip} not smaller — kept as is` : ""}.`);
     void saved;
   }
 
@@ -277,6 +277,10 @@ function CompressorPage() {
               Quality <input type="range" min={70} max={95} value={quality} onChange={(e) => setQuality(+e.target.value)} /> <b>{quality}%</b>
             </label>
             <span className="text-xs text-muted-foreground">85% looks identical to the original; lower = smaller files.</span>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={onlyIfSmaller} onCheckedChange={(v) => setOnlyIfSmaller(v === true)} aria-label="Only keep if smaller" />
+              Only keep if smaller
+            </label>
           </div>
           <div className="flex flex-wrap gap-2">
             {sections.map((s) => (
@@ -327,7 +331,7 @@ function CompressorPage() {
                       {b ? <><s className="text-muted-foreground">{fmt(b.original_bytes)}</s> → <b className="text-primary">{fmt(b.compressed_bytes)}</b> (−{Math.round((1 - b.compressed_bytes / b.original_bytes) * 100)}%)</> : sizes[it.id] != null ? fmt(sizes[it.id]!) : "Size unknown"}
                     </div>
                     <div className="mt-2 flex gap-2">
-                      <Button size="sm" variant="outline" disabled={!!busy} onClick={async () => { setBusy(it.id); const r = await compressOne(it); setBusy(null); if (r === "skip") toast.info("Already optimized"); else if (r === "ok") { toast.success("Compressed"); void qc.invalidateQueries(); } }}>
+                      <Button size="sm" variant="outline" disabled={!!busy} onClick={async () => { setBusy(it.id); const r = await compressOne(it); setBusy(null); if (r === "skip") toast.info("Result wasn't smaller — original kept"); else if (r === "ok") { toast.success("Compressed"); void qc.invalidateQueries(); } }}>
                         {busy === it.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Compress"}
                       </Button>
                       {b && <Button size="sm" variant="ghost" disabled={!!busy} onClick={() => undo(b)}><RotateCcw className="mr-1 h-3 w-3" />Undo</Button>}
