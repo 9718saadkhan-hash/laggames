@@ -208,7 +208,7 @@ function CompressorPage() {
       const before = sizes[it.id] ?? (await sizeOf(it.url)) ?? 0;
       const out = await compress(it.url, quality / 100);
       const after = dataUrlBytes(out);
-      if (!before || after >= before * 0.95) return "skip";
+      if (onlyIfSmaller && before && after >= before) return "skip";
       await writeValue(it, it.url, out);
       const { data: b } = await (supabase as any).from("image_compress_backups").insert({
         source_table: it.table, row_key: it.rowKey, field: it.field, path: it.path,
