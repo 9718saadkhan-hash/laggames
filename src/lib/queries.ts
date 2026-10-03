@@ -178,6 +178,11 @@ export const contactMessagesQuery = queryOptions({
 export const dealsQuery = (opts?: { admin?: boolean }) =>
   queryOptions({
     queryKey: ["deals", opts?.admin ? "admin" : "public"],
+    // Deal artwork is edited in admin and must appear immediately when returning
+    // to the homepage, even though catalogue queries use longer-lived caches.
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () =>
       unwrap<Deal[]>(
         (await supabase
