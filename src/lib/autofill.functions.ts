@@ -1059,13 +1059,21 @@ export const autofillGameMedia = createServerFn({ method: "POST" })
           mediaRank: mediaVersionRank(candidate, game.title),
         }))
         .sort((a, b) => b.score - a.score || b.mediaRank - a.mediaRank);
-      const best = scored[0];
-      const runnerUp = scored[1];
+      const highestScore = scored[0]?.score ?? 0;
+      const verified = scored
+        .filter((candidate) => candidate.score >= 70 && highestScore - candidate.score < 8)
+        .sort((a, b) => b.mediaRank - a.mediaRank || b.score - a.score);
+      const best = verified[0] ?? scored[0];
+      const runnerUp = scored.find(
+        (candidate) =>
+          candidate.game.id !== best?.game.id &&
+          candidate.score >= 70 &&
+          Math.abs((best?.score ?? 0) - candidate.score) < 8 &&
+          !isSameMediaGame(candidate.game, best?.game ?? candidate.game),
+      );
       const ambiguous = Boolean(
         best &&
         runnerUp &&
-        runnerUp.score >= 70 &&
-        best.score - runnerUp.score < 8 &&
         !isSameMediaGame(best.game, runnerUp.game),
       );
       if (!best || best.score < 70 || ambiguous) {
