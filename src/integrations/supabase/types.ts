@@ -561,6 +561,45 @@ export type Database = {
           },
         ]
       }
+      image_compress_backups: {
+        Row: {
+          compressed: string
+          compressed_bytes: number
+          created_at: string
+          field: string
+          id: string
+          original: string
+          original_bytes: number
+          path: string
+          row_key: string
+          source_table: string
+        }
+        Insert: {
+          compressed: string
+          compressed_bytes: number
+          created_at?: string
+          field: string
+          id?: string
+          original: string
+          original_bytes: number
+          path?: string
+          row_key: string
+          source_table: string
+        }
+        Update: {
+          compressed?: string
+          compressed_bytes?: number
+          created_at?: string
+          field?: string
+          id?: string
+          original?: string
+          original_bytes?: number
+          path?: string
+          row_key?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
       media_library: {
         Row: {
           created_at: string

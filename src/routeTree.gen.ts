@@ -31,6 +31,7 @@ import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminDealsRouteImport } from './routes/admin/deals'
 import { Route as AdminGamesRouteImport } from './routes/admin/games'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
+import { Route as AdminImageCompressorRouteImport } from './routes/admin/image-compressor'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminOttRouteImport } from './routes/admin/ott'
@@ -155,6 +156,11 @@ const AdminHomepageRoute = AdminHomepageRouteImport.update({
   path: '/admin/homepage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminImageCompressorRoute = AdminImageCompressorRouteImport.update({
+  id: '/admin/image-compressor',
+  path: '/admin/image-compressor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/image-compressor': typeof AdminImageCompressorRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/ott': typeof AdminOttRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/image-compressor': typeof AdminImageCompressorRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/ott': typeof AdminOttRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/image-compressor': typeof AdminImageCompressorRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/ott': typeof AdminOttRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/admin/deals'
     | '/admin/games'
     | '/admin/homepage'
+    | '/admin/image-compressor'
     | '/admin/login'
     | '/admin/orders'
     | '/admin/ott'
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/admin/deals'
     | '/admin/games'
     | '/admin/homepage'
+    | '/admin/image-compressor'
     | '/admin/login'
     | '/admin/orders'
     | '/admin/ott'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/admin/deals'
     | '/admin/games'
     | '/admin/homepage'
+    | '/admin/image-compressor'
     | '/admin/login'
     | '/admin/orders'
     | '/admin/ott'
@@ -469,6 +481,7 @@ export interface RootRouteChildren {
   AdminDealsRoute: typeof AdminDealsRoute
   AdminGamesRoute: typeof AdminGamesRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
+  AdminImageCompressorRoute: typeof AdminImageCompressorRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminOttRoute: typeof AdminOttRoute
@@ -641,6 +654,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHomepageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/image-compressor': {
+      id: '/admin/image-compressor'
+      path: '/admin/image-compressor'
+      fullPath: '/admin/image-compressor'
+      preLoaderRoute: typeof AdminImageCompressorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/admin/login'
@@ -757,6 +777,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDealsRoute: AdminDealsRoute,
   AdminGamesRoute: AdminGamesRoute,
   AdminHomepageRoute: AdminHomepageRoute,
+  AdminImageCompressorRoute: AdminImageCompressorRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminOttRoute: AdminOttRoute,

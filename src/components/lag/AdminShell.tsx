@@ -16,6 +16,7 @@ import {
   Loader2,
   ShieldAlert,
   Sparkles,
+  Minimize2,
 } from "lucide-react";
 import type { ElementType, ReactNode } from "react";
 
@@ -28,6 +29,7 @@ const NAV: { label: string; to: string; icon: ElementType }[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
   { label: "Games", to: "/admin/games", icon: Gamepad2 },
   { label: "Auto-Fill Info", to: "/admin/autofill", icon: Sparkles },
+  { label: "Image Compressor", to: "/admin/image-compressor", icon: Minimize2 },
   { label: "Deals", to: "/admin/deals", icon: Tag },
   { label: "Upcoming Games", to: "/admin/upcoming-games", icon: CalendarClock },
   { label: "PS Plus", to: "/admin/ps-plus", icon: Crown },
