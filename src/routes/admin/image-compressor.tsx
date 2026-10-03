@@ -284,6 +284,19 @@ function CompressorPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Input placeholder="Search photos…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-xs" />
+            <label className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Sort by</span>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as typeof sort)}
+                className="rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+                aria-label="Sort photos"
+              >
+                <option value="name">Name (A–Z)</option>
+                <option value="size-desc">Size: High to Low</option>
+                <option value="size-asc">Size: Low to High</option>
+              </select>
+            </label>
             <Button disabled={!!busy || scanning} onClick={() => runMany(visible)}><Minimize2 className="mr-1 h-4 w-4" />Compress all shown</Button>
             <Button variant="outline" disabled={!!busy || !selected.size} onClick={() => runMany(visible.filter((i) => selected.has(i.id)))}>Compress selected ({selected.size})</Button>
             <Button variant="ghost" disabled={scanning || !!busy} onClick={scan}><RefreshCw className="mr-1 h-4 w-4" />Rescan</Button>
