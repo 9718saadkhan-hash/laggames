@@ -93,18 +93,7 @@ function GamesPage() {
     return list;
   }, [visible, q, platform, genre, tag, maxPrice, sort]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [q, platform, genre, tag, maxPrice, sort]);
-
-  const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const renderedResults = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const goToPage = (next: number) => {
-    setPage(Math.min(Math.max(1, next), pageCount));
-    gridTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const renderedResults = results;
 
   const reset = () => {
     setQ("");
