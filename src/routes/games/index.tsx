@@ -46,6 +46,8 @@ const TAGS = [
   { key: "new_release", label: "New releases" },
 ] as const;
 
+const PAGE_SIZE = 12;
+
 function GamesPage() {
   const { data: games = [], isLoading, isError, error } = useQuery(gamesCatalogQuery());
   const [q, setQ] = useState("");
@@ -55,6 +57,7 @@ function GamesPage() {
   const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("featured");
   const [maxPrice, setMaxPrice] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [page, setPage] = useState(1);
   const gridTopRef = useRef<HTMLDivElement>(null);
 
   const visible = useMemo(() => games.filter((g) => g.visible), [games]);
