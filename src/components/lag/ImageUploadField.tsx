@@ -9,7 +9,6 @@ import {
   PURPOSE_PRESET,
   isAllowedImage,
   readAsDataUrl,
-  saveToMediaLibrary,
   type ImagePurpose,
 } from "@/lib/media";
 import { cn } from "@/lib/utils";
@@ -135,17 +134,10 @@ export function ImageUploadField({
           setPending(null);
         }}
         onSave={(out) => {
+          // Only the image actually saved on the item is kept — no extra copies.
           onChange(out);
           setEditing(false);
           setPending(null);
-          void saveToMediaLibrary({
-            name: `${preset.label} ${new Date().toLocaleString("en-IN")}`,
-            url: out,
-            folder: mediaFolder ?? resolvedPurpose,
-            usage: preset.label,
-            mimeType: "image/jpeg",
-            size: out.length,
-          });
         }}
       />
     </div>
