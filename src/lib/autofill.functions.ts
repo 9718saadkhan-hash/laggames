@@ -1096,7 +1096,12 @@ export const autofillGameMedia = createServerFn({ method: "POST" })
         if (updateError) throw new Error(updateError.message);
       }
 
-      results.push({ id: game.id, title: game.title, status: filled.length ? (unresolved.length ? "needs_review" : "updated") : "needs_review", filled, unresolved, alreadyFilled, previews: patch, match: source.name, confidence: best.score, source: "IGDB", historyId, note: unresolved.length ? `Still missing: ${unresolved.join(", ")}` : "Verified game media added" });
+      const previews: Partial<Record<MediaAutofillField, string | string[]>> = {};
+      if (typeof patch.cover_url === "string") previews.cover_url = patch.cover_url;
+      if (typeof patch.banner_url === "string") previews.banner_url = patch.banner_url;
+      if (typeof patch.trailer_url === "string") previews.trailer_url = patch.trailer_url;
+      if (Array.isArray(patch.gallery)) previews.gallery = patch.gallery;
+      results.push({ id: game.id, title: game.title, status: filled.length ? (unresolved.length ? "needs_review" : "updated") : "needs_review", filled, unresolved, alreadyFilled, previews, match: source.name, confidence: best.score, source: "IGDB", historyId, note: unresolved.length ? `Still missing: ${unresolved.join(", ")}` : "Verified game media added" });
       await sleep(280);
     }
     return results;
@@ -1116,10 +1121,10 @@ export const undoGameMediaAutofill = createServerFn({ method: "POST" })
       if (row.undone_at) continue;
       const saved = row.previous_values as Record<string, unknown>;
       const previous: Pick<Database["public"]["Tables"]["games"]["Update"], MediaAutofillField> = {};
-      if (typeof saved.cover_url === "string" || saved.cover_url === null) previous.cover_url = saved.cover_url;
-      if (typeof saved.banner_url === "string" || saved.banner_url === null) previous.banner_url = saved.banner_url;
-      if (typeof saved.trailer_url === "string" || saved.trailer_url === null) previous.trailer_url = saved.trailer_url;
-      if (Array.isArray(saved.gallery) && saved.gallery.every((value) => typeof value === "string")) previous.gallery = saved.gallery;
+      if (typeof saved["cover_url"] === "string" || saved["cover_url"] === null) previous.cover_url = saved["cover_url"];
+      if (typeof saved["banner_url"] === "string" || saved["banner_url"] === null) previous.banner_url = saved["banner_url"];
+      if (typeof saved["trailer_url"] === "string" || saved["trailer_url"] === null) previous.trailer_url = saved["trailer_url"];
+      if (Array.isArray(saved["gallery"]) && saved["gallery"].every((value) => typeof value === "string")) previous.gallery = saved["gallery"];
       const { error: restoreError } = await supabaseAdmin.from("games").update(previous).eq("id", row.game_id);
       if (restoreError) throw new Error(restoreError.message);
       await supabaseAdmin.from("game_media_autofill_history").update({ undone_at: new Date().toISOString() }).eq("id", row.id);
