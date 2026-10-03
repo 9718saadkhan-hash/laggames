@@ -45,7 +45,7 @@ const TABLE_LABEL: Record<string, string> = {
   game_editions: "Game Editions",
 };
 
-function Stat({ icon: Icon, label, value, hint, tone }: { icon: typeof Database; label: string; value: string; hint?: string; tone?: "red" | "blue" }) {
+function Stat({ icon: Icon, label, value, hint, tone }: { icon: typeof Database; label: string; value: string; hint?: string | undefined; tone?: "red" | "blue" }) {
   return (
     <div className="glass rounded-2xl p-4">
       <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
@@ -79,7 +79,7 @@ function CleanerPage() {
   const [scanning, setScanning] = useState(false);
   const [cleaning, setCleaning] = useState(false);
   const [fps, setFps] = useState<number | null>(null);
-  const [device, setDevice] = useState<{ memory?: number; cores?: number; network?: string; cacheBytes?: number }>({});
+  const [device, setDevice] = useState<{ memory?: number | undefined; cores?: number | undefined; network?: string | undefined; cacheBytes?: number | undefined }>({});
 
   const runScan = useCallback(async () => {
     setScanning(true);
