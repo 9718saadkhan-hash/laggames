@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Sparkles, XCircle, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Sparkles, XCircle, Loader2, ImageIcon, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
@@ -15,8 +15,13 @@ import { formatDate, type Game } from "@/lib/lag";
 import {
   AUTOFILL_FIELDS,
   autofillGames,
+  autofillGameMedia,
+  undoGameMediaAutofill,
+  MEDIA_AUTOFILL_FIELDS,
   type AutofillField,
   type AutofillResult,
+  type MediaAutofillField,
+  type MediaAutofillResult,
 } from "@/lib/autofill.functions";
 
 export const Route = createFileRoute("/admin/autofill")({
@@ -49,6 +54,13 @@ const FIELD_LABEL: Record<AutofillField, string> = {
   description: "Description",
 };
 
+const MEDIA_LABEL: Record<MediaAutofillField, string> = {
+  cover_url: "Cover",
+  banner_url: "Banner",
+  gallery: "4 Screenshots",
+  trailer_url: "YouTube Trailer",
+};
+
 type MetaGame = Game & {
   metadata_status?: string | null;
   metadata_note?: string | null;
@@ -67,6 +79,8 @@ const CHUNK = 4;
 function AutofillPage() {
   const qc = useQueryClient();
   const run = useServerFn(autofillGames);
+  const runMedia = useServerFn(autofillGameMedia);
+  const undoMedia = useServerFn(undoGameMediaAutofill);
   const games = useQuery(gamesQuery({ admin: true }));
   const list = (games.data ?? []) as MetaGame[];
 
@@ -76,6 +90,12 @@ function AutofillPage() {
   const [done, setDone] = useState(0);
   const [current, setCurrent] = useState<string | null>(null);
   const [log, setLog] = useState<AutofillResult[]>([]);
+  const [mediaLog, setMediaLog] = useState<MediaAutofillResult[]>([]);
+  const [mediaFields, setMediaFields] = useState<MediaAutofillField[]>([...MEDIA_AUTOFILL_FIELDS]);
+  const [replaceExisting, setReplaceExisting] = useState(false);
+  const [mediaRunning, setMediaRunning] = useState(false);
+  const [mediaDone, setMediaDone] = useState(0);
+  const [mediaTotal, setMediaTotal] = useState(0);
   const cancelRef = useRef(false);
 
   const incomplete = useMemo(
@@ -160,6 +180,50 @@ function AutofillPage() {
   const selectedIds = Object.keys(selected).filter((id) => selected[id]);
   const percent = total ? Math.round((done / total) * 100) : 0;
 
+  const mediaIncomplete = useMemo(
+    () => list.filter((g) => !g.cover_url || !g.banner_url || (g.gallery ?? []).length < 4 || !g.trailer_url),
+    [list],
+  );
+
+  async function processMedia(ids: string[], retry = false) {
+    if (!ids.length || !mediaFields.length) {
+      toast.info("Select at least one game and media type.");
+      return;
+    }
+    cancelRef.current = false;
+    setMediaRunning(true);
+    setMediaTotal(ids.length);
+    setMediaDone(0);
+    setMediaLog([]);
+    try {
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        if (cancelRef.current) break;
+        const chunk = ids.slice(i, i + CHUNK);
+        const results = await runMedia({ data: { ids: chunk, fields: mediaFields, replaceExisting, retry } });
+        setMediaLog((previous) => [...results, ...previous]);
+        setMediaDone(Math.min(i + chunk.length, ids.length));
+        await qc.invalidateQueries({ queryKey: ["games"] });
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Media auto-fill failed.");
+    } finally {
+      setMediaRunning(false);
+      await qc.invalidateQueries({ queryKey: ["games"] });
+    }
+  }
+
+  async function undoMediaResult(result: MediaAutofillResult) {
+    if (!result.historyId) return;
+    try {
+      await undoMedia({ data: { historyIds: [result.historyId] } });
+      setMediaLog((previous) => previous.map((item) => item.historyId === result.historyId ? { ...item, historyId: null, note: "Changes restored" } : item));
+      await qc.invalidateQueries({ queryKey: ["games"] });
+      toast.success(`${result.title} media restored.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Undo failed.");
+    }
+  }
+
   return (
     <AdminGate>
       <AdminShell>
@@ -168,6 +232,74 @@ function AutofillPage() {
           title="Auto-Fill Game Information"
           subtitle="Fills only empty fields from verified game sources. Your existing values are never overwritten."
         />
+
+        <div className="glass mt-6 rounded-2xl p-5">
+          <div className="flex items-start gap-3">
+            <ImageIcon className="mt-0.5 h-5 w-5 text-lag-blue" aria-hidden />
+            <div>
+              <h2 className="font-display text-lg font-bold">Game Media Auto-Fill</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Adds verified real game media from the confidently matched game version. Existing media stays untouched by default.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {MEDIA_AUTOFILL_FIELDS.map((field) => (
+              <label key={field} className="flex min-h-11 items-center gap-2 rounded-xl bg-surface-2 px-3 text-sm font-semibold">
+                <Checkbox
+                  checked={mediaFields.includes(field)}
+                  onCheckedChange={(checked) => setMediaFields((current) => checked === true ? [...current, field] : current.filter((item) => item !== field))}
+                />
+                {MEDIA_LABEL[field]}
+              </label>
+            ))}
+          </div>
+          <label className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <Checkbox checked={replaceExisting} onCheckedChange={(checked) => setReplaceExisting(checked === true)} />
+            Replace existing selected media (every replacement can be undone)
+          </label>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button variant="blue" disabled={mediaRunning || !mediaIncomplete.length || !mediaFields.length} onClick={() => processMedia(mediaIncomplete.map((game) => game.id))}>
+              {mediaRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+              Auto-Fill Missing Media ({mediaIncomplete.length})
+            </Button>
+            <Button variant="outline" disabled={mediaRunning || !selectedIds.length || !mediaFields.length} onClick={() => processMedia(selectedIds, true)}>
+              Auto-Fill Selected ({selectedIds.length})
+            </Button>
+            {mediaRunning ? <Button variant="destructive" onClick={() => (cancelRef.current = true)}>Stop</Button> : null}
+          </div>
+          {mediaTotal > 0 ? (
+            <div className="mt-4">
+              <div className="flex justify-between text-xs text-muted-foreground"><span>{mediaRunning ? "Finding and saving verified media…" : "Finished"}</span><span>{mediaDone} / {mediaTotal}</span></div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-lag-blue transition-all" style={{ width: `${mediaTotal ? Math.round((mediaDone / mediaTotal) * 100) : 0}%` }} /></div>
+            </div>
+          ) : null}
+        </div>
+
+        {mediaLog.length ? (
+          <div className="glass mt-6 rounded-2xl p-5">
+            <h2 className="font-display text-lg font-bold">Media Results</h2>
+            <div className="mt-4 grid gap-3">
+              {mediaLog.map((result) => (
+                <article key={`${result.id}-${result.historyId ?? result.status}`} className="rounded-xl bg-surface-2 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {result.status === "updated" ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : result.status === "skipped" ? <CheckCircle2 className="h-4 w-4 text-muted-foreground" /> : <AlertTriangle className="h-4 w-4 text-amber-400" />}
+                    <span className="font-semibold">{result.title}</span>
+                    {result.match ? <Badge tone="blue">{result.match} · {result.confidence}%</Badge> : null}
+                    {result.filled.map((field) => <Badge key={field}>{MEDIA_LABEL[field]}</Badge>)}
+                    {result.historyId ? <Button size="sm" variant="outline" className="ml-auto" onClick={() => undoMediaResult(result)}><RotateCcw className="h-4 w-4" /> Undo</Button> : null}
+                  </div>
+                  {result.note ? <p className="mt-2 text-xs text-muted-foreground">{result.note}</p> : null}
+                  <div className="mt-3 flex gap-2 overflow-x-auto">
+                    {([result.previews.cover_url, result.previews.banner_url, ...(Array.isArray(result.previews.gallery) ? result.previews.gallery : [])] as unknown[])
+                      .filter((value): value is string => typeof value === "string")
+                      .map((src, index) => <img key={`${src}-${index}`} src={src} alt={`${result.title} media preview ${index + 1}`} loading="lazy" className="h-24 w-32 shrink-0 rounded-lg border border-border object-contain bg-background" />)}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="glass mt-6 rounded-2xl p-5">
           <div className="grid gap-3 sm:grid-cols-3">

@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 export const AUTOFILL_FIELDS = [
   "genre",
@@ -104,13 +105,19 @@ interface IgdbGame {
   version_parent?: number;
   summary?: string;
   storyline?: string;
+  cover?: { url?: string; width?: number; height?: number };
+  artworks?: { url?: string; width?: number; height?: number }[];
+  screenshots?: { url?: string; width?: number; height?: number }[];
+  videos?: { name?: string; video_id?: string }[];
 }
 
 const FIELDS =
   "fields name,genres.name,platforms,total_rating,total_rating_count,aggregated_rating," +
   "aggregated_rating_count,first_release_date,involved_companies.developer," +
   "involved_companies.publisher,involved_companies.company.name,release_dates.platform," +
-  "release_dates.date,alternative_names.name,version_parent,summary,storyline";
+  "release_dates.date,alternative_names.name,version_parent,summary,storyline," +
+  "cover.url,cover.width,cover.height,artworks.url,artworks.width,artworks.height," +
+  "screenshots.url,screenshots.width,screenshots.height,videos.name,videos.video_id";
 
 /** IGDB query with exponential backoff on rate limits / transient failures. */
 async function igdbQuery(body: string): Promise<IgdbGame[]> {
@@ -930,4 +937,198 @@ export const autofillGames = createServerFn({ method: "POST" })
     }
 
     return results;
+  });
+
+export const MEDIA_AUTOFILL_FIELDS = ["cover_url", "banner_url", "gallery", "trailer_url"] as const;
+export type MediaAutofillField = (typeof MEDIA_AUTOFILL_FIELDS)[number];
+
+export interface MediaAutofillResult {
+  id: string;
+  title: string;
+  status: "updated" | "needs_review" | "skipped";
+  filled: MediaAutofillField[];
+  unresolved: MediaAutofillField[];
+  alreadyFilled: MediaAutofillField[];
+  previews: Partial<Record<MediaAutofillField, string | string[]>>;
+  match: string | null;
+  confidence: number;
+  source: string | null;
+  historyId: string | null;
+  note: string | null;
+}
+
+const MediaInput = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(8),
+  fields: z.array(z.enum(MEDIA_AUTOFILL_FIELDS)).min(1),
+  replaceExisting: z.boolean().default(false),
+  retry: z.boolean().optional(),
+});
+
+const UndoMediaInput = z.object({ historyIds: z.array(z.string().uuid()).min(1).max(20) });
+
+function igdbImageUrl(url: string | undefined, size: "cover_big" | "720p"): string | null {
+  if (!url) return null;
+  const secure = url.startsWith("//") ? `https:${url}` : url.replace(/^http:/, "https:");
+  return secure.replace(/\/t_[^/]+\//, `/t_${size}/`);
+}
+
+function youtubeTrailer(videos: IgdbGame["videos"]): string | null {
+  const valid = (videos ?? []).filter((video) => /^[A-Za-z0-9_-]{6,20}$/.test(video.video_id ?? ""));
+  const preferred = valid.find((video) => /official|launch|gameplay|announce|trailer/i.test(video.name ?? "")) ?? valid[0];
+  return preferred?.video_id ? `https://www.youtube.com/watch?v=${preferred.video_id}` : null;
+}
+
+async function storeIgdbImage(
+  supabaseAdmin: any,
+  gameId: string,
+  field: string,
+  sourceUrl: string,
+): Promise<string> {
+  const response = await fetch(sourceUrl, { headers: { Accept: "image/*" } });
+  if (!response.ok) throw new Error(`Could not download ${field} [${response.status}]`);
+  const contentType = response.headers.get("content-type")?.split(";")[0] ?? "image/jpeg";
+  if (!contentType.startsWith("image/")) throw new Error(`${field} source was not an image`);
+  const bytes = await response.arrayBuffer();
+  if (!bytes.byteLength || bytes.byteLength > 12 * 1024 * 1024) throw new Error(`${field} image was invalid or too large`);
+  const extension = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+  const path = `games/auto/${gameId}/${field}-${crypto.randomUUID()}.${extension}`;
+  const { error: uploadError } = await supabaseAdmin.storage.from("media").upload(path, bytes, {
+    contentType,
+    cacheControl: "31536000",
+    upsert: false,
+  });
+  if (uploadError) throw new Error(uploadError.message);
+  const { data, error } = await supabaseAdmin.storage.from("media").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+  if (error || !data?.signedUrl) throw new Error(error?.message ?? "Could not create image URL");
+  return data.signedUrl;
+}
+
+/** Verified real-media auto-fill. It shares the catalogue identity matcher with metadata auto-fill. */
+export const autofillGameMedia = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => MediaInput.parse(raw))
+  .handler(async ({ data, context }): Promise<MediaAutofillResult[]> => {
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleError || !isAdmin) throw new Error("Admin access required");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: games, error } = await supabaseAdmin
+      .from("games")
+      .select("id,title,platform,cover_url,banner_url,gallery,trailer_url")
+      .in("id", data.ids);
+    if (error) throw new Error(error.message);
+
+    const results: MediaAutofillResult[] = [];
+    for (const game of games ?? []) {
+      const requested = data.fields;
+      const hasValue = (field: MediaAutofillField) =>
+        field === "gallery" ? (game.gallery ?? []).length >= 4 : !isEmpty(game[field]);
+      const wanted = requested.filter((field) => data.replaceExisting || !hasValue(field));
+      const alreadyFilled = requested.filter((field) => !wanted.includes(field));
+      if (!wanted.length) {
+        results.push({ id: game.id, title: game.title, status: "skipped", filled: [], unresolved: [], alreadyFilled, previews: {}, match: null, confidence: 100, source: null, historyId: null, note: "Selected media is already available" });
+        continue;
+      }
+
+      const platformIds = IGDB_PLATFORMS[game.platform] ?? [167, 48];
+      const candidates = await searchCandidates(game.title, data.retry === true);
+      const scored = candidates.map((candidate) => ({ game: candidate, ...scoreCandidate(candidate, game.title, platformIds) })).sort((a, b) => b.score - a.score);
+      const best = scored[0];
+      const runnerUp = scored[1];
+      const ambiguous = Boolean(best && runnerUp && runnerUp.score >= 70 && best.score - runnerUp.score < 8 && norm(best.game.name) !== norm(runnerUp.game.name));
+      if (!best || best.score < 70 || ambiguous) {
+        results.push({ id: game.id, title: game.title, status: "needs_review", filled: [], unresolved: wanted, alreadyFilled, previews: {}, match: best?.game.name ?? null, confidence: best?.score ?? 0, source: "IGDB", historyId: null, note: ambiguous ? "Multiple possible game versions were found" : "No verified media match was found" });
+        continue;
+      }
+
+      const source = best.game;
+      const raw: Partial<Record<MediaAutofillField, string | string[]>> = {};
+      if (wanted.includes("cover_url")) {
+        const value = igdbImageUrl(source.cover?.url, "cover_big");
+        if (value) raw.cover_url = value;
+      }
+      if (wanted.includes("banner_url")) {
+        const artwork = [...(source.artworks ?? []), ...(source.screenshots ?? [])]
+          .sort((a, b) => ((b.width ?? 0) * (b.height ?? 0)) - ((a.width ?? 0) * (a.height ?? 0)))[0];
+        const value = igdbImageUrl(artwork?.url, "720p");
+        if (value) raw.banner_url = value;
+      }
+      if (wanted.includes("gallery")) {
+        const values = (source.screenshots ?? []).slice(0, 4).map((image) => igdbImageUrl(image.url, "720p")).filter((value): value is string => Boolean(value));
+        if (values.length) raw.gallery = values;
+      }
+      if (wanted.includes("trailer_url")) {
+        const value = youtubeTrailer(source.videos);
+        if (value) raw.trailer_url = value;
+      }
+
+      const patch: Pick<Database["public"]["Tables"]["games"]["Update"], MediaAutofillField> = {};
+      const filled: MediaAutofillField[] = [];
+      for (const field of wanted) {
+        const value = raw[field];
+        if (!value) continue;
+        if (field === "gallery" && Array.isArray(value)) {
+          const stored = await Promise.all(value.map((url, index) => storeIgdbImage(supabaseAdmin, game.id, `screenshot-${index + 1}`, url)));
+          patch.gallery = stored;
+        } else if ((field === "cover_url" || field === "banner_url") && typeof value === "string") {
+          patch[field] = await storeIgdbImage(supabaseAdmin, game.id, field.replace("_url", ""), value);
+        } else if (field === "trailer_url" && typeof value === "string") {
+          patch.trailer_url = value;
+        }
+        filled.push(field);
+      }
+
+      const unresolved = wanted.filter((field) => !filled.includes(field));
+      let historyId: string | null = null;
+      if (filled.length) {
+        const previousValues = Object.fromEntries(filled.map((field) => [field, game[field]]));
+        const { data: history, error: historyError } = await supabaseAdmin
+          .from("game_media_autofill_history")
+          .insert({ game_id: game.id, fields: filled, previous_values: previousValues, applied_values: patch, source: "IGDB", match_name: source.name, confidence: best.score, created_by: context.userId })
+          .select("id")
+          .single();
+        if (historyError) throw new Error(historyError.message);
+        historyId = history.id;
+        const { error: updateError } = await supabaseAdmin.from("games").update(patch).eq("id", game.id);
+        if (updateError) throw new Error(updateError.message);
+      }
+
+      const previews: Partial<Record<MediaAutofillField, string | string[]>> = {};
+      if (typeof patch.cover_url === "string") previews.cover_url = patch.cover_url;
+      if (typeof patch.banner_url === "string") previews.banner_url = patch.banner_url;
+      if (typeof patch.trailer_url === "string") previews.trailer_url = patch.trailer_url;
+      if (Array.isArray(patch.gallery)) previews.gallery = patch.gallery;
+      results.push({ id: game.id, title: game.title, status: filled.length ? (unresolved.length ? "needs_review" : "updated") : "needs_review", filled, unresolved, alreadyFilled, previews, match: source.name, confidence: best.score, source: "IGDB", historyId, note: unresolved.length ? `Still missing: ${unresolved.join(", ")}` : "Verified game media added" });
+      await sleep(280);
+    }
+    return results;
+  });
+
+export const undoGameMediaAutofill = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => UndoMediaInput.parse(raw))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (roleError || !isAdmin) throw new Error("Admin access required");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: history, error } = await supabaseAdmin.from("game_media_autofill_history").select("id,game_id,previous_values,undone_at").in("id", data.historyIds);
+    if (error) throw new Error(error.message);
+    let restored = 0;
+    for (const row of history ?? []) {
+      if (row.undone_at) continue;
+      const saved = row.previous_values as Record<string, unknown>;
+      const previous: Pick<Database["public"]["Tables"]["games"]["Update"], MediaAutofillField> = {};
+      if (typeof saved["cover_url"] === "string" || saved["cover_url"] === null) previous.cover_url = saved["cover_url"];
+      if (typeof saved["banner_url"] === "string" || saved["banner_url"] === null) previous.banner_url = saved["banner_url"];
+      if (typeof saved["trailer_url"] === "string" || saved["trailer_url"] === null) previous.trailer_url = saved["trailer_url"];
+      if (Array.isArray(saved["gallery"]) && saved["gallery"].every((value) => typeof value === "string")) previous.gallery = saved["gallery"];
+      const { error: restoreError } = await supabaseAdmin.from("games").update(previous).eq("id", row.game_id);
+      if (restoreError) throw new Error(restoreError.message);
+      await supabaseAdmin.from("game_media_autofill_history").update({ undone_at: new Date().toISOString() }).eq("id", row.id);
+      restored++;
+    }
+    return { restored };
   });
