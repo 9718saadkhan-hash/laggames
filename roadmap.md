@@ -28,6 +28,7 @@
 - Image uploads limited to compressed 1080p/1.5K output without stretching, distortion, or upscaling
 - Admin Image Compressor scans every website photo section, supports individual/selected/bulk compression, reports savings, and keeps restorable originals
 - Admin Auto-Fill adds verified covers, banners, four screenshots, and YouTube trailers with field controls, bulk/individual runs, previews, and undo
+- Game Media Auto-Fill automatically prefers the verified standard/base game and adds up to four unique in-game screenshots
 - Games catalogue progressively renders lightweight cards with one shared wishlist lookup and mobile paint optimizations
 - Games catalogue loads four more cards per batch and releases distant cover images while preserving card space
 
@@ -35,6 +36,3 @@
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
 - Media library reuse directly inside each upload field
 - Game editions: per-game editions with their own 30d/60d/permanent prices, managed from admin Games
-
-## Done
-- Game Media Auto-Fill automatically prefers the verified standard/base game and adds up to four unique in-game screenshots
