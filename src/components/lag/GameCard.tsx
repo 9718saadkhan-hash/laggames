@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Heart, ShoppingCart } from "lucide-react";
-import { createContext, memo, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, memo, useContext, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
