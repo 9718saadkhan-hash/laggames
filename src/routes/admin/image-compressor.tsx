@@ -139,6 +139,7 @@ function CompressorPage() {
   const [quality, setQuality] = useState(85);
   const [section, setSection] = useState<Section | "All">("All");
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState<"name" | "size-desc" | "size-asc">("name");
 
   async function scan() {
     setScanning(true);
