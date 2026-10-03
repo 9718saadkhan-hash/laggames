@@ -182,9 +182,23 @@ function CompressorPage() {
 
   useEffect(() => { void scan(); }, []);
 
-  const visible = useMemo(() => items.filter((i) =>
-    (section === "All" || i.section === section) && i.label.toLowerCase().includes(q.toLowerCase()),
-  ), [items, section, q]);
+  const visible = useMemo(() => {
+    const list = items.filter((i) =>
+      (section === "All" || i.section === section) && i.label.toLowerCase().includes(q.toLowerCase()),
+    );
+    if (sort !== "name") {
+      const dir = sort === "size-desc" ? -1 : 1;
+      list.sort((a, b2) => {
+        const sa = sizes[a.id];
+        const sb = sizes[b2.id];
+        if (sa == null && sb == null) return 0;
+        if (sa == null) return 1; // unknown sizes at the end
+        if (sb == null) return -1;
+        return (sa - sb) * dir || a.label.localeCompare(b2.label);
+      });
+    }
+    return list;
+  }, [items, section, q, sort, sizes]);
 
   const total = visible.reduce((n, i) => n + (sizes[i.id] ?? 0), 0);
 
