@@ -966,7 +966,7 @@ const MediaInput = z.object({
 
 const UndoMediaInput = z.object({ historyIds: z.array(z.string().uuid()).min(1).max(20) });
 
-function igdbImageUrl(url: string | undefined, size: "cover_big" | "1080p"): string | null {
+function igdbImageUrl(url: string | undefined, size: "cover_big" | "720p"): string | null {
   if (!url) return null;
   const secure = url.startsWith("//") ? `https:${url}` : url.replace(/^http:/, "https:");
   return secure.replace(/\/t_[^/]+\//, `/t_${size}/`);
@@ -1053,11 +1053,11 @@ export const autofillGameMedia = createServerFn({ method: "POST" })
       if (wanted.includes("banner_url")) {
         const artwork = [...(source.artworks ?? []), ...(source.screenshots ?? [])]
           .sort((a, b) => ((b.width ?? 0) * (b.height ?? 0)) - ((a.width ?? 0) * (a.height ?? 0)))[0];
-        const value = igdbImageUrl(artwork?.url, "1080p");
+        const value = igdbImageUrl(artwork?.url, "720p");
         if (value) raw.banner_url = value;
       }
       if (wanted.includes("gallery")) {
-        const values = (source.screenshots ?? []).slice(0, 4).map((image) => igdbImageUrl(image.url, "1080p")).filter((value): value is string => Boolean(value));
+        const values = (source.screenshots ?? []).slice(0, 4).map((image) => igdbImageUrl(image.url, "720p")).filter((value): value is string => Boolean(value));
         if (values.length) raw.gallery = values;
       }
       if (wanted.includes("trailer_url")) {
