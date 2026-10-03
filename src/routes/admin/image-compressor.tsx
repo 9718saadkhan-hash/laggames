@@ -145,9 +145,12 @@ function CompressorPage() {
     try {
       const db = supabase as any;
       const found: ImgItem[] = [];
-      for (const s of SOURCES) {
+      const sourceResults = await Promise.all(SOURCES.map(async (s) => {
         const cols = ["id", s.label, ...s.fields, ...(s.arrays ?? [])].join(",");
         const { data, error } = await db.from(s.table).select(cols);
+        return { s, data, error };
+      }));
+      for (const { s, data, error } of sourceResults) {
         if (error) { toast.error(`${s.section}: ${error.message}`); continue; }
         for (const r of data ?? []) {
           for (const f of s.fields) if (isImg(r[f])) found.push({ id: `${s.table}:${r.id}:${f}`, section: s.section, label: `${r[s.label] ?? "Untitled"} · ${f.replace("_url", "")}`, table: s.table, rowKey: r.id, keyCol: "id", field: f, path: "", url: r[f] });
