@@ -46,8 +46,6 @@ const TAGS = [
   { key: "new_release", label: "New releases" },
 ] as const;
 
-const PAGE_SIZE = 12;
-
 function GamesPage() {
   const { data: games = [], isLoading, isError, error } = useQuery(gamesCatalogQuery());
   const [q, setQ] = useState("");
@@ -57,7 +55,6 @@ function GamesPage() {
   const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("featured");
   const [maxPrice, setMaxPrice] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [page, setPage] = useState(1);
   const gridTopRef = useRef<HTMLDivElement>(null);
 
   const visible = useMemo(() => games.filter((g) => g.visible), [games]);
@@ -96,18 +93,7 @@ function GamesPage() {
     return list;
   }, [visible, q, platform, genre, tag, maxPrice, sort]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [q, platform, genre, tag, maxPrice, sort]);
-
-  const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const renderedResults = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const goToPage = (next: number) => {
-    setPage(Math.min(Math.max(1, next), pageCount));
-    gridTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const renderedResults = results;
 
   const reset = () => {
     setQ("");
@@ -266,37 +252,6 @@ function GamesPage() {
               <GameCard key={g.id} game={g} priority={index < 4} />
             ))}
           </div>
-          {pageCount > 1 ? (
-            <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Games pages">
-              <Button variant="glass" size="sm" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
-                Previous
-              </Button>
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => goToPage(n)}
-                  aria-current={n === currentPage ? "page" : undefined}
-                  className={cn(
-                    "h-9 min-w-9 rounded-full border px-3 text-sm font-semibold transition-colors",
-                    n === currentPage
-                      ? "border-lag-red/50 bg-lag-red/20 text-lag-red"
-                      : "border-border bg-muted/40 text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {n}
-                </button>
-              ))}
-              <Button
-                variant="glass"
-                size="sm"
-                disabled={currentPage === pageCount}
-                onClick={() => goToPage(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </nav>
-          ) : null}
         </GameCardsWishlistProvider>
       )}
     </div>
