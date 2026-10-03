@@ -273,6 +273,23 @@ function scoreCandidate(
   return { score: Math.max(0, Math.min(100, score)), exact };
 }
 
+/** Prefer the base/standard record when IGDB also returns deluxe or bundled versions. */
+function mediaVersionRank(candidate: IgdbGame, title: string): number {
+  const candidateName = norm(candidate.name);
+  const target = parseIdentity(title);
+  const identity = parseIdentity(candidate.name);
+  let rank = 0;
+  if (identityMatches(identity, target)) rank += 30;
+  if (!candidate.version_parent) rank += 20;
+  if (/\bstandard(?: edition)?\b/.test(candidateName)) rank += 8;
+  if (/\b(deluxe|ultimate|gold|complete|definitive|goty|game of the year|anniversary|legacy|bundle|pack)\b/.test(candidateName)) rank -= 20;
+  return rank;
+}
+
+function isSameMediaGame(a: IgdbGame, b: IgdbGame): boolean {
+  return identityMatches(parseIdentity(a.name), parseIdentity(b.name));
+}
+
 /* ------------------------------------------------------------ field mapping */
 
 function pickGenre(g: IgdbGame): string | null {
@@ -1035,10 +1052,30 @@ export const autofillGameMedia = createServerFn({ method: "POST" })
 
       const platformIds = IGDB_PLATFORMS[game.platform] ?? [167, 48];
       const candidates = await searchCandidates(game.title, data.retry === true);
-      const scored = candidates.map((candidate) => ({ game: candidate, ...scoreCandidate(candidate, game.title, platformIds) })).sort((a, b) => b.score - a.score);
-      const best = scored[0];
-      const runnerUp = scored[1];
-      const ambiguous = Boolean(best && runnerUp && runnerUp.score >= 70 && best.score - runnerUp.score < 8 && norm(best.game.name) !== norm(runnerUp.game.name));
+      const scored = candidates
+        .map((candidate) => ({
+          game: candidate,
+          ...scoreCandidate(candidate, game.title, platformIds),
+          mediaRank: mediaVersionRank(candidate, game.title),
+        }))
+        .sort((a, b) => b.score - a.score || b.mediaRank - a.mediaRank);
+      const highestScore = scored[0]?.score ?? 0;
+      const verified = scored
+        .filter((candidate) => candidate.score >= 70 && highestScore - candidate.score < 8)
+        .sort((a, b) => b.mediaRank - a.mediaRank || b.score - a.score);
+      const best = verified[0] ?? scored[0];
+      const runnerUp = scored.find(
+        (candidate) =>
+          candidate.game.id !== best?.game.id &&
+          candidate.score >= 70 &&
+          Math.abs((best?.score ?? 0) - candidate.score) < 8 &&
+          !isSameMediaGame(candidate.game, best?.game ?? candidate.game),
+      );
+      const ambiguous = Boolean(
+        best &&
+        runnerUp &&
+        !isSameMediaGame(best.game, runnerUp.game),
+      );
       if (!best || best.score < 70 || ambiguous) {
         results.push({ id: game.id, title: game.title, status: "needs_review", filled: [], unresolved: wanted, alreadyFilled, previews: {}, match: best?.game.name ?? null, confidence: best?.score ?? 0, source: "IGDB", historyId: null, note: ambiguous ? "Multiple possible game versions were found" : "No verified media match was found" });
         continue;
@@ -1057,7 +1094,13 @@ export const autofillGameMedia = createServerFn({ method: "POST" })
         if (value) raw.banner_url = value;
       }
       if (wanted.includes("gallery")) {
-        const values = (source.screenshots ?? []).slice(0, 4).map((image) => igdbImageUrl(image.url, "720p")).filter((value): value is string => Boolean(value));
+        const values = Array.from(
+          new Set(
+            (source.screenshots ?? [])
+              .map((image) => igdbImageUrl(image.url, "720p"))
+              .filter((value): value is string => Boolean(value)),
+          ),
+        ).slice(0, 4);
         if (values.length) raw.gallery = values;
       }
       if (wanted.includes("trailer_url")) {
