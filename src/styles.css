@@ -434,6 +434,11 @@
 
 /* Mobile: keep effects cheap so scrolling stays at full refresh rate. */
 @media (max-width: 640px) {
+  /* Long product grids keep the same translucent surface without repainting live blur while scrolling. */
+  .catalog-card {
+    background: var(--glass-bg);
+    backdrop-filter: none;
+  }
   .glass,
   .glass-btn,
   .glass-btn-nav,
@@ -450,6 +455,10 @@
   .ambient-particles {
     animation: none;
     opacity: 0.35;
+  }
+  .catalog-card:hover {
+    transform: none;
+    box-shadow: none;
   }
 }
 

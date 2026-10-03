@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Heart, ShoppingCart } from "lucide-react";
-import { memo } from "react";
+import { createContext, memo, useContext, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,22 @@ import { safePosition } from "@/lib/media";
 import { wishlistQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
-function GameCardBase({ game, className }: { game: Game; className?: string }) {
+const WishlistContext = createContext<Set<string> | null>(null);
+
+/** One wishlist subscription shared by every card in a catalogue grid. */
+export function GameCardsWishlistProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const { data = [] } = useQuery(wishlistQuery(user?.id));
+  const savedIds = new Set(data.map((item) => item.game_id));
+  return <WishlistContext.Provider value={savedIds}>{children}</WishlistContext.Provider>;
+}
+
+function GameCardBase({ game, className, priority = false }: { game: Game; className?: string; priority?: boolean }) {
   const { user } = useAuth();
   const { addItem } = useCart();
   const queryClient = useQueryClient();
-  // Subscribe only to this game's saved flag, so wishlist changes elsewhere
-  // don't re-render every card in a long grid.
-  const { data: saved = false } = useQuery({
-    ...wishlistQuery(user?.id),
-    select: (rows) => rows.some((w) => w.game_id === game.id),
-  });
+  const savedIds = useContext(WishlistContext);
+  const saved = savedIds?.has(game.id) ?? false;
   const from = lowestGamePrice(game);
 
 
@@ -53,7 +59,7 @@ function GameCardBase({ game, className }: { game: Game; className?: string }) {
   return (
     <article
       className={cn(
-        "glass hover-lift card-perf group relative flex flex-col overflow-hidden rounded-2xl",
+        "glass catalog-card hover-lift card-perf group relative flex flex-col overflow-hidden rounded-2xl",
         className,
       )}
     >
@@ -68,11 +74,13 @@ function GameCardBase({ game, className }: { game: Game; className?: string }) {
           <img
             src={game.cover_url}
             alt={`${game.title} artwork`}
-            loading="lazy"
-            fetchPriority="low"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "low"}
 
             style={{ objectPosition: safePosition(game.cover_position) }}
             decoding="async"
+            width="480"
+            height="720"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (

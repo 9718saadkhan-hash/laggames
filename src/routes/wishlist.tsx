@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart, LogIn } from "lucide-react";
 
-import { GameCard } from "@/components/lag/GameCard";
+import { GameCard, GameCardsWishlistProvider } from "@/components/lag/GameCard";
 import { EmptyState, GlassIcon, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -71,11 +71,13 @@ function WishlistPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {games.map((w) => (
-            <GameCard key={w.id} game={w.games!} />
-          ))}
-        </div>
+        <GameCardsWishlistProvider>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {games.map((w, index) => (
+              <GameCard key={w.id} game={w.games!} priority={index < 4} />
+            ))}
+          </div>
+        </GameCardsWishlistProvider>
       )}
     </div>
   );
