@@ -104,13 +104,19 @@ interface IgdbGame {
   version_parent?: number;
   summary?: string;
   storyline?: string;
+  cover?: { url?: string; width?: number; height?: number };
+  artworks?: { url?: string; width?: number; height?: number }[];
+  screenshots?: { url?: string; width?: number; height?: number }[];
+  videos?: { name?: string; video_id?: string }[];
 }
 
 const FIELDS =
   "fields name,genres.name,platforms,total_rating,total_rating_count,aggregated_rating," +
   "aggregated_rating_count,first_release_date,involved_companies.developer," +
   "involved_companies.publisher,involved_companies.company.name,release_dates.platform," +
-  "release_dates.date,alternative_names.name,version_parent,summary,storyline";
+  "release_dates.date,alternative_names.name,version_parent,summary,storyline," +
+  "cover.url,cover.width,cover.height,artworks.url,artworks.width,artworks.height," +
+  "screenshots.url,screenshots.width,screenshots.height,videos.name,videos.video_id";
 
 /** IGDB query with exponential backoff on rate limits / transient failures. */
 async function igdbQuery(body: string): Promise<IgdbGame[]> {
