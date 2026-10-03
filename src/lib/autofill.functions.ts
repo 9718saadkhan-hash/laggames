@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 export const AUTOFILL_FIELDS = [
   "genre",
@@ -1064,7 +1065,7 @@ export const autofillGameMedia = createServerFn({ method: "POST" })
         if (value) raw.trailer_url = value;
       }
 
-      const patch: Partial<Record<MediaAutofillField, string | string[]>> = {};
+      const patch: Pick<Database["public"]["Tables"]["games"]["Update"], MediaAutofillField> = {};
       const filled: MediaAutofillField[] = [];
       for (const field of wanted) {
         const value = raw[field];
@@ -1113,7 +1114,12 @@ export const undoGameMediaAutofill = createServerFn({ method: "POST" })
     let restored = 0;
     for (const row of history ?? []) {
       if (row.undone_at) continue;
-      const previous = row.previous_values as Record<string, unknown>;
+      const saved = row.previous_values as Record<string, unknown>;
+      const previous: Pick<Database["public"]["Tables"]["games"]["Update"], MediaAutofillField> = {};
+      if (typeof saved.cover_url === "string" || saved.cover_url === null) previous.cover_url = saved.cover_url;
+      if (typeof saved.banner_url === "string" || saved.banner_url === null) previous.banner_url = saved.banner_url;
+      if (typeof saved.trailer_url === "string" || saved.trailer_url === null) previous.trailer_url = saved.trailer_url;
+      if (Array.isArray(saved.gallery) && saved.gallery.every((value) => typeof value === "string")) previous.gallery = saved.gallery;
       const { error: restoreError } = await supabaseAdmin.from("games").update(previous).eq("id", row.game_id);
       if (restoreError) throw new Error(restoreError.message);
       await supabaseAdmin.from("game_media_autofill_history").update({ undone_at: new Date().toISOString() }).eq("id", row.id);
