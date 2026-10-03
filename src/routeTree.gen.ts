@@ -26,6 +26,7 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 import { Route as AdminAutofillRouteImport } from './routes/admin/autofill'
+import { Route as AdminCleanerRouteImport } from './routes/admin/cleaner'
 import { Route as AdminCollabsRouteImport } from './routes/admin/collabs'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminDealsRouteImport } from './routes/admin/deals'
@@ -129,6 +130,11 @@ const AdminActivityRoute = AdminActivityRouteImport.update({
 const AdminAutofillRoute = AdminAutofillRouteImport.update({
   id: '/admin/autofill',
   path: '/admin/autofill',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCleanerRoute = AdminCleanerRouteImport.update({
+  id: '/admin/cleaner',
+  path: '/admin/cleaner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCollabsRoute = AdminCollabsRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/autofill': typeof AdminAutofillRoute
+  '/admin/cleaner': typeof AdminCleanerRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/autofill': typeof AdminAutofillRoute
+  '/admin/cleaner': typeof AdminCleanerRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/admin/activity': typeof AdminActivityRoute
   '/admin/autofill': typeof AdminAutofillRoute
+  '/admin/cleaner': typeof AdminCleanerRoute
   '/admin/collabs': typeof AdminCollabsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/activity'
     | '/admin/autofill'
+    | '/admin/cleaner'
     | '/admin/collabs'
     | '/admin/customers'
     | '/admin/deals'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/activity'
     | '/admin/autofill'
+    | '/admin/cleaner'
     | '/admin/collabs'
     | '/admin/customers'
     | '/admin/deals'
@@ -437,6 +448,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/activity'
     | '/admin/autofill'
+    | '/admin/cleaner'
     | '/admin/collabs'
     | '/admin/customers'
     | '/admin/deals'
@@ -476,6 +488,7 @@ export interface RootRouteChildren {
   WishlistRoute: typeof WishlistRoute
   AdminActivityRoute: typeof AdminActivityRoute
   AdminAutofillRoute: typeof AdminAutofillRoute
+  AdminCleanerRoute: typeof AdminCleanerRoute
   AdminCollabsRoute: typeof AdminCollabsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDealsRoute: typeof AdminDealsRoute
@@ -617,6 +630,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/autofill'
       fullPath: '/admin/autofill'
       preLoaderRoute: typeof AdminAutofillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cleaner': {
+      id: '/admin/cleaner'
+      path: '/admin/cleaner'
+      fullPath: '/admin/cleaner'
+      preLoaderRoute: typeof AdminCleanerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/collabs': {
@@ -772,6 +792,7 @@ const rootRouteChildren: RootRouteChildren = {
   WishlistRoute: WishlistRoute,
   AdminActivityRoute: AdminActivityRoute,
   AdminAutofillRoute: AdminAutofillRoute,
+  AdminCleanerRoute: AdminCleanerRoute,
   AdminCollabsRoute: AdminCollabsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDealsRoute: AdminDealsRoute,
