@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   Sparkles,
   Minimize2,
+  Eraser,
 } from "lucide-react";
 import { useEffect, type ElementType, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ const NAV: { label: string; to: string; icon: ElementType }[] = [
   { label: "Games", to: "/admin/games", icon: Gamepad2 },
   { label: "Auto-Fill Info", to: "/admin/autofill", icon: Sparkles },
   { label: "Image Compressor", to: "/admin/image-compressor", icon: Minimize2 },
+  { label: "Cleaner", to: "/admin/cleaner", icon: Eraser },
   { label: "Deals", to: "/admin/deals", icon: Tag },
   { label: "Upcoming Games", to: "/admin/upcoming-games", icon: CalendarClock },
   { label: "PS Plus", to: "/admin/ps-plus", icon: Crown },
