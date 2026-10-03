@@ -55,7 +55,7 @@ function GamesPage() {
   const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("featured");
   const [maxPrice, setMaxPrice] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [renderLimit, setRenderLimit] = useState(24);
+  const [renderLimit, setRenderLimit] = useState(8);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const visible = useMemo(() => games.filter((g) => g.visible), [games]);
@@ -95,7 +95,7 @@ function GamesPage() {
   }, [visible, q, platform, genre, tag, maxPrice, sort]);
 
   useEffect(() => {
-    setRenderLimit(24);
+    setRenderLimit(8);
   }, [q, platform, genre, tag, maxPrice, sort]);
 
   useEffect(() => {
@@ -103,9 +103,9 @@ function GamesPage() {
     if (!target || renderLimit >= results.length) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) setRenderLimit((current) => Math.min(current + 24, results.length));
+        if (entry?.isIntersecting) setRenderLimit((current) => Math.min(current + 4, results.length));
       },
-      { rootMargin: "800px 0px" },
+      { rootMargin: "400px 0px" },
     );
     observer.observe(target);
     return () => observer.disconnect();
