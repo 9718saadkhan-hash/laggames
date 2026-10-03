@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Gamepad2, Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { GameCard } from "@/components/lag/GameCard";
+import { GameCard, GameCardsWishlistProvider } from "@/components/lag/GameCard";
 import { EmptyState, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { compareGameOrder, lowestGamePrice, PLATFORMS } from "@/lib/lag";
-import { gamesQuery } from "@/lib/queries";
+import { gamesCatalogQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/games/")({
@@ -47,7 +47,7 @@ const TAGS = [
 ] as const;
 
 function GamesPage() {
-  const { data: games = [], isLoading, isError, error } = useQuery(gamesQuery());
+  const { data: games = [], isLoading, isError, error } = useQuery(gamesCatalogQuery());
   const [q, setQ] = useState("");
   const [platform, setPlatform] = useState<string>("all");
   const [genre, setGenre] = useState<string>("all");
@@ -55,6 +55,8 @@ function GamesPage() {
   const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("featured");
   const [maxPrice, setMaxPrice] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [renderLimit, setRenderLimit] = useState(24);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const visible = useMemo(() => games.filter((g) => g.visible), [games]);
   const genres = useMemo(
@@ -91,6 +93,25 @@ function GamesPage() {
     });
     return list;
   }, [visible, q, platform, genre, tag, maxPrice, sort]);
+
+  useEffect(() => {
+    setRenderLimit(24);
+  }, [q, platform, genre, tag, maxPrice, sort]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || renderLimit >= results.length) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) setRenderLimit((current) => Math.min(current + 24, results.length));
+      },
+      { rootMargin: "800px 0px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [renderLimit, results.length]);
+
+  const renderedResults = results.slice(0, renderLimit);
 
   const reset = () => {
     setQ("");
@@ -243,11 +264,14 @@ function GamesPage() {
           />
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {results.map((g) => (
-            <GameCard key={g.id} game={g} />
-          ))}
-        </div>
+        <GameCardsWishlistProvider>
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {renderedResults.map((g, index) => (
+              <GameCard key={g.id} game={g} priority={index < 4} />
+            ))}
+          </div>
+          {renderLimit < results.length ? <div ref={loadMoreRef} className="h-px" aria-hidden /> : null}
+        </GameCardsWishlistProvider>
       )}
     </div>
   );
