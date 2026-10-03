@@ -343,6 +343,59 @@ export type Database = {
           },
         ]
       }
+      game_media_autofill_history: {
+        Row: {
+          applied_values: Json
+          confidence: number
+          created_at: string
+          created_by: string | null
+          fields: string[]
+          game_id: string
+          id: string
+          match_name: string | null
+          operation_id: string
+          previous_values: Json
+          source: string
+          undone_at: string | null
+        }
+        Insert: {
+          applied_values?: Json
+          confidence?: number
+          created_at?: string
+          created_by?: string | null
+          fields?: string[]
+          game_id: string
+          id?: string
+          match_name?: string | null
+          operation_id?: string
+          previous_values?: Json
+          source: string
+          undone_at?: string | null
+        }
+        Update: {
+          applied_values?: Json
+          confidence?: number
+          created_at?: string
+          created_by?: string | null
+          fields?: string[]
+          game_id?: string
+          id?: string
+          match_name?: string | null
+          operation_id?: string
+          previous_values?: Json
+          source?: string
+          undone_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_media_autofill_history_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           availability: string
