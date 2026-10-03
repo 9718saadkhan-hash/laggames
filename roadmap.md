@@ -29,6 +29,7 @@
 - Admin Image Compressor scans every website photo section, supports individual/selected/bulk compression, reports savings, and keeps restorable originals
 - Admin Auto-Fill adds verified covers, banners, four screenshots, and YouTube trailers with field controls, bulk/individual runs, previews, and undo
 - Games catalogue progressively renders lightweight cards with one shared wishlist lookup and mobile paint optimizations
+- Games catalogue loads four more cards per batch and releases distant cover images while preserving card space
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight
