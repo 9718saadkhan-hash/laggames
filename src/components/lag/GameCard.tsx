@@ -27,25 +27,9 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
   const { user } = useAuth();
   const { addItem } = useCart();
   const queryClient = useQueryClient();
-  const cardRef = useRef<HTMLElement>(null);
-  const [loadCover, setLoadCover] = useState(priority);
   const savedIds = useContext(WishlistContext);
   const saved = savedIds?.has(game.id) ?? false;
   const from = lowestGamePrice(game);
-
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card || typeof IntersectionObserver === "undefined") {
-      setLoadCover(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => setLoadCover(Boolean(entry?.isIntersecting)),
-      { rootMargin: "800px 0px" },
-    );
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, []);
 
   const toggle = useMutation({
     mutationFn: async () => {
@@ -73,7 +57,6 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
 
   return (
     <article
-      ref={cardRef}
       className={cn(
         "glass catalog-card hover-lift card-perf group relative flex flex-col overflow-hidden rounded-2xl",
         className,
@@ -86,7 +69,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
         className="relative block aspect-2/3 overflow-hidden bg-surface-2"
         aria-label={`View details for ${game.title}`}
       >
-        {game.cover_url && loadCover ? (
+        {game.cover_url ? (
           <img
             src={game.cover_url}
             alt={`${game.title} artwork`}
