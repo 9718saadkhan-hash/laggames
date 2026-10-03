@@ -2,13 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2, ImageIcon, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   autofillGames,
+  autofillGameMedia,
+  undoGameMediaAutofill,
   type AutofillField,
   type AutofillResult,
+  type MediaAutofillResult,
 } from "@/lib/autofill.functions";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
@@ -268,7 +271,11 @@ function AdminGamesPage() {
   const [saving, setSaving] = useState(false);
   const [editionsGame, setEditionsGame] = useState<Game | null>(null);
   const runAutofill = useServerFn(autofillGames);
+  const runMediaAutofill = useServerFn(autofillGameMedia);
+  const undoMediaAutofill = useServerFn(undoGameMediaAutofill);
   const [autofillingId, setAutofillingId] = useState<string | null>(null);
+  const [mediaAutofillingId, setMediaAutofillingId] = useState<string | null>(null);
+  const [lastMediaResult, setLastMediaResult] = useState<MediaAutofillResult | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["games"] });
@@ -301,6 +308,44 @@ function AdminGamesPage() {
       toast.error(e instanceof Error ? e.message : "Auto-fill failed.");
     } finally {
       setAutofillingId(null);
+    }
+  }
+
+  async function autofillMediaOne(id: string, title: string) {
+    setMediaAutofillingId(id);
+    try {
+      const results = await runMediaAutofill({ data: { ids: [id], fields: ["cover_url", "banner_url", "gallery", "trailer_url"], replaceExisting: false, retry: true } });
+      const result = results[0];
+      if (!result) throw new Error("No verified media result was returned.");
+      setLastMediaResult(result);
+      invalidate();
+      if (editingId === id) {
+        const { data } = await supabase.from("games").select("*").eq("id", id).maybeSingle();
+        if (data) setForm(gameToForm(data as Game));
+      }
+      if (result.filled.length) toast.success(`${title} — verified media added.`, { description: `Added: ${result.filled.join(", ")}` });
+      else if (result.status === "skipped") toast.info(`${title} — media is already available.`);
+      else toast.warning(`${title} — no reliable missing media was found.`, { description: result.note ?? undefined });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Media auto-fill failed.");
+    } finally {
+      setMediaAutofillingId(null);
+    }
+  }
+
+  async function undoLastMedia() {
+    if (!lastMediaResult?.historyId) return;
+    try {
+      await undoMediaAutofill({ data: { historyIds: [lastMediaResult.historyId] } });
+      invalidate();
+      if (editingId === lastMediaResult.id) {
+        const { data } = await supabase.from("games").select("*").eq("id", lastMediaResult.id).maybeSingle();
+        if (data) setForm(gameToForm(data as Game));
+      }
+      setLastMediaResult(null);
+      toast.success("Auto-filled media restored.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Undo failed.");
     }
   }
 
@@ -471,6 +516,16 @@ function AdminGamesPage() {
                     )}
                     <span className="hidden sm:inline">Auto-Fill</span>
                   </Button>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    disabled={mediaAutofillingId === g.id}
+                    onClick={() => autofillMediaOne(g.id, g.title)}
+                    aria-label={`Auto-fill missing media for ${g.title}`}
+                  >
+                    {mediaAutofillingId === g.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                    <span className="hidden sm:inline">Media</span>
+                  </Button>
                   <Button variant="glass" size="sm" onClick={() => handleDuplicate(g)} aria-label={`Duplicate ${g.title}`}>
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -517,6 +572,21 @@ function AdminGamesPage() {
                   )}
                   Auto-Fill Missing Information
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-2"
+                  disabled={mediaAutofillingId === editingId}
+                  onClick={() => autofillMediaOne(editingId, form.title)}
+                >
+                  {mediaAutofillingId === editingId ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                  Auto-Fill Missing Media
+                </Button>
+                {lastMediaResult?.id === editingId && lastMediaResult.historyId ? (
+                  <Button variant="outline" size="sm" className="ml-2" onClick={undoLastMedia}>
+                    <RotateCcw className="h-4 w-4" /> Undo Media
+                  </Button>
+                ) : null}
                 <p className="mt-2 text-xs text-muted-foreground">
                   Fills only the empty fields for this game. Anything you already entered stays
                   exactly as it is.
