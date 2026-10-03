@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep reversible image-compression originals in an admin-only database table so public records retain no backup data.
+- Keep verified game-media auto-fill and undo in authenticated server functions, with admin-only history snapshots, so source matching and privileged storage never reach the browser.
