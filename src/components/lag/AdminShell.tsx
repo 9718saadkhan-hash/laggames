@@ -18,9 +18,12 @@ import {
   Sparkles,
   Minimize2,
 } from "lucide-react";
-import type { ElementType, ReactNode } from "react";
+import { useEffect, type ElementType, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import { useAuth } from "@/lib/auth";
+import { cleanupUnusedMedia } from "@/lib/media-cleanup.functions";
 import { GlassIcon } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -74,8 +77,41 @@ export function AdminGate({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** After any admin change, delete images that are no longer used anywhere. */
+function useUnusedMediaCleanup() {
+  const qc = useQueryClient();
+  const runCleanup = useServerFn(cleanupUnusedMedia);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let running = false;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        if (running) return schedule();
+        running = true;
+        try {
+          await runCleanup();
+        } catch (e) {
+          console.warn("Unused image cleanup failed", e);
+        } finally {
+          running = false;
+        }
+      }, 2500);
+    };
+    schedule();
+    const unsub = qc.getQueryCache().subscribe((event) => {
+      if (event.type === "updated" && event.action.type === "invalidate") schedule();
+    });
+    return () => {
+      clearTimeout(timer);
+      unsub();
+    };
+  }, [qc, runCleanup]);
+}
+
 export function AdminShell({ children }: { children: ReactNode }) {
   const location = useLocation();
+  useUnusedMediaCleanup();
 
   return (
     <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-[220px_minmax(0,1fr)] md:px-6">
