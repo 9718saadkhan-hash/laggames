@@ -8,6 +8,7 @@ import {
   MessageCircle,
   Play,
   ShieldCheck,
+  ShoppingCart,
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
 import {
   buildOrderMessage,
   discountPercent,
