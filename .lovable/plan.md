@@ -1,13 +1,13 @@
-# Prefer standard-edition media in game Auto-Fill
+# Smooth Games page transitions
 
-## What will change
-- Update the shared game-media matcher to prefer the standard/base game when special editions or version records match the same title.
-- Treat numeric and Roman sequel names as the same identity, so “Alan Wake 2” can safely match “Alan Wake II.”
-- Keep sequel, remake, remaster, DLC, and genuinely different-game protections intact.
-- Use the matched base game's cover and artwork/banner, plus up to four unique in-game screenshots from that same record.
-- Keep existing missing-only behavior, replacement control, previews, and Undo unchanged across bulk, row, and Edit Game actions.
+## Changes
+- Keep the current 12-games-per-page layout and all existing design, data, filters, sorting, wishlist, cart, and navigation unchanged.
+- When a page number, Previous, or Next is selected, immediately unrender the old page’s game cards.
+- Show a Games loading screen while only the selected page’s cover images are loaded.
+- Reveal all 12 selected-page cards together after their covers finish loading; failed or missing covers will not block the page.
+- Keep only the currently selected page mounted, so previous and other pages do not continue rendering.
 
 ## Validation
-- Confirm Alan Wake 2 no longer stops on equivalent standard/special-edition candidates.
-- Confirm four screenshots are selected when the verified base record provides them.
-- Confirm genuinely different versions still return Needs Review rather than guessing.
+- Verify page 1 → 2 and direct jumps such as 1 → 7 on mobile and desktop.
+- Confirm the loading screen appears, the old cards disappear immediately, and exactly 12 selected-page cards render afterward.
+- Confirm search/filter changes return to page 1 and still use the same loading behavior.
