@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BadgeCheck,
   Check,
@@ -66,11 +66,14 @@ const WHY = [
 ];
 
 function HomePage() {
+  const [loaderFinished, setLoaderFinished] = useState(false);
+  const [loaderLeaving, setLoaderLeaving] = useState(false);
+  const [loadedImages, setLoadedImages] = useState(0);
   const gamesResult = useQuery(homeGamesQuery);
   const dealsResult = useQuery(dealsQuery());
   const settingsResult = useQuery(settingsQuery);
-  const { data: reviews = [] } = useQuery(reviewsQuery({ approvedOnly: true }));
-  const { data: collabs = [] } = useQuery(collabsQuery);
+  const { data: reviews = [] } = useQuery({ ...reviewsQuery({ approvedOnly: true }), enabled: loaderFinished });
+  const { data: collabs = [] } = useQuery({ ...collabsQuery, enabled: loaderFinished });
   const gamesWithoutCovers = gamesResult.data ?? [];
   const homepageDeals = dealsResult.data ?? [];
   const settings = settingsResult.data;
@@ -142,16 +145,8 @@ function HomePage() {
       ),
     [categories.games_image, categories.ott_image, categories.ps_plus_image, homepageDeals, trending, visible],
   );
-  const [loadedImages, setLoadedImages] = useState(0);
-  const [loaderFinished, setLoaderFinished] = useState(false);
-  const [loaderLeaving, setLoaderLeaving] = useState(false);
-  const preloadKeyRef = useRef("");
-
   useEffect(() => {
     if (loaderFinished || !criticalDataReady) return;
-    const key = criticalImages.join("|");
-    if (preloadKeyRef.current === key) return;
-    preloadKeyRef.current = key;
     setLoadedImages(0);
 
     let cancelled = false;
@@ -188,7 +183,7 @@ function HomePage() {
     const safety = window.setTimeout(() => {
       setLoaderLeaving(true);
       window.setTimeout(() => setLoaderFinished(true), 300);
-    }, 8_000);
+    }, 6_000);
     return () => {
       window.clearTimeout(safety);
       document.documentElement.style.overflow = "";
