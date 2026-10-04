@@ -79,7 +79,15 @@ export function AdminGate({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** After any admin change, delete images that are no longer used anywhere. */
+/**
+ * After admin changes, delete images that are no longer used anywhere.
+ * The scan reads every content row, so it is debounced and throttled to keep
+ * saves and deletes fast (at most once every 10 minutes, never on page open).
+ */
+const CLEANUP_DEBOUNCE_MS = 30_000;
+const CLEANUP_MIN_GAP_MS = 10 * 60_000;
+let lastCleanupAt = 0;
+
 function useUnusedMediaCleanup() {
   const qc = useQueryClient();
   const runCleanup = useServerFn(cleanupUnusedMedia);
@@ -88,9 +96,11 @@ function useUnusedMediaCleanup() {
     let running = false;
     const schedule = () => {
       clearTimeout(timer);
+      const wait = Math.max(CLEANUP_DEBOUNCE_MS, lastCleanupAt + CLEANUP_MIN_GAP_MS - Date.now());
       timer = setTimeout(async () => {
         if (running) return schedule();
         running = true;
+        lastCleanupAt = Date.now();
         try {
           await runCleanup();
         } catch (e) {
@@ -98,9 +108,8 @@ function useUnusedMediaCleanup() {
         } finally {
           running = false;
         }
-      }, 2500);
+      }, wait);
     };
-    schedule();
     const unsub = qc.getQueryCache().subscribe((event) => {
       if (event.type === "updated" && event.action.type === "invalidate") schedule();
     });
