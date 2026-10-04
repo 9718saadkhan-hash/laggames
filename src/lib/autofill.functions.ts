@@ -701,7 +701,6 @@ function titleVariants(title: string): string[] {
     const t = value.replace(/\s+/g, " ").trim();
     if (t.length >= 2 && !out.includes(t)) out.push(t);
   };
-  push(title.replace(/"/g, " ").trim());
   const original = expandTitle(title.replace(/"/g, " "));
   push(original);
   const base = stripAddons(original)
