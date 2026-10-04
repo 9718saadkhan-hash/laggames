@@ -20,7 +20,20 @@ import { ImagePositionField } from "@/components/lag/ImagePositionField";
 import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
-import { gamesQuery } from "@/lib/queries";
+import { adminGamesListQuery, gameCoversQuery } from "@/lib/queries";
+import { useMemo } from "react";
+
+function AdminCover({ id, chunk, title }: { id: string; chunk: string[]; title: string }) {
+  const { data } = useQuery(gameCoversQuery(chunk));
+  return (
+    <img
+      src={data?.[id] ?? undefined}
+      alt={title}
+      loading="lazy"
+      className="h-20 w-20 shrink-0 rounded-xl object-cover bg-surface-2"
+    />
+  );
+}
 import { money, discountPercent, hasManualOrder, PLATFORMS, type Game } from "@/lib/lag";
 import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
@@ -264,6 +277,11 @@ function AdminGamesPage() {
   const { query, setQuery, results: games } = useAdminSearch(allGames, (g) => [
     g.title, g.slug, g.genre, g.platform, g.publisher, g.developer, g.availability,
   ]);
+  const chunkIds = useMemo(() => {
+    const out: string[][] = [];
+    for (let i = 0; i < games.length; i += 12) out.push(games.slice(i, i + 12).map((g) => g.id));
+    return out;
+  }, [games]);
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<GameForm>(EMPTY_FORM);
