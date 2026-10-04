@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgeCheck,
   Check,
@@ -20,21 +20,29 @@ import {
 
 import { GameCard } from "@/components/lag/GameCard";
 import { DealsHero } from "@/components/lag/DealsHero";
+import { HomeInitialLoader } from "@/components/lag/HomeInitialLoader";
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
+import logoAsset from "@/assets/lag-logo.jpg.asset.json";
 import { buildOrderMessage, formatDate, instagramUrl, whatsappLink, type CollabVideo, type Game } from "@/lib/lag";
 import { safePosition } from "@/lib/media";
 import {
   collabsQuery,
   contactFrom,
-  gamesQuery,
-  ottQuery,
-  psPlusQuery,
+  dealsQuery,
+  homeGamesQuery,
   reviewsQuery,
   settingsQuery,
 } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => {
+    void Promise.allSettled([
+      context.queryClient.ensureQueryData(homeGamesQuery),
+      context.queryClient.ensureQueryData(dealsQuery()),
+      context.queryClient.ensureQueryData(settingsQuery),
+    ]);
+  },
   head: () => ({
     meta: [
       { title: "LAG LIVE AS GAMERS — PlayStation Games, PS Plus & OTT Deals" },
@@ -49,6 +57,8 @@ export const Route = createFileRoute("/")({
         content:
           "Premium PlayStation game rentals, PS Plus memberships and OTT subscriptions with instant WhatsApp delivery.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: HomePage,
@@ -62,12 +72,14 @@ const WHY = [
 ];
 
 function HomePage() {
-  const { data: games = [], isLoading } = useQuery(gamesQuery());
-  const { data: psPlus = [] } = useQuery(psPlusQuery);
-  const { data: ott = [] } = useQuery(ottQuery);
+  const gamesResult = useQuery(homeGamesQuery);
+  const dealsResult = useQuery(dealsQuery());
+  const settingsResult = useQuery(settingsQuery);
   const { data: reviews = [] } = useQuery(reviewsQuery({ approvedOnly: true }));
   const { data: collabs = [] } = useQuery(collabsQuery);
-  const { data: settings } = useQuery(settingsQuery);
+  const games = gamesResult.data ?? [];
+  const homepageDeals = dealsResult.data ?? [];
+  const settings = settingsResult.data;
   const contact = contactFrom(settings);
 
   const visible = games.filter((g) => g.visible);
@@ -92,15 +104,101 @@ function HomePage() {
     steps?: { title: string; body: string }[];
   };
 
+  const criticalDataSettled = [gamesResult, dealsResult, settingsResult].filter(
+    (result) => result.isSuccess || result.isError,
+  ).length;
+  const criticalDataReady = criticalDataSettled === 3;
+  const criticalImages = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [
+            logoAsset.url,
+            ...homepageDeals
+              .filter((deal) => deal.visible && deal.show_in_hero)
+              .slice(0, 3)
+              .map((deal) => deal.image_url),
+            categories.games_image,
+            categories.ps_plus_image,
+            categories.ott_image,
+            ...(trending.length ? trending : visible.slice(0, 8)).slice(0, 4).map((game) => game.cover_url),
+          ].filter((url): url is string => Boolean(url)),
+        ),
+      ),
+    [categories.games_image, categories.ott_image, categories.ps_plus_image, homepageDeals, trending, visible],
+  );
+  const [loadedImages, setLoadedImages] = useState(0);
+  const [loaderFinished, setLoaderFinished] = useState(false);
+  const [loaderLeaving, setLoaderLeaving] = useState(false);
+  const preloadKeyRef = useRef("");
+
+  useEffect(() => {
+    if (loaderFinished || !criticalDataReady) return;
+    const key = criticalImages.join("|");
+    if (preloadKeyRef.current === key) return;
+    preloadKeyRef.current = key;
+    setLoadedImages(0);
+
+    let cancelled = false;
+    const preload = async (src: string) => {
+      await new Promise<void>((resolve) => {
+        const image = new Image();
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          resolve();
+        };
+        image.onload = finish;
+        image.onerror = finish;
+        image.src = src;
+        if (image.complete) finish();
+      });
+      if (!cancelled) setLoadedImages((count) => count + 1);
+    };
+
+    void Promise.all(criticalImages.map(preload)).then(() => {
+      if (cancelled) return;
+      setLoaderLeaving(true);
+      window.setTimeout(() => setLoaderFinished(true), 300);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [criticalDataReady, criticalImages, loaderFinished]);
+
+  useEffect(() => {
+    if (loaderFinished) return;
+    document.documentElement.style.overflow = "hidden";
+    const safety = window.setTimeout(() => {
+      setLoaderLeaving(true);
+      window.setTimeout(() => setLoaderFinished(true), 300);
+    }, 8_000);
+    return () => {
+      window.clearTimeout(safety);
+      document.documentElement.style.overflow = "";
+    };
+  }, [loaderFinished]);
+
+  const dataProgress = (criticalDataSettled / 3) * 45;
+  const imageProgress = criticalImages.length > 0 ? (loadedImages / criticalImages.length) * 45 : criticalDataReady ? 45 : 0;
+  const loaderProgress = loaderLeaving ? 100 : Math.min(95, 5 + dataProgress + imageProgress);
+  const loaderPhase = !criticalDataReady ? "Loading game data" : loadedImages < criticalImages.length ? "Preparing featured images" : "Ready to play";
+
   const generalLink = whatsappLink(
     contact.whatsapp,
     buildOrderMessage({ productType: "general", productName: "I need help choosing a game." }, contact.brand),
   );
 
   return (
-    <div className="pb-8">
+    <>
+      {!loaderFinished && <HomeInitialLoader progress={loaderProgress} phase={loaderPhase} leaving={loaderLeaving} />}
+      <div
+        className={`pb-8 transition-opacity duration-300 ${loaderFinished ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        aria-hidden={!loaderFinished}
+      >
       <div className="pt-4 sm:pt-6">
-        <DealsHero />
+        <DealsHero deals={homepageDeals} />
       </div>
 
       {/* Pick a category */}
@@ -156,8 +254,11 @@ function HomePage() {
                     <img
                       src={c.image}
                       alt=""
-                      loading="lazy"
+                      loading={i < 2 ? "eager" : "lazy"}
+                      fetchPriority={i < 2 ? "high" : "low"}
                       decoding="async"
+                      width={620}
+                      height={400}
                       className="h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
                       style={{ objectPosition: c.position }}
                     />
@@ -186,7 +287,7 @@ function HomePage() {
         title="Trending games"
         subtitle="What the LAG community is playing this week."
         games={trending.length ? trending : visible.slice(0, 8)}
-        loading={isLoading}
+        loading={!gamesResult.isSuccess && !gamesResult.isError}
       />
 
       <CollabRail collabs={collabs.filter((c) => c.visible)} />
@@ -369,7 +470,8 @@ function HomePage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -411,8 +513,8 @@ function GameRow({
         <EmptyState icon={Gamepad2} title="No games here yet" body="New titles are added every week." />
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {games.map((g) => (
-            <GameCard key={g.id} game={g} />
+          {games.map((g, index) => (
+            <GameCard key={g.id} game={g} priority={index < 4} />
           ))}
         </div>
       )}
