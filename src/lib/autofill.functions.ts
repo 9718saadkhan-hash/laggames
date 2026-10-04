@@ -188,9 +188,35 @@ interface Identity {
   remaster: "remastered" | "remake" | null;
 }
 
+/** Common store abbreviations → official series names (search + identity only). */
+const ABBREVIATIONS: [RegExp, string][] = [
+  [/\bgta\b/gi, "Grand Theft Auto"],
+  [/\bcod\b/gi, "Call of Duty"],
+  [/\brdr\b/gi, "Red Dead Redemption"],
+  [/\bfarcry\b/gi, "Far Cry"],
+  [/\bneir\b/gi, "NieR"],
+  [/\bdishonoured\b/gi, "Dishonored"],
+  [/\bwoa\b/gi, "World of Assassination"],
+  [/\bday z\b/gi, "DayZ"],
+  [/\blittle nightmare\b/gi, "Little Nightmares"],
+];
+
+export function expandTitle(title: string): string {
+  let t = title
+    .replace(/\([^)]*\)/g, " ") // "(PS5 & PS4)", "(2019)" are labels, not part of the name
+    .replace(/\b(cross[\s-]?gen|crossgen)\b/gi, " ");
+  for (const [re, full] of ABBREVIATIONS) t = t.replace(re, full);
+  return t.replace(/\s+/g, " ").trim();
+}
+
+/** Spacing, a leading "The" and a "Marvel's" prefix don't change which game it is. */
+function compact(core: string): string {
+  return core.replace(/^the /, "").replace(/^marvel s /, "").replace(/\s+/g, "");
+}
+
 function parseIdentity(title: string): Identity {
   // Add-on bundles ("Game + DLC") and edition abbreviations ("UE") describe the same base game.
-  let t = norm(stripAddons(title))
+  let t = norm(stripAddons(expandTitle(title)))
     .replace(PLATFORM_WORDS, " ")
     .replace(/\b(ue|de|ce|se)$/, " ");
   let remaster: Identity["remaster"] = null;
@@ -216,7 +242,7 @@ function parseIdentity(title: string): Identity {
         : t.replace(/\s([0-9]{1,2}|[ivx]{1,7})$/, " ");
     }
   }
-  return { core: t.replace(/\s+/g, " ").trim(), number, remaster };
+  return { core: compact(t.replace(/\s+/g, " ").trim()), number, remaster };
 }
 
 function identityMatches(a: Identity, b: Identity): boolean {
