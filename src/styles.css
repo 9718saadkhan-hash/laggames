@@ -460,6 +460,19 @@
     transform: none;
     box-shadow: none;
   }
+  /* Card heart buttons sit over the cover: skip per-card live blur. */
+  .catalog-card .glass {
+    backdrop-filter: none;
+    background: color-mix(in oklab, var(--background) 60%, transparent);
+  }
+}
+
+/* Every screen: isolate each catalogue card so one card's paint never repaints the grid. */
+.catalog-card {
+  contain: layout paint style;
+}
+.catalog-card img {
+  transform: translateZ(0);
 }
 
 @media (prefers-reduced-motion: reduce) {
