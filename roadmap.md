@@ -31,6 +31,7 @@
 - Game Media Auto-Fill automatically prefers the verified standard/base game and adds up to four unique in-game screenshots
 - Games catalogue progressively renders lightweight cards with one shared wishlist lookup and mobile paint optimizations
 - Games catalogue loads four more cards per batch and releases distant cover images while preserving card space
+- Games catalogue uses 12-game pages and unloads the old page while preloading the selected page behind a loading screen
 
 ## Possible next
 - Public bucket for images (currently blocked, images stored inline) to reduce page weight

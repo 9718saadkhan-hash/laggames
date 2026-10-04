@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Gamepad2, Search, SlidersHorizontal } from "lucide-react";
+import { Gamepad2, LoaderCircle, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { GameCard, GameCardsWishlistProvider } from "@/components/lag/GameCard";
@@ -58,7 +58,9 @@ function GamesPage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
+  const [readyPageKey, setReadyPageKey] = useState("");
   const gridTopRef = useRef<HTMLDivElement>(null);
+  const preloadRunRef = useRef(0);
 
   const visible = useMemo(() => games.filter((g) => g.visible), [games]);
   const genres = useMemo(
@@ -103,8 +105,38 @@ function GamesPage() {
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const renderedResults = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageKey = `${currentPage}:${renderedResults.map((game) => `${game.id}:${game.cover_url ?? ""}`).join("|")}`;
+  const pageIsReady = readyPageKey === pageKey;
+
+  useEffect(() => {
+    if (isLoading || !renderedResults.length) return;
+    const run = ++preloadRunRef.current;
+    let cancelled = false;
+    const covers = Array.from(
+      new Set(renderedResults.map((game) => game.cover_url).filter((url): url is string => Boolean(url))),
+    );
+
+    const preload = (src: string) =>
+      new Promise<void>((resolve) => {
+        const image = new Image();
+        const finish = () => resolve();
+        image.onload = finish;
+        image.onerror = finish;
+        image.src = src;
+        if (image.complete) finish();
+      });
+
+    void Promise.all(covers.map(preload)).then(() => {
+      if (!cancelled && run === preloadRunRef.current) setReadyPageKey(pageKey);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoading, pageKey]);
 
   const goToPage = (next: number) => {
+    setReadyPageKey("");
     setPage(Math.min(Math.max(1, next), pageCount));
     gridTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -258,6 +290,19 @@ function GamesPage() {
               </Button>
             }
           />
+        </div>
+      ) : !pageIsReady ? (
+        <div
+          ref={gridTopRef}
+          className="mt-4 flex min-h-[30rem] scroll-mt-24 flex-col items-center justify-center gap-4 rounded-3xl border border-border bg-surface-2/40"
+          role="status"
+          aria-live="polite"
+        >
+          <LoaderCircle className="h-9 w-9 animate-spin text-lag-red" aria-hidden />
+          <div className="text-center">
+            <p className="font-display text-lg font-bold">Loading Games</p>
+            <p className="mt-1 text-sm text-muted-foreground">Preparing page {currentPage} of {pageCount}…</p>
+          </div>
         </div>
       ) : (
         <GameCardsWishlistProvider>
