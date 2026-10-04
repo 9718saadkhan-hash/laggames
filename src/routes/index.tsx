@@ -30,6 +30,7 @@ import {
   collabsQuery,
   contactFrom,
   dealsQuery,
+  gameCoversQuery,
   homeGamesQuery,
   reviewsQuery,
   settingsQuery,
@@ -77,13 +78,33 @@ function HomePage() {
   const settingsResult = useQuery(settingsQuery);
   const { data: reviews = [] } = useQuery(reviewsQuery({ approvedOnly: true }));
   const { data: collabs = [] } = useQuery(collabsQuery);
-  const games = gamesResult.data ?? [];
+  const gamesWithoutCovers = gamesResult.data ?? [];
   const homepageDeals = dealsResult.data ?? [];
   const settings = settingsResult.data;
   const contact = contactFrom(settings);
 
-  const visible = useMemo(() => games.filter((game) => game.visible), [games]);
-  const trending = useMemo(() => visible.filter((game) => game.trending).slice(0, 8), [visible]);
+  const visibleWithoutCovers = useMemo(
+    () => gamesWithoutCovers.filter((game) => game.visible),
+    [gamesWithoutCovers],
+  );
+  const homepageGamesWithoutCovers = useMemo(() => {
+    const selected = visibleWithoutCovers.filter((game) => game.trending).slice(0, 8);
+    return selected.length ? selected : visibleWithoutCovers.slice(0, 8);
+  }, [visibleWithoutCovers]);
+  const homepageGameIds = useMemo(
+    () => homepageGamesWithoutCovers.map((game) => game.id),
+    [homepageGamesWithoutCovers],
+  );
+  const coversResult = useQuery(gameCoversQuery(homepageGameIds));
+  const visible = useMemo(
+    () =>
+      homepageGamesWithoutCovers.map((game) => ({
+        ...game,
+        cover_url: coversResult.data?.[game.id] ?? null,
+      })),
+    [coversResult.data, homepageGamesWithoutCovers],
+  );
+  const trending = visible;
 
   const about = (settings?.["about"] ?? {}) as { heading?: string; body?: string };
   const categories = (settings?.["categories"] ?? {}) as {
@@ -102,10 +123,13 @@ function HomePage() {
     steps?: { title: string; body: string }[];
   };
 
-  const criticalDataSettled = [gamesResult, dealsResult, settingsResult].filter(
+  const criticalResults = homepageGameIds.length > 0
+    ? [gamesResult, dealsResult, settingsResult, coversResult]
+    : [gamesResult, dealsResult, settingsResult];
+  const criticalDataSettled = criticalResults.filter(
     (result) => result.isSuccess || result.isError,
   ).length;
-  const criticalDataReady = criticalDataSettled === 3;
+  const criticalDataReady = criticalDataSettled === criticalResults.length;
   const criticalImages = useMemo(
     () =>
       Array.from(
@@ -178,7 +202,7 @@ function HomePage() {
     };
   }, [loaderFinished]);
 
-  const dataProgress = (criticalDataSettled / 3) * 45;
+  const dataProgress = (criticalDataSettled / criticalResults.length) * 45;
   const imageProgress = criticalImages.length > 0 ? (loadedImages / criticalImages.length) * 45 : criticalDataReady ? 45 : 0;
   const loaderProgress = loaderLeaving ? 100 : Math.min(95, 5 + dataProgress + imageProgress);
   const loaderPhase = !criticalDataReady ? "Loading game data" : loadedImages < criticalImages.length ? "Preparing featured images" : "Ready to play";

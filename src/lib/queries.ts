@@ -69,14 +69,14 @@ export const homeGamesQuery = queryOptions({
         (await supabase
           .from("games")
           .select(
-            "id,slug,title,cover_url,cover_position,platform,genre,publisher,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,visible,display_order,created_at",
+            "id,slug,title,cover_position,platform,genre,publisher,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,visible,display_order,created_at",
           )
           .eq("visible", true)
           .or("featured.eq.true,trending.eq.true,hot_deal.eq.true,new_release.eq.true")
           .order("display_order", { ascending: true, nullsFirst: false })
           .order("title", { ascending: true })
           .limit(40)) as never,
-      ),
+      ).map((game) => ({ ...game, cover_url: null })),
     ),
 });
 
