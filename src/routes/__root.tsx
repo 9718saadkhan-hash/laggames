@@ -10,7 +10,6 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { IntroLoader } from "@/components/lag/IntroLoader";
 import { SiteLayout } from "@/components/lag/SiteLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
@@ -137,7 +136,6 @@ function RootComponent() {
               <Outlet />
             </SiteLayout>
           </CartProvider>
-          <IntroLoader />
           <Toaster position="top-center" />
         </AuthProvider>
       </ThemeProvider>
