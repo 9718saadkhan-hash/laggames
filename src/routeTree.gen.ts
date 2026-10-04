@@ -29,6 +29,7 @@ import { Route as AdminActivityRouteImport } from './routes/admin/activity'
 import { Route as AdminAutofillRouteImport } from './routes/admin/autofill'
 import { Route as AdminCleanerRouteImport } from './routes/admin/cleaner'
 import { Route as AdminCollabsRouteImport } from './routes/admin/collabs'
+import { Route as AdminCouponsRouteImport } from './routes/admin/coupons'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminDealsRouteImport } from './routes/admin/deals'
 import { Route as AdminGamesRouteImport } from './routes/admin/games'
@@ -148,6 +149,11 @@ const AdminCollabsRoute = AdminCollabsRouteImport.update({
   path: '/admin/collabs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/admin/coupons',
+  path: '/admin/coupons',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/admin/customers',
   path: '/admin/customers',
@@ -259,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/admin/autofill': typeof AdminAutofillRoute
   '/admin/cleaner': typeof AdminCleanerRoute
   '/admin/collabs': typeof AdminCollabsRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/admin/autofill': typeof AdminAutofillRoute
   '/admin/cleaner': typeof AdminCleanerRoute
   '/admin/collabs': typeof AdminCollabsRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/admin/autofill': typeof AdminAutofillRoute
   '/admin/cleaner': typeof AdminCleanerRoute
   '/admin/collabs': typeof AdminCollabsRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/deals': typeof AdminDealsRoute
   '/admin/games': typeof AdminGamesRoute
@@ -382,6 +391,7 @@ export interface FileRouteTypes {
     | '/admin/autofill'
     | '/admin/cleaner'
     | '/admin/collabs'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/deals'
     | '/admin/games'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/admin/autofill'
     | '/admin/cleaner'
     | '/admin/collabs'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/deals'
     | '/admin/games'
@@ -462,6 +473,7 @@ export interface FileRouteTypes {
     | '/admin/autofill'
     | '/admin/cleaner'
     | '/admin/collabs'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/deals'
     | '/admin/games'
@@ -503,6 +515,7 @@ export interface RootRouteChildren {
   AdminAutofillRoute: typeof AdminAutofillRoute
   AdminCleanerRoute: typeof AdminCleanerRoute
   AdminCollabsRoute: typeof AdminCollabsRoute
+  AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDealsRoute: typeof AdminDealsRoute
   AdminGamesRoute: typeof AdminGamesRoute
@@ -666,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCollabsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/admin/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/customers': {
       id: '/admin/customers'
       path: '/admin/customers'
@@ -815,6 +835,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAutofillRoute: AdminAutofillRoute,
   AdminCleanerRoute: AdminCleanerRoute,
   AdminCollabsRoute: AdminCollabsRoute,
+  AdminCouponsRoute: AdminCouponsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDealsRoute: AdminDealsRoute,
   AdminGamesRoute: AdminGamesRoute,

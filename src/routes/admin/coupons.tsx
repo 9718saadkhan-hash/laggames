@@ -109,7 +109,7 @@ function CouponsPage() {
 
       <div className="mt-6 space-y-3">
         {isLoading ? <p className="text-sm text-muted-foreground">Loading…</p> : coupons.length === 0 ? (
-          <EmptyState icon={TicketPercent} title="No coupons yet" description="Create a code customers can use at checkout." />
+          <EmptyState icon={TicketPercent} title="No coupons yet" body="Create a code customers can use at checkout." />
         ) : coupons.map((c) => (
           <div key={c.id} className="glass flex flex-wrap items-center gap-3 rounded-2xl p-4">
             <div className="min-w-0 flex-1">
