@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { compareGameOrder, lowestGamePrice, PLATFORMS } from "@/lib/lag";
-import { gamesCatalogQuery } from "@/lib/queries";
+import { gameCoversQuery, gamesCatalogQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/games/")({
@@ -104,9 +104,15 @@ function GamesPage() {
 
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
-  const renderedResults = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageGames = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageIds = useMemo(() => pageGames.map((g) => g.id), [pageGames.map((g) => g.id).join(",")]);
+  const covers = useQuery(gameCoversQuery(pageIds));
+  const renderedResults = useMemo(
+    () => (covers.data ? pageGames.map((g) => ({ ...g, cover_url: covers.data[g.id] ?? null })) : []),
+    [covers.data, pageIds],
+  );
   const pageKey = `${currentPage}:${renderedResults.map((game) => `${game.id}:${game.cover_url ?? ""}`).join("|")}`;
-  const pageIsReady = readyPageKey === pageKey;
+  const pageIsReady = readyPageKey === pageKey && renderedResults.length > 0;
 
   useEffect(() => {
     if (isLoading || !renderedResults.length) return;
