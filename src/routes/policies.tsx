@@ -19,7 +19,11 @@ export const Route = createFileRoute("/policies")({
         property: "og:description",
         content: "How we handle your orders, your data and refunds at LAG LIVE AS GAMERS.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/policies" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/policies" }],
   }),
   component: PoliciesPage,
 });

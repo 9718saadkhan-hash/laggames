@@ -18,21 +18,51 @@ import { logCustomerActivity, reviewsQuery } from "@/lib/queries";
 import { safePosition } from "@/lib/media";
 
 export const Route = createFileRoute("/reviews")({
-  head: () => ({
-    meta: [
-      { title: "Customer Reviews — LAG LIVE AS GAMERS" },
-      {
-        name: "description",
-        content:
-          "Read verified reviews from LAG customers and share your own experience with our game rentals and subscriptions.",
-      },
-      { property: "og:title", content: "Customer Reviews — LAG LIVE AS GAMERS" },
-      {
-        property: "og:description",
-        content: "Real feedback from gamers who buy games, PS Plus and OTT subscriptions from LAG.",
-      },
-    ],
-  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(reviewsQuery({ approvedOnly: true })),
+  head: ({ loaderData: reviews = [] }) => {
+    const title = "Customer Reviews — LAG LIVE AS GAMERS";
+    const description = "Read verified feedback from gamers who buy games, PS Plus and OTT subscriptions from LAG.";
+    const average = reviews.length
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+      : null;
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "LAG LIVE AS GAMERS",
+      url: "https://thelaggames.com/",
+      ...(average !== null
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: Number(average.toFixed(1)),
+              reviewCount: reviews.length,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            review: reviews.slice(0, 20).map((review) => ({
+              "@type": "Review",
+              author: { "@type": "Person", name: review.name },
+              datePublished: review.created_at,
+              reviewBody: review.review,
+              reviewRating: { "@type": "Rating", ratingValue: review.rating, bestRating: 5, worstRating: 1 },
+            })),
+          }
+        : {}),
+    };
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://thelaggames.com/reviews" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [{ rel: "canonical", href: "https://thelaggames.com/reviews" }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(structuredData) }],
+    };
+  },
   component: ReviewsPage,
 });
 
@@ -44,7 +74,11 @@ const schema = z.object({
 
 function ReviewsPage() {
   const { profile, user } = useAuth();
-  const { data: reviews = [], isLoading } = useQuery(reviewsQuery({ approvedOnly: true }));
+  const loadedReviews = Route.useLoaderData();
+  const { data: reviews = [], isLoading } = useQuery({
+    ...reviewsQuery({ approvedOnly: true }),
+    initialData: loadedReviews,
+  });
 
   const [name, setName] = useState(profile?.full_name ?? "");
   const [rating, setRating] = useState(5);

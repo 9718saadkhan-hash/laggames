@@ -24,8 +24,10 @@ export const Route = createFileRoute("/upcoming-games/")({
         content: "See what's coming next on PS4 and PS5, with clear release dates.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/upcoming-games" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/upcoming-games" }],
   }),
   component: UpcomingGamesPage,
 });

@@ -24,6 +24,7 @@ export const Route = createFileRoute("/account")({
       { name: "description", content: "Manage your LAG profile, orders, wishlist and reviews." },
       { property: "og:title", content: "My Account — LAG LIVE AS GAMERS" },
       { property: "og:description", content: "Manage your LAG profile, orders, wishlist and reviews." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AccountPage,

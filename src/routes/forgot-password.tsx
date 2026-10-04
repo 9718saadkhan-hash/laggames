@@ -17,6 +17,7 @@ export const Route = createFileRoute("/forgot-password")({
       { name: "description", content: "Reset your LAG account password." },
       { property: "og:title", content: "Forgot Password — LAG LIVE AS GAMERS" },
       { property: "og:description", content: "Reset your LAG account password." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: ForgotPasswordPage,

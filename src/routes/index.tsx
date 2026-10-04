@@ -39,7 +39,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LAG LIVE AS GAMERS — PlayStation Games, PS Plus & OTT Deals" },
+      { title: "PlayStation Game Rentals & Subscriptions — LAG LIVE AS GAMERS" },
       {
         name: "description",
         content:
@@ -52,8 +52,10 @@ export const Route = createFileRoute("/")({
           "Premium PlayStation game rentals, PS Plus memberships and OTT subscriptions with instant WhatsApp delivery.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/" }],
   }),
   component: HomePage,
 });

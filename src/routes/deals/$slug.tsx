@@ -14,6 +14,7 @@ export const Route = createFileRoute("/deals/$slug")({
     const name = params.slug.replace(/-/g, " ");
     const title = `${name} — LAG Deal`;
     const description = `Details, included PlayStation games and dates for the ${name} promotion at LAG LIVE AS GAMERS.`;
+    const url = `https://thelaggames.com/deals/${params.slug}`;
     return {
       meta: [
         { title },
@@ -21,8 +22,10 @@ export const Route = createFileRoute("/deals/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   component: DealDetailPage,

@@ -14,6 +14,7 @@ export const Route = createFileRoute("/upcoming-games/$slug")({
     const name = params.slug.replace(/-/g, " ");
     const title = `${name} — Upcoming on PlayStation | LAG`;
     const description = `Release date, trailer and details for the upcoming PlayStation title ${name} at LAG LIVE AS GAMERS.`;
+    const url = `https://thelaggames.com/upcoming-games/${params.slug}`;
     return {
       meta: [
         { title },
@@ -21,8 +22,10 @@ export const Route = createFileRoute("/upcoming-games/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   component: UpcomingDetailPage,

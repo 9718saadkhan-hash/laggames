@@ -17,6 +17,7 @@ export const Route = createFileRoute("/login")({
       { name: "description", content: "Sign in to your LAG account to manage orders, wishlist and reviews." },
       { property: "og:title", content: "Login — LAG LIVE AS GAMERS" },
       { property: "og:description", content: "Sign in to your LAG account to manage orders, wishlist and reviews." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: LoginPage,

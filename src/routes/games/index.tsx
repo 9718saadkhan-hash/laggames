@@ -26,7 +26,11 @@ export const Route = createFileRoute("/games/")({
         property: "og:description",
         content: "Filter by platform, genre and price, then order your game on WhatsApp in seconds.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/games" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/games" }],
   }),
   component: GamesPage,
 });

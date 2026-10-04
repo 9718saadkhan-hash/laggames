@@ -37,20 +37,61 @@ import { cn } from "@/lib/utils";
 import { BannerImage } from "@/components/lag/BannerImage";
 
 export const Route = createFileRoute("/games/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Game details — LAG LIVE AS GAMERS" },
-      {
-        name: "description",
-        content: "Full details, pricing tiers and instant WhatsApp ordering for this PlayStation title.",
-      },
-      { property: "og:title", content: "Game details — LAG LIVE AS GAMERS" },
-      {
-        property: "og:description",
-        content: "Primary or secondary account, 30 days, 60 days or permanent. Order on WhatsApp.",
-      },
-    ],
-  }),
+  loader: ({ context, params }) => context.queryClient.ensureQueryData(gameQuery(params.slug)),
+  head: ({ params, loaderData: game }) => {
+    const gameName = game?.title ?? params.slug.replace(/-/g, " ");
+    const title = `${gameName} for PS4 & PS5 — LAG LIVE AS GAMERS`;
+    const description =
+      game?.short_description?.trim() ||
+      `View ${gameName} pricing, availability and rental options for PlayStation at LAG LIVE AS GAMERS.`;
+    const url = `https://thelaggames.com/games/${params.slug}`;
+    const shareImage = [game?.banner_url, game?.cover_url].find((image) => image?.startsWith("https://"));
+    const prices = game
+      ? [game.price_30, game.price_60, game.price_permanent].filter(
+          (value): value is number => typeof value === "number" && value > 0,
+        )
+      : [];
+    const product = game
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: game.title,
+          description,
+          ...(shareImage ? { image: [shareImage] } : {}),
+          brand: { "@type": "Brand", name: "LAG LIVE AS GAMERS" },
+          category: game.genre ?? "PlayStation game",
+          offers: {
+            "@type": "Offer",
+            url,
+            priceCurrency: "INR",
+            ...(prices.length ? { price: Math.min(...prices) } : {}),
+            availability:
+              game.availability.toLowerCase().includes("unavailable")
+                ? "https://schema.org/OutOfStock"
+                : "https://schema.org/InStock",
+          },
+        }
+      : null;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(shareImage
+          ? [
+              { property: "og:image", content: shareImage },
+              { name: "twitter:image", content: shareImage },
+            ]
+          : []),
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: product ? [{ type: "application/ld+json", children: JSON.stringify(product) }] : [],
+    };
+  },
   component: GameDetailPage,
 });
 
@@ -79,8 +120,9 @@ function priceFor(source: PriceSource, d: DurationKey, account: AccountKey = "pr
 
 function GameDetailPage() {
   const { slug } = Route.useParams();
+  const loadedGame = Route.useLoaderData();
   const { user } = useAuth();
-  const { data: game, isLoading, isError, error } = useQuery(gameQuery(slug));
+  const { data: game, isLoading, isError, error } = useQuery({ ...gameQuery(slug), initialData: loadedGame });
   const { data: all = [] } = useQuery(gamesQuery());
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
