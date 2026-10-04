@@ -70,9 +70,6 @@ export const Route = createFileRoute("/games/$slug")({
                 ? "https://schema.org/OutOfStock"
                 : "https://schema.org/InStock",
           },
-          ...(typeof game.rating === "number"
-            ? { aggregateRating: { "@type": "AggregateRating", ratingValue: game.rating, bestRating: 5, ratingCount: 1 } }
-            : {}),
         }
       : null;
     return {
