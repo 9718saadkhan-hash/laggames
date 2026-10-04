@@ -316,6 +316,13 @@ function isSameMediaGame(a: IgdbGame, b: IgdbGame): boolean {
   return identityMatches(parseIdentity(a.name), parseIdentity(b.name));
 }
 
+/** Editions point at their base record via version_parent; those are one game. */
+function sameIdentityRoot(a: IgdbGame, b: IgdbGame): boolean {
+  const ra = a.version_parent ?? a.id;
+  const rb = b.version_parent ?? b.id;
+  return ra === rb;
+}
+
 /* ------------------------------------------------------------ field mapping */
 
 function pickGenre(g: IgdbGame): string | null {
