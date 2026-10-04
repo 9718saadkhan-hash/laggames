@@ -41,6 +41,24 @@ export const gamesQuery = (opts?: { admin?: boolean }) =>
       ),
   });
 
+/** Admin games list without heavy images/descriptions; full rows are fetched on edit. */
+export const adminGamesListQuery = () =>
+  queryOptions({
+    queryKey: ["games", "admin-list"],
+    queryFn: async () =>
+      sortGamesByOrder(
+        unwrap<Game[]>(
+          (await supabase
+            .from("games")
+            .select(
+              "id,slug,title,cover_position,platform,genre,developer,publisher,release_date,game_size,rating,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,availability,featured,trending,hot_deal,new_release,visible,display_order,created_at,updated_at,metadata_status",
+            )
+            .order("display_order", { ascending: true, nullsFirst: false })
+            .order("title", { ascending: true })) as never,
+        ),
+      ).map((g) => ({ ...g, cover_url: null, banner_url: null, gallery: [], description: null, short_description: null })),
+  });
+
 /** Lightweight public catalogue payload: excludes descriptions, galleries and other detail-only media. */
 export const gamesCatalogQuery = () =>
   queryOptions({

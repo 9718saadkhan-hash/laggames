@@ -20,7 +20,20 @@ import { ImagePositionField } from "@/components/lag/ImagePositionField";
 import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
-import { gamesQuery } from "@/lib/queries";
+import { adminGamesListQuery, gameCoversQuery } from "@/lib/queries";
+import { useMemo } from "react";
+
+function AdminCover({ id, chunk, title }: { id: string; chunk: string[]; title: string }) {
+  const { data } = useQuery(gameCoversQuery(chunk));
+  return (
+    <img
+      src={data?.[id] ?? undefined}
+      alt={title}
+      loading="lazy"
+      className="h-20 w-20 shrink-0 rounded-xl object-cover bg-surface-2"
+    />
+  );
+}
 import { money, discountPercent, hasManualOrder, PLATFORMS, type Game } from "@/lib/lag";
 import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Button } from "@/components/ui/button";
@@ -260,10 +273,15 @@ function formToPayload(f: GameForm) {
 }
 
 function AdminGamesPage() {
-  const { data: allGames = [], isLoading } = useQuery(gamesQuery({ admin: true }));
+  const { data: allGames = [], isLoading } = useQuery(adminGamesListQuery());
   const { query, setQuery, results: games } = useAdminSearch(allGames, (g) => [
     g.title, g.slug, g.genre, g.platform, g.publisher, g.developer, g.availability,
   ]);
+  const chunkIds = useMemo(() => {
+    const out: string[][] = [];
+    for (let i = 0; i < games.length; i += 12) out.push(games.slice(i, i + 12).map((g) => g.id));
+    return out;
+  }, [games]);
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<GameForm>(EMPTY_FORM);
@@ -355,10 +373,22 @@ function AdminGamesPage() {
     setOpen(true);
   }
 
-  function openEdit(g: Game) {
-    setEditingId(g.id);
-    setForm(gameToForm(g));
-    setOpen(true);
+  async function fetchFullGame(id: string) {
+    const { data, error } = await supabase.from("games").select("*").eq("id", id).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("That game could not be found.");
+    return data as Game;
+  }
+
+  async function openEdit(g: Game) {
+    try {
+      const full = await fetchFullGame(g.id);
+      setEditingId(g.id);
+      setForm(gameToForm(full));
+      setOpen(true);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open this game.");
+    }
   }
 
   async function handleSave() {
@@ -366,14 +396,16 @@ function AdminGamesPage() {
     try {
       const payload = formToPayload(form);
       if (editingId) {
-        const { error } = await supabase.from("games").update(payload).eq("id", editingId);
+        const { data, error } = await supabase.from("games").update(payload).eq("id", editingId).select("id");
         if (error) throw error;
+        if (!data?.length) throw new Error("The game was not saved. Please sign in again as admin.");
         toast.success("Product updated successfully.");
       } else {
         const { error } = await supabase.from("games").insert(payload);
         if (error) throw error;
         toast.success("Game added successfully.");
       }
+      queryClient.removeQueries({ queryKey: ["game"] });
       invalidate();
       setOpen(false);
     } catch (e) {
@@ -384,22 +416,27 @@ function AdminGamesPage() {
   }
 
   async function handleDuplicate(g: Game) {
-    const { id, created_at, ...rest } = g;
-    const { error } = await supabase.from("games").insert({ ...rest, slug: `${g.slug}-copy`, title: `${g.title} (Copy)` });
-    if (error) toast.error(error.message);
-    else {
+    try {
+      const { id, created_at, ...rest } = (await fetchFullGame(g.id)) as Game & { updated_at?: string };
+      delete (rest as { updated_at?: string }).updated_at;
+      void id; void created_at;
+      const { error } = await supabase.from("games").insert({ ...rest, slug: `${g.slug}-copy`, title: `${g.title} (Copy)` } as never);
+      if (error) throw new Error(error.message);
       toast.success("Game duplicated.");
       invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not duplicate.");
     }
   }
 
   async function handleDelete(id: string) {
-    const { error } = await supabase.from("games").delete().eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Game deleted.");
-      invalidate();
-    }
+    const { data, error } = await supabase.from("games").delete().eq("id", id).select("id");
+    if (error) { toast.error(error.message); return; }
+    if (!data?.length) { toast.error("The game was not deleted. Please sign in again as admin."); return; }
+    queryClient.setQueryData<Game[]>(["games", "admin-list"], (old) => old?.filter((x) => x.id !== id));
+    queryClient.removeQueries({ queryKey: ["game"] });
+    toast.success("Game deleted.");
+    invalidate();
   }
 
   type GameFlag =
@@ -446,13 +483,9 @@ function AdminGamesPage() {
           <EmptyState icon={Gamepad2} title="No games yet" body="Add your first game to get started." />
         ) : (
           <div className="grid gap-3">
-            {games.map((g) => (
+            {games.map((g, i) => (
               <div key={g.id} className="glass flex flex-col gap-4 rounded-2xl p-4 sm:flex-row sm:items-center">
-                <img
-                  src={g.cover_url ?? undefined}
-                  alt={g.title}
-                  className="h-20 w-20 shrink-0 rounded-xl object-cover bg-surface-2"
-                />
+                <AdminCover id={g.id} chunk={chunkIds[Math.floor(i / 12)] ?? [g.id]} title={g.title} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display font-bold">{g.title}</h3>
