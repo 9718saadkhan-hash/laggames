@@ -21,7 +21,7 @@ import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { adminGamesListQuery, gameCoversQuery } from "@/lib/queries";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 function AdminCover({ id, chunk, title }: { id: string; chunk: string[]; title: string }) {
   const { data } = useQuery(gameCoversQuery(chunk));
@@ -285,6 +285,12 @@ function AdminGamesPage() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<GameForm>(EMPTY_FORM);
+  const originalRef = useRef<GameForm | null>(null);
+  const loadForm = (g: Game) => {
+    const f = gameToForm(g);
+    originalRef.current = f;
+    setForm(f);
+  };
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [editionsGame, setEditionsGame] = useState<Game | null>(null);
@@ -312,7 +318,7 @@ function AdminGamesPage() {
       invalidate();
       if (editingId === id) {
         const { data } = await supabase.from("games").select("*").eq("id", id).maybeSingle();
-        if (data) setForm(gameToForm(data as Game));
+        if (data) loadForm(data as Game);
       }
       const description = <span className="whitespace-pre-line">{autofillSummary(result)}</span>;
       if (result.filled.length) {
@@ -339,7 +345,7 @@ function AdminGamesPage() {
       invalidate();
       if (editingId === id) {
         const { data } = await supabase.from("games").select("*").eq("id", id).maybeSingle();
-        if (data) setForm(gameToForm(data as Game));
+        if (data) loadForm(data as Game);
       }
       if (result.filled.length) toast.success(`${title} — verified media added.`, { description: `Added: ${result.filled.join(", ")}` });
       else if (result.status === "skipped") toast.info(`${title} — media is already available.`);
@@ -358,7 +364,7 @@ function AdminGamesPage() {
       invalidate();
       if (editingId === lastMediaResult.id) {
         const { data } = await supabase.from("games").select("*").eq("id", lastMediaResult.id).maybeSingle();
-        if (data) setForm(gameToForm(data as Game));
+        if (data) loadForm(data as Game);
       }
       setLastMediaResult(null);
       toast.success("Auto-filled media restored.");
@@ -384,7 +390,7 @@ function AdminGamesPage() {
     try {
       const full = await fetchFullGame(g.id);
       setEditingId(g.id);
-      setForm(gameToForm(full));
+      loadForm(full);
       setOpen(true);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not open this game.");
@@ -396,7 +402,21 @@ function AdminGamesPage() {
     try {
       const payload = formToPayload(form);
       if (editingId) {
-        const { data, error } = await supabase.from("games").update(payload).eq("id", editingId).select("id");
+        // Send only the fields that changed, so large photos aren't re-uploaded on every save.
+        const before = originalRef.current ? formToPayload(originalRef.current) : null;
+        const changes = before
+          ? Object.fromEntries(
+              Object.entries(payload).filter(
+                ([k, v]) => JSON.stringify(v) !== JSON.stringify((before as Record<string, unknown>)[k]),
+              ),
+            )
+          : payload;
+        if (Object.keys(changes).length === 0) {
+          toast.info("No changes to save.");
+          setOpen(false);
+          return;
+        }
+        const { data, error } = await supabase.from("games").update(changes as typeof payload).eq("id", editingId).select("id");
         if (error) throw error;
         if (!data?.length) throw new Error("The game was not saved. Please sign in again as admin.");
         toast.success("Product updated successfully.");
