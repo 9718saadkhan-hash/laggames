@@ -68,13 +68,19 @@ export function useCart() {
   return context;
 }
 
-export function buildCartMessage(items: CartItem[], brand: string, orderCode?: string) {
+export function buildCartMessage(
+  items: CartItem[],
+  brand: string,
+  orderCode?: string,
+  coupon?: { code: string; discount: number } | null,
+) {
   const lines = items.map((item, index) => {
     const option = item.option ? ` — ${item.option}` : "";
     const price = item.price === null ? "Price on request" : `₹${item.price.toLocaleString("en-IN")}`;
     return `${index + 1}. ${item.name}${option}\n   ${item.quantity} × ${price}`;
   });
-  const total = items.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0);
+  const discount = coupon ? Math.min(coupon.discount, subtotal) : 0;
   return [
     `Hi ${brand} 👋`,
     "",
@@ -84,7 +90,9 @@ export function buildCartMessage(items: CartItem[], brand: string, orderCode?: s
     "",
     ...lines,
     "",
-    `Total: ₹${total.toLocaleString("en-IN")}`,
+    coupon ? `Subtotal: ₹${subtotal.toLocaleString("en-IN")}` : null,
+    coupon ? `Coupon ${coupon.code}: −₹${discount.toLocaleString("en-IN")}` : null,
+    `Total: ₹${(subtotal - discount).toLocaleString("en-IN")}`,
     "",
     "Please confirm availability and payment details.",
   ].filter((line) => line !== null).join("\n");

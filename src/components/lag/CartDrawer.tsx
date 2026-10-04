@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Loader2, MessageCircle, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { Loader2, MessageCircle, Minus, Plus, ShoppingCart, TicketPercent, Trash2, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { checkCoupon, redeemCoupon } from "@/lib/coupons.functions";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -27,15 +30,58 @@ export function CartDrawer() {
   const queryClient = useQueryClient();
   const [placing, setPlacing] = useState(false);
   const contact = contactFrom(settings);
+  const check = useServerFn(checkCoupon);
+  const redeem = useServerFn(redeemCoupon);
+  const [codeInput, setCodeInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [checking, setChecking] = useState(false);
+  const discount = coupon ? Math.min(coupon.discount, total) : 0;
+
+  async function applyCoupon() {
+    const code = codeInput.trim();
+    if (!code) return;
+    setChecking(true);
+    try {
+      const r = await check({ data: { code, subtotal: total } });
+      if (r.code) {
+        setCoupon({ code: r.code, discount: r.discount });
+        toast.success(`Coupon ${r.code} applied.`);
+      } else {
+        setCoupon(null);
+        toast.error(r.message);
+      }
+    } catch {
+      toast.error("Could not check this coupon. Please try again.");
+    } finally {
+      setChecking(false);
+    }
+  }
 
   async function checkout() {
     if (items.length === 0) return;
     setPlacing(true);
     const orderCode = `LAG-${Date.now().toString(36).toUpperCase()}`;
     let saved = false;
+    let applied: { code: string; discount: number } | null = null;
+    if (coupon) {
+      try {
+        const r = await redeem({ data: { code: coupon.code, subtotal: total } });
+        if (!r.code) {
+          setCoupon(null);
+          setPlacing(false);
+          toast.error(r.message);
+          return;
+        }
+        applied = { code: r.code, discount: r.discount };
+      } catch {
+        setPlacing(false);
+        toast.error("Could not apply the coupon. Please try again.");
+        return;
+      }
+    }
 
     if (user) {
-      const rows = items.map((item) => ({
+      const rows = items.map((item, index) => ({
         order_code: orderCode,
         user_id: user.id,
         customer_name: profile?.full_name ?? null,
@@ -47,6 +93,8 @@ export function CartDrawer() {
         price: item.price === null ? null : item.price * item.quantity,
         status: "Pending",
         notes: `Quantity: ${item.quantity}`,
+        coupon_code: applied?.code ?? null,
+        discount: index === 0 && applied ? applied.discount : null,
       }));
       const { error } = await supabase.from("orders").insert(rows);
       if (error) {
@@ -58,11 +106,13 @@ export function CartDrawer() {
       void queryClient.invalidateQueries({ queryKey: ["orders"] });
     }
 
-    const url = whatsappLink(contact.whatsapp, buildCartMessage(items, contact.brand, saved ? orderCode : undefined));
+    const url = whatsappLink(contact.whatsapp, buildCartMessage(items, contact.brand, saved ? orderCode : undefined, applied));
     window.open(url, "_blank", "noopener,noreferrer");
     setPlacing(false);
     if (saved) {
       clear();
+      setCoupon(null);
+      setCodeInput("");
       toast.success(`Order ${orderCode} placed. Finish the chat on WhatsApp to confirm.`);
     } else {
       toast.success("Opening WhatsApp with your order. Sign in to keep an order history.");
@@ -118,9 +168,30 @@ export function CartDrawer() {
 
         {items.length > 0 && (
           <div className="mt-4 border-t border-border pt-4">
+            {coupon ? (
+              <div className="mb-3 flex items-center justify-between rounded-xl bg-surface-2 px-3 py-2 text-sm">
+                <span className="flex items-center gap-2 font-semibold"><TicketPercent className="h-4 w-4 text-lag-blue" aria-hidden />{coupon.code}</span>
+                <span className="flex items-center gap-2">
+                  −{money(discount)}
+                  <Button variant="nav" size="icon" className="h-6 w-6" onClick={() => setCoupon(null)} aria-label="Remove coupon"><X aria-hidden /></Button>
+                </span>
+              </div>
+            ) : (
+              <form className="mb-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); void applyCoupon(); }}>
+                <Input value={codeInput} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} placeholder="Coupon code" aria-label="Coupon code" className="h-10" />
+                <Button type="submit" variant="nav" className="h-10" disabled={checking || !codeInput.trim()}>
+                  {checking ? <Loader2 className="animate-spin" aria-hidden /> : "Apply"}
+                </Button>
+              </form>
+            )}
+            {coupon && (
+              <div className="mb-1 flex items-center justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span><span>{money(total)}</span>
+              </div>
+            )}
             <div className="mb-4 flex items-center justify-between font-display font-bold">
               <span>Total</span>
-              <span className="text-xl">{money(total)}</span>
+              <span className="text-xl">{money(total - discount)}</span>
             </div>
             <Button variant="whatsapp" size="lg" className="w-full" onClick={() => void checkout()} disabled={placing}>
               {placing ? <Loader2 className="animate-spin" aria-hidden /> : <MessageCircle aria-hidden />}

@@ -18,6 +18,7 @@ import {
   Sparkles,
   Minimize2,
   Eraser,
+  TicketPercent,
 } from "lucide-react";
 import { useEffect, type ElementType, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,6 +41,7 @@ const NAV: { label: string; to: string; icon: ElementType }[] = [
   { label: "PS Plus", to: "/admin/ps-plus", icon: Crown },
   { label: "OTT", to: "/admin/ott", icon: Clapperboard },
   { label: "Orders", to: "/admin/orders", icon: ShoppingBag },
+  { label: "Coupons", to: "/admin/coupons", icon: TicketPercent },
   { label: "Customers", to: "/admin/customers", icon: Users },
   { label: "Reviews", to: "/admin/reviews", icon: Star },
   { label: "Collabs", to: "/admin/collabs", icon: Video },
