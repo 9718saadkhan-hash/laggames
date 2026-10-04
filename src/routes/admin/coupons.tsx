@@ -64,9 +64,9 @@ function CouponsPage() {
     const num = (v: string) => (v.trim() === "" ? null : Number(v));
     const code = form.code.trim().toUpperCase();
     const value = Number(form.discount_value);
-    if (!code) return toast.error("Coupon code is required.");
-    if (!(value > 0)) return toast.error("Discount must be more than 0.");
-    if (form.discount_type === "percent" && value > 100) return toast.error("Percent discount can't exceed 100.");
+    if (!code) { toast.error("Coupon code is required."); return; }
+    if (!(value > 0)) { toast.error("Discount must be more than 0."); return; }
+    if (form.discount_type === "percent" && value > 100) { toast.error("Percent discount can't exceed 100."); return; }
     const payload = {
       code, description: form.description.trim() || null, discount_type: form.discount_type, discount_value: value,
       min_order: num(form.min_order), max_discount: num(form.max_discount), max_uses: num(form.max_uses),
@@ -78,7 +78,7 @@ function CouponsPage() {
       ? await table.update(payload as never).eq("id", form.id)
       : await table.insert(payload as never);
     setSaving(false);
-    if (error) return toast.error(error.code === "23505" ? "That code already exists." : error.message);
+    if (error) { toast.error(error.code === "23505" ? "That code already exists." : error.message); return; }
     toast.success("Coupon saved.");
     setForm(null);
     void qc.invalidateQueries({ queryKey: ["coupons"] });
@@ -87,14 +87,14 @@ function CouponsPage() {
   async function remove(c: Coupon) {
     if (!confirm(`Delete coupon ${c.code}?`)) return;
     const { error } = await supabase.from("coupons" as never).delete().eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Coupon deleted.");
     void qc.invalidateQueries({ queryKey: ["coupons"] });
   }
 
   async function toggle(c: Coupon) {
     const { error } = await supabase.from("coupons" as never).update({ active: !c.active } as never).eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     void qc.invalidateQueries({ queryKey: ["coupons"] });
   }
 
