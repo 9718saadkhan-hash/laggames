@@ -1,5 +1,8 @@
 # LAG upgrade roadmap
 
+## In progress
+- Add a real branded homepage loading gate that fetches only critical first-screen data, preloads its images, and reveals the page safely without affecting admin routes
+
 ## Done
 - Photo/video picking from device with crop + zoom editor, focal-point control
 - Uploads across admin: games, deals, upcoming games, PS Plus, OTT, homepage banners, logo/favicon, collab videos
