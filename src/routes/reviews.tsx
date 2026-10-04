@@ -74,7 +74,11 @@ const schema = z.object({
 
 function ReviewsPage() {
   const { profile, user } = useAuth();
-  const { data: reviews = [], isLoading } = useQuery(reviewsQuery({ approvedOnly: true }));
+  const loadedReviews = Route.useLoaderData();
+  const { data: reviews = [], isLoading } = useQuery({
+    ...reviewsQuery({ approvedOnly: true }),
+    initialData: loadedReviews,
+  });
 
   const [name, setName] = useState(profile?.full_name ?? "");
   const [rating, setRating] = useState(5);

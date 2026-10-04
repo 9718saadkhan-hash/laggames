@@ -120,8 +120,9 @@ function priceFor(source: PriceSource, d: DurationKey, account: AccountKey = "pr
 
 function GameDetailPage() {
   const { slug } = Route.useParams();
+  const loadedGame = Route.useLoaderData();
   const { user } = useAuth();
-  const { data: game, isLoading, isError, error } = useQuery(gameQuery(slug));
+  const { data: game, isLoading, isError, error } = useQuery({ ...gameQuery(slug), initialData: loadedGame });
   const { data: all = [] } = useQuery(gamesQuery());
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
