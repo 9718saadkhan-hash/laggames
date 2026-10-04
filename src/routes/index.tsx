@@ -82,10 +82,8 @@ function HomePage() {
   const settings = settingsResult.data;
   const contact = contactFrom(settings);
 
-  const visible = games.filter((g) => g.visible);
-  const trending = visible.filter((g) => g.trending).slice(0, 8);
-  const deals = visible.filter((g) => g.hot_deal).slice(0, 8);
-  const newReleases = visible.filter((g) => g.new_release).slice(0, 8);
+  const visible = useMemo(() => games.filter((game) => game.visible), [games]);
+  const trending = useMemo(() => visible.filter((game) => game.trending).slice(0, 8), [visible]);
 
   const about = (settings?.["about"] ?? {}) as { heading?: string; body?: string };
   const categories = (settings?.["categories"] ?? {}) as {
