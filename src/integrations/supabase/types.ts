@@ -1125,6 +1125,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      game_media_presence: {
+        Args: never
+        Returns: {
+          gallery_count: number
+          has_banner: boolean
+          has_cover: boolean
+          has_trailer: boolean
+          id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
