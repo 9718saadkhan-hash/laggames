@@ -188,9 +188,35 @@ interface Identity {
   remaster: "remastered" | "remake" | null;
 }
 
+/** Common store abbreviations → official series names (search + identity only). */
+const ABBREVIATIONS: [RegExp, string][] = [
+  [/\bgta\b/gi, "Grand Theft Auto"],
+  [/\bcod\b/gi, "Call of Duty"],
+  [/\brdr\b/gi, "Red Dead Redemption"],
+  [/\bfarcry\b/gi, "Far Cry"],
+  [/\bneir\b/gi, "NieR"],
+  [/\bdishonoured\b/gi, "Dishonored"],
+  [/\bwoa\b/gi, "World of Assassination"],
+  [/\bday z\b/gi, "DayZ"],
+  [/\blittle nightmare\b/gi, "Little Nightmares"],
+];
+
+export function expandTitle(title: string): string {
+  let t = title
+    .replace(/\([^)]*\)/g, " ") // "(PS5 & PS4)", "(2019)" are labels, not part of the name
+    .replace(/\b(cross[\s-]?gen|crossgen)\b/gi, " ");
+  for (const [re, full] of ABBREVIATIONS) t = t.replace(re, full);
+  return t.replace(/\s+/g, " ").trim();
+}
+
+/** Spacing, a leading "The" and a "Marvel's" prefix don't change which game it is. */
+function compact(core: string): string {
+  return core.replace(/^the /, "").replace(/^marvel s /, "").replace(/\s+/g, "");
+}
+
 function parseIdentity(title: string): Identity {
   // Add-on bundles ("Game + DLC") and edition abbreviations ("UE") describe the same base game.
-  let t = norm(stripAddons(title))
+  let t = norm(stripAddons(expandTitle(title)))
     .replace(PLATFORM_WORDS, " ")
     .replace(/\b(ue|de|ce|se)$/, " ");
   let remaster: Identity["remaster"] = null;
@@ -216,7 +242,7 @@ function parseIdentity(title: string): Identity {
         : t.replace(/\s([0-9]{1,2}|[ivx]{1,7})$/, " ");
     }
   }
-  return { core: t.replace(/\s+/g, " ").trim(), number, remaster };
+  return { core: compact(t.replace(/\s+/g, " ").trim()), number, remaster };
 }
 
 function identityMatches(a: Identity, b: Identity): boolean {
@@ -288,6 +314,13 @@ function mediaVersionRank(candidate: IgdbGame, title: string): number {
 
 function isSameMediaGame(a: IgdbGame, b: IgdbGame): boolean {
   return identityMatches(parseIdentity(a.name), parseIdentity(b.name));
+}
+
+/** Editions point at their base record via version_parent; those are one game. */
+function sameIdentityRoot(a: IgdbGame, b: IgdbGame): boolean {
+  const ra = a.version_parent ?? a.id;
+  const rb = b.version_parent ?? b.id;
+  return ra === rb;
 }
 
 /* ------------------------------------------------------------ field mapping */
@@ -675,7 +708,7 @@ function titleVariants(title: string): string[] {
     const t = value.replace(/\s+/g, " ").trim();
     if (t.length >= 2 && !out.includes(t)) out.push(t);
   };
-  const original = title.replace(/"/g, " ").trim();
+  const original = expandTitle(title.replace(/"/g, " "));
   push(original);
   const base = stripAddons(original)
     .replace(/\s+\b(UE|DE|CE|SE)\b\s*$/i, " ")
@@ -791,17 +824,19 @@ export const autofillGames = createServerFn({ method: "POST" })
       }
 
       const scored = igdbCandidates
-        .map((c) => ({ game: c, ...scoreCandidate(c, game.title, platformIds) }))
+        .map((c) => ({ game: c, ...scoreCandidate(c, game.title, platformIds), rank: mediaVersionRank(c, game.title) }))
         .sort((a, b) => b.score - a.score);
-      const best = scored[0];
-      const runnerUp = scored[1];
-      // Two equally strong, differently named candidates: never guess between them.
-      const ambiguous =
-        !!best &&
-        !!runnerUp &&
-        runnerUp.score >= 70 &&
-        best.score - runnerUp.score < 8 &&
-        norm(best.game.name) !== norm(runnerUp.game.name);
+      const top = scored[0]?.score ?? 0;
+      // Among the strongest candidates, prefer the standard/base release over deluxe or gold editions.
+      const strong = scored
+        .filter((c) => c.score >= 70 && top - c.score < 8)
+        .sort((a, b) => b.rank - a.rank || b.score - a.score);
+      const best = strong[0] ?? scored[0];
+      // Ambiguous only when two strong candidates are genuinely different games, not editions of one.
+      const runnerUp = strong.find(
+        (c) => c.game.id !== best?.game.id && !isSameMediaGame(c.game, best!.game) && sameIdentityRoot(c.game, best!.game) === false,
+      );
+      const ambiguous = !!best && !!runnerUp;
 
       if (best && best.score >= 70 && !ambiguous) {
         const found = best.game;
@@ -835,7 +870,7 @@ export const autofillGames = createServerFn({ method: "POST" })
       if (stillMissing.length && process.env["RAWG_API_KEY"]) {
         try {
           attemptedSources.push("RAWG");
-          const rawg = await rawgLookup(game.title, game.platform, data.retry === true);
+          const rawg = await rawgLookup(expandTitle(game.title), game.platform, data.retry === true);
           if (rawg) {
             matchName = matchName ?? rawg.name;
             confidence = Math.max(confidence, 70);
@@ -859,7 +894,7 @@ export const autofillGames = createServerFn({ method: "POST" })
       if (stillMissing.length) {
         try {
           attemptedSources.push("Wikipedia/Wikidata");
-          const wiki = await wikipediaLookup(game.title, game.platform);
+          const wiki = await wikipediaLookup(expandTitle(game.title), game.platform);
           if (wiki) {
             matchName = matchName ?? wiki.title;
             confidence = Math.max(confidence, 82);
