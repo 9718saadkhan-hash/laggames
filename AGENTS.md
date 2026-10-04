@@ -17,3 +17,4 @@
 - Keep the public sitemap dynamic for visible catalogue records, omit synthetic last-modified dates, and exclude account, authentication, wishlist, admin, and API pages.
 - Throttle the automatic unused-media cleanup (30s debounce, at most every 10 minutes, never on admin page open) because its full-content scan can overload the database.
 - Load the admin games list without photos/descriptions and save only changed fields, so edits never re-send large images.
+- Validate and redeem coupons only through server functions calling admin-only database functions, so coupon codes can never be listed or edited by customers.
