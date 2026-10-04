@@ -27,7 +27,11 @@ export const Route = createFileRoute("/how-it-works")({
         property: "og:description",
         content: "Three simple steps from browsing to playing, plus answers to the questions gamers ask most.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/how-it-works" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/how-it-works" }],
   }),
   component: HowItWorksPage,
 });

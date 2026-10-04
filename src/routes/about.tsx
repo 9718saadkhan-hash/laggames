@@ -32,8 +32,10 @@ export const Route = createFileRoute("/about")({
           "Trusted PlayStation game rentals, PS Plus and OTT subscriptions — fast delivery, genuine accounts, real support.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/about" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/about" }],
   }),
   component: AboutPage,
 });

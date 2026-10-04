@@ -17,6 +17,7 @@ export const Route = createFileRoute("/register")({
       { name: "description", content: "Create your LAG account to order PlayStation games, PS Plus and OTT subscriptions." },
       { property: "og:title", content: "Create Account — LAG LIVE AS GAMERS" },
       { property: "og:description", content: "Create your LAG account to order PlayStation games, PS Plus and OTT subscriptions." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: RegisterPage,

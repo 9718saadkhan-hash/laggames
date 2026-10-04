@@ -23,8 +23,10 @@ export const Route = createFileRoute("/deals/")({
         content: "Browse current LAG promotions and the PlayStation games included in each deal.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/deals" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/deals" }],
   }),
   component: DealsPage,
 });

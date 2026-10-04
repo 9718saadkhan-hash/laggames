@@ -34,8 +34,10 @@ export const Route = createFileRoute("/ps-plus")({
         content: "Essential, Extra and Deluxe memberships for 1, 3 or 12 months — delivered fast over WhatsApp.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/ps-plus" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/ps-plus" }],
   }),
   component: PsPlusPage,
 });

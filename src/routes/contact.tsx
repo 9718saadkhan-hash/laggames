@@ -28,7 +28,11 @@ export const Route = createFileRoute("/contact")({
         property: "og:description",
         content: "Questions about games, PS Plus or OTT plans? Talk to a real gamer on WhatsApp.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/contact" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/contact" }],
   }),
   component: ContactPage,
 });

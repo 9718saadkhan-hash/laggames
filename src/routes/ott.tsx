@@ -21,7 +21,11 @@ export const Route = createFileRoute("/ott")({
         property: "og:description",
         content: "Streaming subscriptions at gamer-friendly prices, delivered over WhatsApp.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://thelaggames.com/ott" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://thelaggames.com/ott" }],
   }),
   component: OttPage,
 });

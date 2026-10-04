@@ -15,6 +15,7 @@ export const Route = createFileRoute("/wishlist")({
       { name: "description", content: "Games you've saved for later on LAG — Live As Gamers." },
       { property: "og:title", content: "My Wishlist — LAG LIVE AS GAMERS" },
       { property: "og:description", content: "Games you've saved for later on LAG — Live As Gamers." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: WishlistPage,
