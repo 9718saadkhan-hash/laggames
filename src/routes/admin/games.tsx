@@ -417,8 +417,9 @@ function AdminGamesPage() {
 
   async function handleDuplicate(g: Game) {
     try {
-      const { id, created_at, updated_at, ...rest } = await fetchFullGame(g.id);
-      void id; void created_at; void updated_at;
+      const { id, created_at, ...rest } = (await fetchFullGame(g.id)) as Game & { updated_at?: string };
+      delete (rest as { updated_at?: string }).updated_at;
+      void id; void created_at;
       const { error } = await supabase.from("games").insert({ ...rest, slug: `${g.slug}-copy`, title: `${g.title} (Copy)` } as never);
       if (error) throw new Error(error.message);
       toast.success("Game duplicated.");
@@ -430,8 +431,8 @@ function AdminGamesPage() {
 
   async function handleDelete(id: string) {
     const { data, error } = await supabase.from("games").delete().eq("id", id).select("id");
-    if (error) return toast.error(error.message);
-    if (!data?.length) return toast.error("The game was not deleted. Please sign in again as admin.");
+    if (error) { toast.error(error.message); return; }
+    if (!data?.length) { toast.error("The game was not deleted. Please sign in again as admin."); return; }
     queryClient.setQueryData<Game[]>(["games", "admin-list"], (old) => old?.filter((x) => x.id !== id));
     queryClient.removeQueries({ queryKey: ["game"] });
     toast.success("Game deleted.");
