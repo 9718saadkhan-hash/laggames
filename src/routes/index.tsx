@@ -37,13 +37,6 @@ import {
 } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
-  loader: ({ context }) => {
-    void Promise.allSettled([
-      context.queryClient.ensureQueryData(homeGamesQuery),
-      context.queryClient.ensureQueryData(dealsQuery()),
-      context.queryClient.ensureQueryData(settingsQuery),
-    ]);
-  },
   head: () => ({
     meta: [
       { title: "LAG LIVE AS GAMERS — PlayStation Games, PS Plus & OTT Deals" },
