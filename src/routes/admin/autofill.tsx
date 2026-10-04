@@ -10,7 +10,15 @@ import { AdminSearch, useAdminSearch } from "@/components/lag/AdminSearch";
 import { Badge, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { gamesQuery } from "@/lib/queries";
+import { supabase } from "@/integrations/supabase/client";
+
+type MediaPresence = {
+  id: string;
+  has_cover: boolean;
+  has_banner: boolean;
+  gallery_count: number;
+  has_trailer: boolean;
+};
 import { formatDate, type Game } from "@/lib/lag";
 import {
   AUTOFILL_FIELDS,
@@ -81,8 +89,37 @@ function AutofillPage() {
   const run = useServerFn(autofillGames);
   const runMedia = useServerFn(autofillGameMedia);
   const undoMedia = useServerFn(undoGameMediaAutofill);
-  const games = useQuery(gamesQuery({ admin: true }));
-  const list = (games.data ?? []) as MetaGame[];
+  // Lightweight list: text fields only, plus media presence flags — photos are never downloaded here.
+  const games = useQuery({
+    queryKey: ["games", "autofill-light"],
+    queryFn: async () => {
+      const [rows, media] = await Promise.all([
+        supabase
+          .from("games")
+          .select(
+            "id,slug,title,platform,genre,game_size,developer,publisher,rating,release_date,short_description,description,display_order,metadata_status,metadata_note,metadata_source,metadata_updated_at",
+          )
+          .order("title", { ascending: true }),
+        (supabase.rpc as unknown as (n: string) => Promise<{ data: MediaPresence[] | null; error: Error | null }>)(
+          "game_media_presence",
+        ),
+      ]);
+      if (rows.error) throw rows.error;
+      if (media.error) throw media.error;
+      const byId = new Map((media.data ?? []).map((m) => [m.id, m]));
+      return (rows.data ?? []).map((g) => {
+        const m = byId.get(g.id);
+        return {
+          ...g,
+          cover_url: m?.has_cover ? "x" : null,
+          banner_url: m?.has_banner ? "x" : null,
+          gallery: Array.from({ length: m?.gallery_count ?? 0 }, () => "x"),
+          trailer_url: m?.has_trailer ? "x" : null,
+        };
+      }) as unknown as MetaGame[];
+    },
+  });
+  const list = games.data ?? [];
 
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [running, setRunning] = useState(false);
