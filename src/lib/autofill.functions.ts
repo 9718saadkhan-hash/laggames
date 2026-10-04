@@ -817,17 +817,19 @@ export const autofillGames = createServerFn({ method: "POST" })
       }
 
       const scored = igdbCandidates
-        .map((c) => ({ game: c, ...scoreCandidate(c, game.title, platformIds) }))
+        .map((c) => ({ game: c, ...scoreCandidate(c, game.title, platformIds), rank: mediaVersionRank(c, game.title) }))
         .sort((a, b) => b.score - a.score);
-      const best = scored[0];
-      const runnerUp = scored[1];
-      // Two equally strong, differently named candidates: never guess between them.
-      const ambiguous =
-        !!best &&
-        !!runnerUp &&
-        runnerUp.score >= 70 &&
-        best.score - runnerUp.score < 8 &&
-        norm(best.game.name) !== norm(runnerUp.game.name);
+      const top = scored[0]?.score ?? 0;
+      // Among the strongest candidates, prefer the standard/base release over deluxe or gold editions.
+      const strong = scored
+        .filter((c) => c.score >= 70 && top - c.score < 8)
+        .sort((a, b) => b.rank - a.rank || b.score - a.score);
+      const best = strong[0] ?? scored[0];
+      // Ambiguous only when two strong candidates are genuinely different games, not editions of one.
+      const runnerUp = strong.find(
+        (c) => c.game.id !== best?.game.id && !isSameMediaGame(c.game, best!.game) && sameIdentityRoot(c.game, best!.game) === false,
+      );
+      const ambiguous = !!best && !!runnerUp;
 
       if (best && best.score >= 70 && !ambiguous) {
         const found = best.game;
