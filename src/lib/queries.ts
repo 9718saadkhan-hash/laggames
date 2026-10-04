@@ -59,6 +59,27 @@ export const gamesCatalogQuery = () =>
       ).map((g) => ({ ...g, cover_url: null })),
   });
 
+/** Only the games and card fields used by the homepage's immediate sections. */
+export const homeGamesQuery = queryOptions({
+  queryKey: ["games", "home"],
+  staleTime: 5 * 60_000,
+  queryFn: async () =>
+    sortGamesByOrder(
+      unwrap<Game[]>(
+        (await supabase
+          .from("games")
+          .select(
+            "id,slug,title,cover_url,cover_position,platform,genre,publisher,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,visible,display_order,created_at",
+          )
+          .eq("visible", true)
+          .or("featured.eq.true,trending.eq.true,hot_deal.eq.true,new_release.eq.true")
+          .order("display_order", { ascending: true, nullsFirst: false })
+          .order("title", { ascending: true })
+          .limit(40)) as never,
+      ),
+    ),
+});
+
 /** Cover photos for just the games on the current catalogue page. */
 export const gameCoversQuery = (ids: string[]) =>
   queryOptions({
@@ -211,9 +232,9 @@ export const dealsQuery = (opts?: { admin?: boolean }) =>
     queryKey: ["deals", opts?.admin ? "admin" : "public"],
     // Deal artwork is edited in admin and must appear immediately when returning
     // to the homepage, even though catalogue queries use longer-lived caches.
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    staleTime: opts?.admin ? 0 : 5 * 60_000,
+    refetchOnMount: opts?.admin ? "always" : false,
+    refetchOnWindowFocus: Boolean(opts?.admin),
     queryFn: async () =>
       unwrap<Deal[]>(
         (await supabase

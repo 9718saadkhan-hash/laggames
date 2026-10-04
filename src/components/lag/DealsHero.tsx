@@ -47,6 +47,7 @@ export function DealsHero({ deals: all }: { deals: Deal[] }) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {slides.map((deal, i) => {
             const external = deal.cta_link?.startsWith("http");
+            const externalUrl = external ? deal.cta_link : null;
             const dealSlug = deal.slug ?? slugify(deal.title);
 
             const card = (
@@ -95,9 +96,9 @@ export function DealsHero({ deals: all }: { deals: Deal[] }) {
 
             return (
               <Reveal key={deal.id} delay={i * 80}>
-                {external ? (
+                {externalUrl ? (
                   <a
-                    href={deal.cta_link!}
+                    href={externalUrl}
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label={`View ${deal.title} deal`}
