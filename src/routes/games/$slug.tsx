@@ -124,6 +124,7 @@ function GameDetailPage() {
   const { slug } = Route.useParams();
   const loadedGame = Route.useLoaderData();
   const { user } = useAuth();
+  const { addItem } = useCart();
   const { data: game, isLoading, isError, error } = useQuery({ ...gameQuery(slug), initialData: loadedGame });
   const { data: all = [] } = useQuery(gamesQuery());
   const { data: settings } = useQuery(settingsQuery);
@@ -363,17 +364,38 @@ function GameDetailPage() {
             )}
           </div>
 
-          <Button asChild variant="whatsapp" size="lg" className="mt-4 w-full">
-            <a
-              href={whatsappLink(contact.whatsapp, orderMessage)}
-              target="_blank"
-              rel="noreferrer noopener"
-              onClick={() => void recordOrder()}
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button
+              variant="hero"
+              size="lg"
+              onClick={() => {
+                addItem({
+                  key: `game:${game.id}:${activeEdition?.id ?? "std"}:${activeAccount}:${activeDuration}`,
+                  name: activeEdition ? `${game.title} — ${activeEdition.name}` : game.title,
+                  price,
+                  image: game.cover_url,
+                  productType: "Game",
+                  productId: game.id,
+                  option: `${activeAccount === "primary" ? "Primary" : "Secondary"} account · ${DURATION_LABEL[activeDuration]}`,
+                });
+                toast.success(`${game.title} added to cart.`);
+              }}
             >
-              <MessageCircle className="h-4 w-4" aria-hidden />
-              Order on WhatsApp
-            </a>
-          </Button>
+              <ShoppingCart className="h-4 w-4" aria-hidden />
+              Add to Cart
+            </Button>
+            <Button asChild variant="whatsapp" size="lg">
+              <a
+                href={whatsappLink(contact.whatsapp, orderMessage)}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={() => void recordOrder()}
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden />
+                Order on WhatsApp
+              </a>
+            </Button>
+          </div>
           <p className="mt-3 text-center text-xs text-muted-foreground">
             No checkout needed — we confirm availability and payment on WhatsApp.
           </p>
