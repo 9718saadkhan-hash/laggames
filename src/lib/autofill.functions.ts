@@ -701,7 +701,8 @@ function titleVariants(title: string): string[] {
     const t = value.replace(/\s+/g, " ").trim();
     if (t.length >= 2 && !out.includes(t)) out.push(t);
   };
-  const original = title.replace(/"/g, " ").trim();
+  push(title.replace(/"/g, " ").trim());
+  const original = expandTitle(title.replace(/"/g, " "));
   push(original);
   const base = stripAddons(original)
     .replace(/\s+\b(UE|DE|CE|SE)\b\s*$/i, " ")
@@ -861,7 +862,7 @@ export const autofillGames = createServerFn({ method: "POST" })
       if (stillMissing.length && process.env["RAWG_API_KEY"]) {
         try {
           attemptedSources.push("RAWG");
-          const rawg = await rawgLookup(game.title, game.platform, data.retry === true);
+          const rawg = await rawgLookup(expandTitle(game.title), game.platform, data.retry === true);
           if (rawg) {
             matchName = matchName ?? rawg.name;
             confidence = Math.max(confidence, 70);
@@ -885,7 +886,7 @@ export const autofillGames = createServerFn({ method: "POST" })
       if (stillMissing.length) {
         try {
           attemptedSources.push("Wikipedia/Wikidata");
-          const wiki = await wikipediaLookup(game.title, game.platform);
+          const wiki = await wikipediaLookup(expandTitle(game.title), game.platform);
           if (wiki) {
             matchName = matchName ?? wiki.title;
             confidence = Math.max(confidence, 82);
