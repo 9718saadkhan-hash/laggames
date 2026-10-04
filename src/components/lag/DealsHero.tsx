@@ -1,11 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays } from "lucide-react";
 
 import { Reveal } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { formatDate, slugify } from "@/lib/lag";
-import { dealsQuery } from "@/lib/queries";
+import { formatDate, slugify, type Deal } from "@/lib/lag";
 
 function isLive(end: string | null) {
   if (!end) return true;
@@ -16,8 +14,7 @@ function isLive(end: string | null) {
  * Homepage top section: promotional DEALS banners (Black Friday, Days of Play,
  * LAG specials…), fully controlled from Admin → Deals.
  */
-export function DealsHero() {
-  const { data: all = [] } = useQuery(dealsQuery());
+export function DealsHero({ deals: all }: { deals: Deal[] }) {
   const slides = all.filter((d) => d.visible && d.show_in_hero && isLive(d.end_date));
   const count = slides.length;
 
@@ -59,8 +56,11 @@ export function DealsHero() {
                     <img
                       src={deal.image_url}
                       alt={`${deal.title} promotional banner`}
-                      loading={i === 0 ? "eager" : "lazy"}
+                      loading={i < 3 ? "eager" : "lazy"}
+                      fetchPriority={i < 3 ? "high" : "low"}
                       decoding="async"
+                      width={800}
+                      height={1000}
                       className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       style={{ objectPosition: deal.image_position ?? "50% 50%" }}
                     />
