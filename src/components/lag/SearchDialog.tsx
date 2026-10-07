@@ -84,7 +84,7 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-strong max-h-[86vh] overflow-hidden rounded-[2rem] p-0 sm:max-w-xl">
-        <DialogHeader className="border-b border-border p-5 pb-4">
+        <DialogHeader className="border-b border-border p-5 pb-4 text-left">
           <DialogTitle className="sr-only">Search LAG LIVE AS GAMERS</DialogTitle>
           <div className="flex items-center gap-3">
             <SearchIcon className="h-5 w-5 shrink-0 text-lag-red" aria-hidden />
