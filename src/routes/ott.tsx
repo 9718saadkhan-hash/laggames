@@ -75,18 +75,37 @@ function OttPage() {
             return (
               <Reveal key={p.id} delay={i * 80}>
                 <article className="glass hover-lift flex h-full flex-col rounded-3xl p-5">
-                  <div className="flex items-start justify-between gap-3">
+                  {/* Brand band: the logo shown large over a blurred copy of itself,
+                      its edges fading into the card. */}
+                  <div className="relative h-28 overflow-hidden rounded-2xl bg-surface sm:h-32">
                     {p.logo_url ? (
-                      <img
-                        src={p.logo_url}
-                        alt={`${p.name} logo`}
-                        loading="lazy"
-                        className="h-12 w-12 rounded-2xl object-cover"
-                      />
+                      <>
+                        <img
+                          src={p.logo_url}
+                          alt=""
+                          aria-hidden
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 h-full w-full scale-125 object-cover opacity-80 blur-2xl brightness-[0.7]"
+                        />
+                        <img
+                          src={p.logo_url}
+                          alt={`${p.name} logo`}
+                          loading="lazy"
+                          decoding="async"
+                          className="media-fade absolute inset-0 m-auto h-20 w-20 object-contain sm:h-24 sm:w-24"
+                        />
+                      </>
                     ) : (
-                      <GlassIcon icon={Monitor} tone="red" size="lg" />
+                      <div className="absolute inset-0 grid place-items-center">
+                        <GlassIcon icon={Monitor} tone="red" size="lg" />
+                      </div>
                     )}
-                    {off && <Badge tone="red">{off}% off</Badge>}
+                    <div
+                      aria-hidden
+                      className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background/70 to-transparent"
+                    />
+                    {off && <Badge tone="red" className="absolute right-2 top-2">{off}% off</Badge>}
                   </div>
                   <h2 className="mt-4 font-display text-xl font-bold">{p.name}</h2>
                   <div className="mt-2 flex flex-wrap gap-2">

@@ -199,6 +199,15 @@
   }
 }
 
+/**
+ * Fades an image's own edges into whatever sits behind it, so brand tiles melt
+ * into the card instead of ending on a hard square line.
+ */
+@utility media-fade {
+  mask-image: radial-gradient(115% 115% at 50% 50%, black 50%, transparent 96%);
+  -webkit-mask-image: radial-gradient(115% 115% at 50% 50%, black 50%, transparent 96%);
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {
