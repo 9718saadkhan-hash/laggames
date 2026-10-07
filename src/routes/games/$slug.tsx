@@ -228,6 +228,11 @@ function GameDetailPage() {
           <div aria-hidden className="aspect-video w-full bg-surface-2" />
         )}
         <div aria-hidden className="overlay-fade absolute inset-0" />
+        {game.pre_order && (
+          <span className="absolute top-3 left-3 rounded-full bg-lag-blue px-3 py-1.5 text-xs font-bold tracking-wider text-primary-foreground">
+            PRE-ORDER
+          </span>
+        )}
         <button
           type="button"
           aria-label={game.title}
@@ -242,8 +247,6 @@ function GameDetailPage() {
           <Badge tone="blue">{game.platform}</Badge>
           {game.genre && <Badge>{game.genre}</Badge>}
           {game.pre_order && <Badge tone="blue">Pre-Order</Badge>}
-          {game.new_release && <Badge tone="red">New release</Badge>}
-          {game.hot_deal && <Badge tone="red">Hot deal</Badge>}
           <Badge>{game.availability}</Badge>
         </div>
         <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">{game.title}</h1>
