@@ -473,6 +473,7 @@ export type Database = {
           new_release: boolean
           old_price: number | null
           platform: string
+          pre_order: boolean
           price_30: number | null
           price_30_secondary: number | null
           price_60: number | null
@@ -519,6 +520,7 @@ export type Database = {
           new_release?: boolean
           old_price?: number | null
           platform?: string
+          pre_order?: boolean
           price_30?: number | null
           price_30_secondary?: number | null
           price_60?: number | null
@@ -565,6 +567,7 @@ export type Database = {
           new_release?: boolean
           old_price?: number | null
           platform?: string
+          pre_order?: boolean
           price_30?: number | null
           price_30_secondary?: number | null
           price_60?: number | null
