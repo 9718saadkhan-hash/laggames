@@ -1218,6 +1218,7 @@ export type Database = {
           message: string
         }[]
       }
+      reorder_games_alphabetical: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "customer"

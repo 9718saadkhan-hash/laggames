@@ -377,6 +377,23 @@ function AdminGamesPage() {
     }
   }
 
+  const [sorting, setSorting] = useState(false);
+
+  /** One click: give every game a Display Order number so the catalog reads A–Z. */
+  async function sortAlphabetical() {
+    setSorting(true);
+    try {
+      const { data, error } = await supabase.rpc("reorder_games_alphabetical");
+      if (error) throw error;
+      invalidate();
+      toast.success(`All ${data ?? 0} games are now in A–Z order.`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not sort games.");
+    } finally {
+      setSorting(false);
+    }
+  }
+
   function openCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
@@ -493,9 +510,32 @@ function AdminGamesPage() {
           title="Manage Games"
           subtitle="Add, edit and organize PlayStation game listings."
           action={
-            <Button variant="hero" onClick={openCreate}>
-              <Plus className="h-4 w-4" /> Add Game
-            </Button>
+            <div className="flex items-center gap-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="glass" disabled={sorting}>
+                    {sorting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowDownAZ className="h-4 w-4" />}
+                    A–Z Order
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Sort all games A–Z?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Every game gets a Display Order number matching its title, so the whole catalog reads
+                      alphabetically. Any manual order numbers you set before will be replaced.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={sortAlphabetical}>Sort A–Z</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="hero" onClick={openCreate}>
+                <Plus className="h-4 w-4" /> Add Game
+              </Button>
+            </div>
           }
         />
 
