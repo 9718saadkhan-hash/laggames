@@ -93,7 +93,7 @@ function OttPage() {
                           alt={`${p.name} logo`}
                           loading="lazy"
                           decoding="async"
-                          className="media-fade absolute inset-0 m-auto h-20 w-20 object-contain sm:h-24 sm:w-24"
+                          className="media-fade absolute inset-0 m-auto h-24 w-24 object-contain sm:h-28 sm:w-28"
                         />
                       </>
                     ) : (
