@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { MessageCircle, Monitor, Tv, Users } from "lucide-react";
+import { MessageCircle, Monitor, ShoppingCart, Tv, Users } from "lucide-react";
+import { toast } from "sonner";
+import { useCart } from "@/lib/cart";
 
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,7 @@ export const Route = createFileRoute("/ott")({
 });
 
 function OttPage() {
+  const { addItem } = useCart();
   const { data: plans = [], isLoading, isError, error } = useQuery(ottQuery);
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
@@ -105,12 +108,33 @@ function OttPage() {
                     )}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{p.availability}</p>
-                  <Button asChild variant="whatsapp" className="mt-4 w-full">
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="glass"
+                      className="w-full"
+                      onClick={() => {
+                        addItem({
+                          key: `ott:${p.id}`,
+                          name: p.name,
+                          price: p.price,
+                          image: p.logo_url,
+                          productType: "OTT",
+                          productId: p.id,
+                          option: `${p.plan} · ${p.duration}`,
+                        });
+                        toast.success(`${p.name} added to cart.`);
+                      }}
+                    >
+                      <ShoppingCart className="h-4 w-4" aria-hidden />
+                      Add to Cart
+                    </Button>
+                  <Button asChild variant="whatsapp" className="w-full">
                     <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
                       <MessageCircle className="h-4 w-4" aria-hidden />
                       Order on WhatsApp
                     </a>
                   </Button>
+                  </div>
                 </article>
               </Reveal>
             );

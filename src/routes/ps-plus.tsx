@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, MessageCircle, Sparkles } from "lucide-react";
+import { Check, MessageCircle, ShoppingCart, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { useCart } from "@/lib/cart";
 import { useMemo, useState } from "react";
 
 import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
@@ -48,6 +50,7 @@ function priceFor(plan: PsPlusPlan | null, key: PsPlusDurationKey): number | nul
 }
 
 function PsPlusPage() {
+  const { addItem } = useCart();
   const { data: plans = [], isLoading, isError, error } = useQuery(psPlusQuery);
   const { data: settings } = useQuery(settingsQuery);
   const contact = contactFrom(settings);
@@ -208,12 +211,34 @@ function PsPlusPage() {
                 </ul>
               )}
 
-              <Button asChild variant="whatsapp" size="lg" className="mt-6 w-full sm:w-auto">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <Button
+                  variant="glass"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => {
+                    addItem({
+                      key: `psplus:${selected.id}:${duration}`,
+                      name: `PS Plus ${tier}`,
+                      price,
+                      image: selected.image_url,
+                      productType: "PS Plus",
+                      productId: selected.id,
+                      option: `${durationLabel} · ${selected.region} · ${selected.platform}`,
+                    });
+                    toast.success(`PS Plus ${tier} added to cart.`);
+                  }}
+                >
+                  <ShoppingCart className="h-4 w-4" aria-hidden />
+                  Add to Cart
+                </Button>
+              <Button asChild variant="whatsapp" size="lg" className="w-full">
                 <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
                   <MessageCircle className="h-4 w-4" aria-hidden />
                   Order {tier} · {durationLabel}
                 </a>
               </Button>
+              </div>
             </div>
           )}
         </>
