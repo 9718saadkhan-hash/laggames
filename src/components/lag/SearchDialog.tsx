@@ -236,9 +236,14 @@ function Group({
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
+function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className="rounded border border-lag-blue/30 bg-lag-blue/20 px-1.5 py-0.5 text-[9px] font-bold tracking-tighter text-lag-blue uppercase">
+    <span
+      className={cn(
+        "rounded border border-lag-blue/30 bg-lag-blue/20 px-1.5 py-0.5 text-[9px] font-bold tracking-tighter text-lag-blue uppercase",
+        className,
+      )}
+    >
       {children}
     </span>
   );
