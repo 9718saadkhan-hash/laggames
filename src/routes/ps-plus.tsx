@@ -334,7 +334,7 @@ function PsPlusPage() {
                   </p>
                 </div>
                 {off && (
-                  <span className="rounded border border-lag-red/25 bg-lag-red/10 px-2 py-1 text-[10px] font-black text-lag-red">
+                  <span className="rounded bg-lag-red px-2 py-1 text-[10px] font-black text-primary-foreground">
                     {off}% OFF
                   </span>
                 )}

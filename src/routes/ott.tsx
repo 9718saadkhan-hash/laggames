@@ -106,7 +106,7 @@ function OttPage() {
                       className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background/70 to-transparent"
                     />
                     {off && (
-                      <Badge tone="red" className="absolute right-2 top-2 border-lag-red/50 bg-background/85">
+                      <Badge tone="red" className="absolute right-2 top-2 border-lag-red bg-lag-red text-primary-foreground">
                         {off}% off
                       </Badge>
                     )}
