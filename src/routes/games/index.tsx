@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Gamepad2, LoaderCircle, Search, SlidersHorizontal } from "lucide-react";
+import { Gamepad2, LoaderCircle, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { GameCard, GameCardsWishlistProvider } from "@/components/lag/GameCard";
@@ -171,18 +171,28 @@ function GamesPage() {
       />
 
       <div className="glass rounded-3xl p-4 sm:p-5">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <div className="relative flex items-center">
+          <Search className="pointer-events-none absolute left-4 h-5 w-5 -translate-y-1/2 top-1/2 text-lag-red" aria-hidden />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search games, genres, publishers…"
             aria-label="Search games"
-            className="h-12 pl-10"
+            className="h-14 rounded-2xl border-input bg-background/40 pl-12 pr-11 text-sm transition-shadow focus-visible:ring-lag-red/40"
           />
+          {q && (
+            <button
+              type="button"
+              onClick={() => setQ("")}
+              aria-label="Clear search"
+              className="absolute right-3 rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:opacity-100 hover:text-foreground"
+            >
+              <X className="h-5 w-5" aria-hidden />
+            </button>
+          )}
         </div>
 
-        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto">
+        <div className="no-scrollbar mt-4 flex gap-2.5 overflow-x-auto">
           {TAGS.map((t) => (
             <button
               key={t.key}
@@ -190,10 +200,10 @@ function GamesPage() {
               onClick={() => setTag(t.key)}
               aria-pressed={tag === t.key}
               className={cn(
-                "shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors",
+                "shrink-0 rounded-xl px-6 py-2 font-display text-[10px] font-bold uppercase tracking-widest transition-all",
                 tag === t.key
-                  ? "border-lag-red/50 bg-lag-red/20 text-lag-red"
-                  : "border-border bg-muted/40 text-muted-foreground hover:text-foreground",
+                  ? "pill-glow bg-lag-red text-primary-foreground"
+                  : "border border-border bg-surface-2/60 text-muted-foreground hover:text-foreground",
               )}
             >
               {t.label}
