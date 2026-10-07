@@ -213,7 +213,7 @@ function PsPlusPage() {
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Button
-                  variant="glass"
+                  variant="hero"
                   size="lg"
                   className="w-full"
                   onClick={() => {

@@ -110,7 +110,7 @@ function OttPage() {
                   <p className="mt-1 text-xs text-muted-foreground">{p.availability}</p>
                   <div className="mt-4 grid grid-cols-2 gap-2">
                     <Button
-                      variant="glass"
+                      variant="hero"
                       className="w-full"
                       onClick={() => {
                         addItem({
