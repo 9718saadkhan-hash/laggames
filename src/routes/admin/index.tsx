@@ -10,7 +10,6 @@ import {
   Mail,
   Eye,
   Tag,
-  CalendarClock,
 } from "lucide-react";
 
 import { AdminGate, AdminShell } from "@/components/lag/AdminShell";
@@ -24,7 +23,6 @@ import {
   customersQuery,
   contactMessagesQuery,
   dealsQuery,
-  upcomingGamesQuery,
   activityLogQuery,
 } from "@/lib/queries";
 import { money, formatDate } from "@/lib/lag";
@@ -76,7 +74,6 @@ function AdminDashboardPage() {
   const { data: customers = [] } = useQuery(customersQuery);
   const { data: messages = [] } = useQuery(contactMessagesQuery);
   const { data: deals = [] } = useQuery(dealsQuery({ admin: true }));
-  const { data: upcoming = [] } = useQuery(upcomingGamesQuery({ admin: true }));
   const { data: activity = [] } = useQuery(activityLogQuery);
 
   const visibleGames = games.filter((g) => g.visible).length;
@@ -96,7 +93,6 @@ function AdminDashboardPage() {
           <StatCard icon={Gamepad2} label="Total Games" value={games.length} />
           <StatCard icon={Eye} label="Visible Games" value={visibleGames} tone="blue" />
           <StatCard icon={Tag} label="Live Deals" value={liveDeals} />
-          <StatCard icon={CalendarClock} label="Upcoming Games" value={upcoming.length} tone="blue" />
           <StatCard icon={Crown} label="PS Plus Plans" value={psPlus.length} />
           <StatCard icon={Clapperboard} label="OTT Plans" value={ott.length} tone="blue" />
           <StatCard icon={ShoppingBag} label="Total Orders" value={orders.length} />
@@ -146,12 +142,6 @@ function AdminDashboardPage() {
                 </Link>
                 <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/deals">
                   Manage Deals
-                </Link>
-                <Link
-                  className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2"
-                  to="/admin/upcoming-games"
-                >
-                  Upcoming Games
                 </Link>
                 <Link className="rounded-xl px-3 py-2 font-semibold hover:bg-surface-2" to="/admin/orders">
                   View Orders

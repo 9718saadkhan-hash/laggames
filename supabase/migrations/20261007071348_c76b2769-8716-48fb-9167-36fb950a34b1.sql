@@ -1,0 +1,1 @@
+ALTER TABLE public.games ADD COLUMN IF NOT EXISTS pre_order boolean NOT NULL DEFAULT false;
