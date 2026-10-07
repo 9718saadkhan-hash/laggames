@@ -137,13 +137,15 @@ function GameDetailPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [trailerPlaying, setTrailerPlaying] = useState(false);
 
-  const related = useMemo(
-    () =>
-      all
-        .filter((g) => g.visible && g.slug !== slug && (!game?.genre || g.genre === game.genre))
-        .slice(0, 4),
-    [all, slug, game?.genre],
-  );
+  // Four random visible games, re-shuffled on every visit to the page.
+  const related = useMemo(() => {
+    const pool = all.filter((g) => g.visible && g.slug !== slug);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+    }
+    return pool.slice(0, 4);
+  }, [all, slug]);
 
   if (isLoading) {
     return (
@@ -513,7 +515,7 @@ function GameDetailPage() {
 
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-          <SectionHeading eyebrow="You may also like" title="Similar games" />
+          <SectionHeading eyebrow="You may also like" title="Recommended games" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {related.map((g) => (
               <GameCard key={g.id} game={g} />
