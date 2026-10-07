@@ -221,7 +221,7 @@ function PsPlusPage() {
                       key: `psplus:${selected.id}:${duration}`,
                       name: `PS Plus ${tier}`,
                       price,
-                      image: selected.image_url,
+                      image: selected.image_url?.startsWith("data:") ? null : selected.image_url,
                       productType: "PS Plus",
                       productId: selected.id,
                       option: `${durationLabel} · ${selected.region} · ${selected.platform}`,

@@ -117,7 +117,7 @@ function OttPage() {
                           key: `ott:${p.id}`,
                           name: p.name,
                           price: p.price,
-                          image: p.logo_url,
+                          image: p.logo_url?.startsWith("data:") ? null : p.logo_url,
                           productType: "OTT",
                           productId: p.id,
                           option: `${p.plan} · ${p.duration}`,
