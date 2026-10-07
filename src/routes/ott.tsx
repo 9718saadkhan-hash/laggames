@@ -105,7 +105,11 @@ function OttPage() {
                       aria-hidden
                       className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background/70 to-transparent"
                     />
-                    {off && <Badge tone="red" className="absolute right-2 top-2">{off}% off</Badge>}
+                    {off && (
+                      <Badge tone="red" className="absolute right-2 top-2 border-lag-red/50 bg-background/85">
+                        {off}% off
+                      </Badge>
+                    )}
                   </div>
                   <h2 className="mt-4 font-display text-xl font-bold">{p.name}</h2>
                   <div className="mt-2 flex flex-wrap gap-2">
