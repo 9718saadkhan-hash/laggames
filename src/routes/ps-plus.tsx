@@ -391,8 +391,3 @@ function PsPlusPage() {
     </div>
   );
 }
-
-/** The active tier badge reads as a solid chip; the others stay outlined. */
-function tn_solid(tone: Tone): string {
-  return TONE[tone].solid;
-}
