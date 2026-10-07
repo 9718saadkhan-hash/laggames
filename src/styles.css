@@ -199,6 +199,17 @@
   }
 }
 
+/**
+ * Fades an image's own edges into whatever sits behind it, so brand tiles melt
+ * into the card instead of ending on a hard square line. The transparent ring
+ * starts well inside the box, which is what actually dissolves a square asset's
+ * straight edges.
+ */
+@utility media-fade {
+  mask-image: radial-gradient(circle at 50% 50%, black 42%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 42%, transparent 72%);
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {

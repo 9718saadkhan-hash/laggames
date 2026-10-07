@@ -1,11 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, MessageCircle, ShoppingCart, Sparkles } from "lucide-react";
+import {
+  Check,
+  Circle,
+  Crown,
+  Gamepad2,
+  MessageCircle,
+  ShoppingCart,
+  Sparkles,
+  Square,
+  Triangle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ElementType } from "react";
 
-import { Badge, EmptyState, GlassIcon, Reveal, SectionHeading } from "@/components/lag/ui-bits";
+import { Badge, EmptyState, Reveal } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import {
   PS_PLUS_DURATIONS,
@@ -44,6 +54,47 @@ export const Route = createFileRoute("/ps-plus")({
   component: PsPlusPage,
 });
 
+type Tone = "red" | "blue" | "gold";
+
+/** Per-tier accent + PlayStation-shape watermark. Keeps each category distinct. */
+const TIER_META: Record<string, { tone: Tone; chip: ElementType; mark: ElementType }> = {
+  Essential: { tone: "red", chip: Sparkles, mark: Triangle },
+  Extra: { tone: "blue", chip: Gamepad2, mark: Circle },
+  Deluxe: { tone: "gold", chip: Crown, mark: Square },
+};
+
+const FALLBACK_META = { tone: "red", chip: Sparkles, mark: Triangle } as const;
+
+const TONE = {
+  red: {
+    text: "text-lag-red",
+    active: "border-lag-red/60 ring-lag-red/15 bg-gradient-to-br from-lag-red/20 to-transparent",
+    chip: "bg-lag-red/20 text-lag-red",
+    solid: "bg-lag-red text-primary-foreground",
+    glow: "shadow-[0_0_30px_-10px_var(--lag-red)]",
+  },
+  blue: {
+    text: "text-lag-blue",
+    active: "border-lag-blue/60 ring-lag-blue/15 bg-gradient-to-br from-lag-blue/20 to-transparent",
+    chip: "bg-lag-blue/20 text-lag-blue",
+    solid: "bg-lag-blue text-primary-foreground",
+    glow: "shadow-[0_0_30px_-10px_var(--lag-blue)]",
+  },
+  gold: {
+    text: "text-chart-3",
+    active: "border-chart-3/60 ring-chart-3/15 bg-gradient-to-br from-chart-3/20 to-transparent",
+    chip: "bg-chart-3/20 text-chart-3",
+    solid: "bg-chart-3 text-background",
+    glow: "shadow-[0_0_30px_-10px_var(--chart-3)]",
+  },
+} as const;
+
+const MONTHS: Record<PsPlusDurationKey, number> = {
+  price_1m: 1,
+  price_3m: 3,
+  price_12m: 12,
+};
+
 function priceFor(plan: PsPlusPlan | null, key: PsPlusDurationKey): number | null {
   if (!plan) return null;
   return plan[key] ?? plan.price ?? null;
@@ -71,8 +122,25 @@ function PsPlusPage() {
   }, [visible]);
 
   const selected = byTier.get(tier) ?? null;
+  const meta = TIER_META[tier] ?? FALLBACK_META;
+  const tone = TONE[meta.tone];
   const price = priceFor(selected, duration);
   const durationLabel = PS_PLUS_DURATIONS.find((d) => d.key === duration)?.label ?? "1 Month";
+  const off = discountPercent(selected?.old_price, price);
+
+  /** Which duration saves the most per month, so only that one gets the flag. */
+  const bestSave = useMemo(() => {
+    const base = priceFor(selected, "price_1m");
+    if (!base) return null;
+    let best: { key: PsPlusDurationKey; pct: number } | null = null;
+    for (const d of PS_PLUS_DURATIONS) {
+      const value = priceFor(selected, d.key);
+      if (!value) continue;
+      const pct = Math.round((1 - value / MONTHS[d.key] / base) * 100);
+      if (pct > 5 && (!best || pct > best.pct)) best = { key: d.key, pct };
+    }
+    return best;
+  }, [selected]);
 
   const message = selected
     ? buildOrderMessage(
@@ -91,43 +159,56 @@ function PsPlusPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <SectionHeading
-        eyebrow="Subscriptions"
-        title="PlayStation Plus"
-        subtitle="Three memberships, three durations. Pick your category, choose 1, 3 or 12 months and the price updates instantly."
-      />
+      {/* Header */}
+      <div className="mb-6">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-lag-red">Subscriptions</p>
+        <h1 className="font-display text-3xl font-bold italic tracking-tight sm:text-4xl">PlayStation Plus</h1>
+        <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+          Pick your membership, choose how long you want it, and the price updates instantly.
+        </p>
+      </div>
 
       {isError ? (
         <EmptyState icon={Sparkles} title="Couldn't load plans" body={(error as Error).message} />
       ) : isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="glass h-56 animate-pulse rounded-3xl" />
+            <div key={i} className="glass h-36 animate-pulse rounded-2xl" />
           ))}
         </div>
       ) : byTier.size === 0 ? (
-        <EmptyState icon={Sparkles} title="No PS Plus plans yet" body="Memberships are being added — message us on WhatsApp meanwhile." />
+        <EmptyState
+          icon={Sparkles}
+          title="No PS Plus plans yet"
+          body="Memberships are being added — message us on WhatsApp meanwhile."
+        />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
+          {/* Membership tiles: a scroll rail on phones, a row on larger screens. */}
+          <div className="rail -mx-4 px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
             {PS_PLUS_TIERS.map((t, i) => {
               const plan = byTier.get(t);
               const active = tier === t;
+              const m = TIER_META[t] ?? FALLBACK_META;
+              const tn = TONE[m.tone];
               const from = plan ? priceFor(plan, "price_1m") : null;
+              const Mark = m.mark;
+              const Chip = m.chip;
               return (
-                <Reveal key={t} delay={i * 80}>
+                <Reveal key={t} delay={i * 70} className="min-w-[150px] sm:min-w-0">
                   <button
                     type="button"
                     disabled={!plan}
                     aria-pressed={active}
                     onClick={() => setTier(t)}
                     className={cn(
-                      "glass relative flex h-full w-full flex-col overflow-hidden rounded-3xl p-5 text-left transition-transform duration-300",
-                      active ? "glow-red -translate-y-1 border-lag-red/50" : "hover:-translate-y-1",
-                      !plan && "opacity-45",
+                      "relative flex h-full w-full flex-col overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300",
+                      active ? cn("border-2 ring-4", tn.active, tn.glow) : "border-border bg-muted/30",
+                      !active && "opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0",
+                      !plan && "cursor-not-allowed opacity-40 grayscale",
                     )}
                   >
-                    {plan?.image_url && (
+                    {plan?.image_url ? (
                       <img
                         src={plan.image_url}
                         alt=""
@@ -137,14 +218,29 @@ function PsPlusPage() {
                         className="absolute inset-0 h-full w-full object-cover opacity-20"
                         style={{ objectPosition: safePosition(plan.image_position) }}
                       />
+                    ) : (
+                      <Mark
+                        aria-hidden
+                        className="absolute -right-3 -top-3 h-20 w-20 text-foreground opacity-10"
+                      />
                     )}
-                    <div className="relative">
-                      <GlassIcon icon={Sparkles} tone={i === 1 ? "blue" : "red"} size="lg" />
-                      <h2 className="mt-4 font-display text-xl font-bold">PS Plus {t}</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {plan ? `From ${money(from)}` : "Coming soon"}
-                      </p>
-                    </div>
+                    <span
+                      className={cn(
+                        "relative mb-8 grid h-8 w-8 place-items-center rounded-full",
+                        active ? tn.chip : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      <Chip className="h-4 w-4" aria-hidden />
+                    </span>
+                    <span className="relative font-display text-sm font-bold uppercase leading-tight">{t}</span>
+                    <span
+                      className={cn(
+                        "relative mt-1 text-[11px] font-bold",
+                        active ? tn.text : "text-muted-foreground",
+                      )}
+                    >
+                      {plan ? `From ${money(from)}` : "Coming soon"}
+                    </span>
                   </button>
                 </Reveal>
               );
@@ -152,19 +248,38 @@ function PsPlusPage() {
           </div>
 
           {selected && (
-            <div className="glass-strong mt-6 rounded-3xl p-5 sm:p-7">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone="red">PS Plus {tier}</Badge>
+            <div className="glass-strong relative mt-5 overflow-hidden rounded-[2rem] p-5 sm:p-7">
+              {/* Accent light bleeding in from the corner. */}
+              <div
+                aria-hidden
+                className={cn(
+                  "pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full blur-[80px]",
+                  meta.tone === "blue" ? "bg-lag-blue/25" : meta.tone === "gold" ? "bg-chart-3/25" : "bg-lag-red/25",
+                )}
+              />
+
+              <div className="relative flex flex-wrap gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-tight",
+                    tone.solid,
+                  )}
+                >
+                  PS Plus {tier}
+                </span>
                 <Badge tone="blue">{selected.platform}</Badge>
                 <Badge>{selected.region}</Badge>
                 <Badge>{selected.availability}</Badge>
               </div>
 
-              <h3 className="mt-4 font-display text-lg font-bold">Choose your duration</h3>
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <h2 className="relative mt-6 font-display text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Select Duration
+              </h2>
+              <div className="relative mt-3 grid grid-cols-3 gap-2">
                 {PS_PLUS_DURATIONS.map((d) => {
                   const value = priceFor(selected, d.key);
                   const active = duration === d.key;
+                  const save = bestSave?.key === d.key ? bestSave.pct : null;
                   return (
                     <button
                       key={d.key}
@@ -172,50 +287,81 @@ function PsPlusPage() {
                       aria-pressed={active}
                       onClick={() => setDuration(d.key)}
                       className={cn(
-                        "glass rounded-2xl px-4 py-4 text-left transition-transform duration-200",
-                        active ? "glow-blue border-lag-blue/50" : "hover:-translate-y-0.5",
+                        "relative flex flex-col items-center justify-center rounded-2xl px-2 py-3 transition-all duration-200",
+                        active
+                          ? cn("border-2 ring-4", tone.active, tone.glow)
+                          : "border border-border bg-muted/30 hover:border-input",
                       )}
                     >
-                      <span className="block text-xs font-bold tracking-widest text-muted-foreground uppercase">
+                      {save && (
+                        <span className="absolute -top-2 rounded bg-lag-blue px-1.5 py-0.5 text-[8px] font-black tracking-tighter text-primary-foreground">
+                          SAVE {save}%
+                        </span>
+                      )}
+                      <span
+                        className={cn(
+                          "text-[9px] font-bold uppercase tracking-wide",
+                          active ? tone.text : "text-muted-foreground",
+                        )}
+                      >
                         {d.label}
                       </span>
-                      <span className="mt-1 block font-display text-xl font-bold">{money(value)}</span>
+                      <span
+                        className={cn(
+                          "mt-0.5 font-display text-base font-bold tracking-tight",
+                          active ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        {money(value)}
+                      </span>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="mt-6 flex flex-wrap items-end gap-3">
-                <span className="font-display text-3xl font-bold">{money(price)}</span>
-                {selected.old_price && (
-                  <span className="text-sm text-muted-foreground line-through">{money(selected.old_price)}</span>
+              <div className="relative mt-6 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-4xl font-black italic tracking-tighter">{money(price)}</span>
+                    {selected.old_price && (
+                      <span className="text-sm text-muted-foreground line-through opacity-70">
+                        {money(selected.old_price)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    One-time payment for {durationLabel} access
+                  </p>
+                </div>
+                {off && (
+                  <span className="rounded bg-lag-red px-2 py-1 text-[10px] font-black text-primary-foreground">
+                    {off}% OFF
+                  </span>
                 )}
-                {discountPercent(selected.old_price, price) && (
-                  <Badge tone="red">{discountPercent(selected.old_price, price)}% off</Badge>
-                )}
-                <span className="text-sm text-muted-foreground">for {durationLabel}</span>
               </div>
 
               {selected.description && (
-                <p className="mt-3 text-sm text-muted-foreground">{selected.description}</p>
+                <p className="relative mt-4 text-sm text-muted-foreground">{selected.description}</p>
               )}
 
               {selected.features?.length > 0 && (
-                <ul className="mt-4 grid gap-1.5 sm:grid-cols-2">
+                <ul className="relative mt-5 grid gap-y-3 sm:grid-cols-2">
                   {selected.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-lag-red" aria-hidden />
+                    <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className={cn("grid h-4 w-4 shrink-0 place-items-center rounded-full", tone.chip)}>
+                        <Check className="h-2.5 w-2.5" strokeWidth={3} aria-hidden />
+                      </span>
                       {f}
                     </li>
                   ))}
                 </ul>
               )}
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="relative mt-7 grid gap-3 sm:grid-cols-2">
                 <Button
                   variant="hero"
                   size="lg"
-                  className="w-full"
+                  className="w-full uppercase tracking-wide"
                   onClick={() => {
                     addItem({
                       key: `psplus:${selected.id}:${duration}`,
@@ -232,12 +378,12 @@ function PsPlusPage() {
                   <ShoppingCart className="h-4 w-4" aria-hidden />
                   Add to Cart
                 </Button>
-              <Button asChild variant="whatsapp" size="lg" className="w-full">
-                <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
-                  <MessageCircle className="h-4 w-4" aria-hidden />
-                  Order {tier} · {durationLabel}
-                </a>
-              </Button>
+                <Button asChild variant="whatsapp" size="lg" className="w-full uppercase tracking-wide">
+                  <a href={whatsappLink(contact.whatsapp, message)} target="_blank" rel="noreferrer noopener">
+                    <MessageCircle className="h-4 w-4" aria-hidden />
+                    Order {tier} · {durationLabel}
+                  </a>
+                </Button>
               </div>
             </div>
           )}
