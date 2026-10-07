@@ -377,6 +377,23 @@ function AdminGamesPage() {
     }
   }
 
+  const [sorting, setSorting] = useState(false);
+
+  /** One click: give every game a Display Order number so the catalog reads A–Z. */
+  async function sortAlphabetical() {
+    setSorting(true);
+    try {
+      const { data, error } = await supabase.rpc("reorder_games_alphabetical");
+      if (error) throw error;
+      invalidate();
+      toast.success(`All ${data ?? 0} games are now in A–Z order.`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not sort games.");
+    } finally {
+      setSorting(false);
+    }
+  }
+
   function openCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
