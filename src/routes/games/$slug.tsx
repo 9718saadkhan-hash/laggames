@@ -228,6 +228,11 @@ function GameDetailPage() {
           <div aria-hidden className="aspect-video w-full bg-surface-2" />
         )}
         <div aria-hidden className="overlay-fade absolute inset-0" />
+        {game.pre_order && (
+          <span className="absolute top-3 left-3 rounded-full bg-lag-blue px-3 py-1.5 text-xs font-bold tracking-wider text-primary-foreground">
+            PRE-ORDER
+          </span>
+        )}
         <button
           type="button"
           aria-label={game.title}
