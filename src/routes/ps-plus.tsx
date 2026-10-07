@@ -10,11 +10,10 @@ import {
   Sparkles,
   Square,
   Triangle,
-  type ElementType,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ElementType } from "react";
 
 import { Badge, EmptyState, Reveal } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
@@ -63,6 +62,8 @@ const TIER_META: Record<string, { tone: Tone; chip: ElementType; mark: ElementTy
   Extra: { tone: "blue", chip: Gamepad2, mark: Circle },
   Deluxe: { tone: "gold", chip: Crown, mark: Square },
 };
+
+const FALLBACK_META = { tone: "red", chip: Sparkles, mark: Triangle } as const;
 
 const TONE = {
   red: {
@@ -121,7 +122,7 @@ function PsPlusPage() {
   }, [visible]);
 
   const selected = byTier.get(tier) ?? null;
-  const meta = TIER_META[tier] ?? TIER_META.Essential;
+  const meta = TIER_META[tier] ?? FALLBACK_META;
   const tone = TONE[meta.tone];
   const price = priceFor(selected, duration);
   const durationLabel = PS_PLUS_DURATIONS.find((d) => d.key === duration)?.label ?? "1 Month";
@@ -188,7 +189,7 @@ function PsPlusPage() {
             {PS_PLUS_TIERS.map((t, i) => {
               const plan = byTier.get(t);
               const active = tier === t;
-              const m = TIER_META[t] ?? TIER_META.Essential;
+              const m = TIER_META[t] ?? FALLBACK_META;
               const tn = TONE[m.tone];
               const from = plan ? priceFor(plan, "price_1m") : null;
               const Mark = m.mark;
