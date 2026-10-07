@@ -258,9 +258,14 @@ function PsPlusPage() {
               />
 
               <div className="relative flex flex-wrap gap-2">
-                <Badge tone={meta.tone === "blue" ? "blue" : "red"} className={cn(tn_solid(meta.tone))}>
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-tight",
+                    tone.solid,
+                  )}
+                >
                   PS Plus {tier}
-                </Badge>
+                </span>
                 <Badge tone="blue">{selected.platform}</Badge>
                 <Badge>{selected.region}</Badge>
                 <Badge>{selected.availability}</Badge>
