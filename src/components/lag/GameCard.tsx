@@ -85,6 +85,11 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
         ) : (
           <div aria-hidden className="h-full w-full bg-surface-2" />
         )}
+        {game.pre_order && (
+          <span className="absolute top-3 left-3 rounded-full bg-lag-blue px-2.5 py-1 text-[10px] font-bold tracking-wider text-primary-foreground">
+            PRE-ORDER
+          </span>
+        )}
       </Link>
 
       <button

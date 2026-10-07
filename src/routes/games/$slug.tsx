@@ -241,6 +241,7 @@ function GameDetailPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           <Badge tone="blue">{game.platform}</Badge>
           {game.genre && <Badge>{game.genre}</Badge>}
+          {game.pre_order && <Badge tone="blue">Pre-Order</Badge>}
           {game.new_release && <Badge tone="red">New release</Badge>}
           {game.hot_deal && <Badge tone="red">Hot deal</Badge>}
           <Badge>{game.availability}</Badge>

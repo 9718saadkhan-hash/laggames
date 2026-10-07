@@ -143,6 +143,7 @@ type GameForm = {
   trending: boolean;
   hot_deal: boolean;
   new_release: boolean;
+  pre_order: boolean;
   visible: boolean;
   display_order: string;
 };
@@ -181,6 +182,7 @@ const EMPTY_FORM: GameForm = {
   trending: false,
   hot_deal: false,
   new_release: false,
+  pre_order: false,
   visible: true,
   display_order: "",
 };
@@ -221,6 +223,7 @@ function gameToForm(g: Game): GameForm {
     trending: g.trending,
     hot_deal: g.hot_deal,
     new_release: g.new_release,
+    pre_order: Boolean(g.pre_order),
     visible: g.visible,
     display_order: typeof g.display_order === "number" ? g.display_order.toString() : "",
   };
@@ -267,6 +270,7 @@ function formToPayload(f: GameForm) {
     trending: f.trending,
     hot_deal: f.hot_deal,
     new_release: f.new_release,
+    pre_order: f.pre_order,
     visible: f.visible,
     display_order: num(f.display_order),
   };
@@ -464,6 +468,7 @@ function AdminGamesPage() {
     | "trending"
     | "hot_deal"
     | "new_release"
+    | "pre_order"
     | "featured"
     | "primary_available"
     | "secondary_available";
@@ -536,6 +541,9 @@ function AdminGamesPage() {
                     </label>
                     <label className="flex items-center gap-1.5">
                       <Switch checked={g.new_release} onCheckedChange={() => toggleField(g, "new_release")} /> New
+                    </label>
+                    <label className="flex items-center gap-1.5">
+                      <Switch checked={Boolean(g.pre_order)} onCheckedChange={() => toggleField(g, "pre_order")} /> Pre-Order
                     </label>
                     <label className="flex items-center gap-1.5">
                       <Switch checked={g.featured} onCheckedChange={() => toggleField(g, "featured")} /> Featured
@@ -876,6 +884,9 @@ function AdminGamesPage() {
                 </label>
                 <label className="flex items-center gap-2 text-sm font-semibold">
                   <Switch checked={form.new_release} onCheckedChange={(v) => setForm((f) => ({ ...f, new_release: v }))} /> New Release
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <Switch checked={form.pre_order} onCheckedChange={(v) => setForm((f) => ({ ...f, pre_order: v }))} /> Pre-Order
                 </label>
               </div>
               <div className="space-y-1.5">

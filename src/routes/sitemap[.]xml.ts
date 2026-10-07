@@ -13,7 +13,6 @@ const STATIC_PATHS = [
   "/policies",
   "/ps-plus",
   "/reviews",
-  "/upcoming-games",
 ];
 
 function escapeXml(value: string) {
@@ -57,7 +56,6 @@ export const Route = createFileRoute("/sitemap.xml")({
         const sources = [
           { table: "games", prefix: "/games/" },
           { table: "deals", prefix: "/deals/" },
-          { table: "upcoming_games", prefix: "/upcoming-games/" },
         ] as const;
 
         for (const source of sources) {

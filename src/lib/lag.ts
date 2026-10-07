@@ -47,6 +47,7 @@ export interface Game {
   trending: boolean;
   hot_deal: boolean;
   new_release: boolean;
+  pre_order?: boolean;
   visible: boolean;
   /** Manual priority. null/blank = no priority, sorted alphabetically after the prioritised games. */
   display_order: number | null;

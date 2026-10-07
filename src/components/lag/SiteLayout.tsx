@@ -42,7 +42,6 @@ const NAV = [
   { to: "/", label: "Home" },
   { to: "/games", label: "Games" },
   { to: "/deals", label: "Deals" },
-  { to: "/upcoming-games", label: "Upcoming Games" },
   { to: "/ps-plus", label: "PS Plus" },
   { to: "/ott", label: "OTT" },
   { to: "/how-it-works", label: "How It Works" },
