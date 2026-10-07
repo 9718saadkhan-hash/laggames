@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Gamepad2, Monitor, SearchIcon, Tv } from "lucide-react";
+import { Gamepad2, Monitor, SearchIcon, Tv, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Badge } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -84,34 +83,44 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-strong max-h-[86vh] overflow-hidden p-0 sm:max-w-2xl">
-        <DialogHeader className="border-b border-border p-4">
+      <DialogContent className="glass-strong max-h-[86vh] overflow-hidden rounded-[2rem] p-0 sm:max-w-xl">
+        <DialogHeader className="border-b border-border p-5 pb-4">
           <DialogTitle className="sr-only">Search LAG LIVE AS GAMERS</DialogTitle>
-          <div className="flex items-center gap-2">
-            <SearchIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          <div className="flex items-center gap-3">
+            <SearchIcon className="h-5 w-5 shrink-0 text-lag-red" aria-hidden />
             <Input
               autoFocus
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search games, PS Plus, OTT, genre, year…"
+              placeholder="Search games, PS Plus, OTT…"
               aria-label="Search"
-              className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              className="h-auto border-0 border-b border-border bg-transparent px-0 pb-1 font-display text-lg font-medium shadow-none rounded-none focus-visible:ring-0 focus-visible:border-lag-red/60"
             />
+            {q && (
+              <button
+                type="button"
+                onClick={() => setQ("")}
+                aria-label="Clear search"
+                className="shrink-0 rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:opacity-100 hover:text-foreground"
+              >
+                <X className="h-5 w-5" aria-hidden />
+              </button>
+            )}
           </div>
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="mt-4 flex flex-col gap-4">
             <FilterRow label="Category" options={CATEGORIES} value={category} onChange={setCategory} />
             <FilterRow label="Platform" options={PLATFORMS} value={platform} onChange={setPlatform} />
             <FilterRow label="Availability" options={DURATIONS} value={duration} onChange={setDuration} />
           </div>
         </DialogHeader>
 
-        <div className="max-h-[52vh] overflow-y-auto p-3">
+        <div className="max-h-[52vh] overflow-y-auto p-4">
           {empty ? (
-            <p className="px-2 py-8 text-center text-sm text-muted-foreground">
+            <p className="px-2 py-10 text-center text-sm text-muted-foreground">
               No results match your search or filters.
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {gameHits.length > 0 && (
                 <Group title="Games" icon={Gamepad2}>
                   {gameHits.map((g) => (
@@ -120,25 +129,32 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                       to="/games/$slug"
                       params={{ slug: g.slug }}
                       onClick={close}
-                      className="glass hover-lift flex items-center gap-3 rounded-2xl p-2.5"
+                      className="group flex items-center gap-4 rounded-2xl border border-border bg-surface-2/50 p-2.5 transition-all hover:border-lag-red/40 hover:bg-surface-2"
                     >
-                      {g.cover_url && (
-                        <img
-                          src={g.cover_url}
-                          alt=""
-                          loading="lazy"
-                          className="h-12 w-20 shrink-0 rounded-xl object-cover"
-                        />
+                      {g.cover_url ? (
+                        <span className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border shadow-lg">
+                          <img
+                            src={g.cover_url}
+                            alt=""
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                          />
+                        </span>
+                      ) : (
+                        <span className="grid h-16 w-16 shrink-0 place-items-center rounded-xl border border-border bg-surface shadow-lg">
+                          <Gamepad2 className="h-6 w-6 text-muted-foreground" aria-hidden />
+                        </span>
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-bold">{g.title}</span>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {g.genre} · {formatDate(g.release_date)}
+                        <span className="flex items-start justify-between gap-2">
+                          <span className="truncate font-display text-sm font-bold">{g.title}</span>
+                          <Badge className="shrink-0">{g.platform}</Badge>
                         </span>
-                      </span>
-                      <span className="shrink-0 text-right">
-                        <Badge tone="blue">{g.platform}</Badge>
-                        <span className="mt-1 block text-xs font-bold">
+                        <span className="mt-0.5 block truncate text-[10px] text-muted-foreground">
+                          {g.genre ? `${g.genre} · ` : ""}
+                          {formatDate(g.release_date)}
+                        </span>
+                        <span className="mt-1 block font-display text-sm font-bold">
                           {money(lowestGamePrice(g))}
                         </span>
                       </span>
@@ -153,15 +169,15 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                       key={p.id}
                       to="/ps-plus"
                       onClick={close}
-                      className="glass hover-lift flex items-center justify-between gap-3 rounded-2xl p-3"
+                      className="group flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface-2/50 p-3 transition-all hover:border-lag-blue/40 hover:bg-surface-2"
                     >
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-bold">
+                        <span className="block truncate font-display text-sm font-bold">
                           {p.name} · {p.duration}
                         </span>
-                        <span className="block text-xs text-muted-foreground">{p.region}</span>
+                        <span className="mt-0.5 block text-[10px] text-muted-foreground">{p.region}</span>
                       </span>
-                      <span className="shrink-0 text-sm font-bold">{money(p.price)}</span>
+                      <span className="shrink-0 font-display text-sm font-bold">{money(p.price)}</span>
                     </Link>
                   ))}
                 </Group>
@@ -173,15 +189,15 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                       key={o.id}
                       to="/ott"
                       onClick={close}
-                      className="glass hover-lift flex items-center justify-between gap-3 rounded-2xl p-3"
+                      className="group flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface-2/50 p-3 transition-all hover:border-lag-blue/40 hover:bg-surface-2"
                     >
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-bold">
+                        <span className="block truncate font-display text-sm font-bold">
                           {o.name} · {o.plan}
                         </span>
-                        <span className="block text-xs text-muted-foreground">{o.duration}</span>
+                        <span className="mt-0.5 block text-[10px] text-muted-foreground">{o.duration}</span>
                       </span>
-                      <span className="shrink-0 text-sm font-bold">{money(o.price)}</span>
+                      <span className="shrink-0 font-display text-sm font-bold">{money(o.price)}</span>
                     </Link>
                   ))}
                 </Group>
@@ -190,8 +206,8 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
           )}
         </div>
 
-        <div className="border-t border-border p-3">
-          <Button asChild variant="glass" className="w-full" onClick={close}>
+        <div className="border-t border-border p-4">
+          <Button asChild variant="glass" className="w-full rounded-2xl py-6 font-display text-xs font-bold uppercase tracking-[0.2em] transition-colors hover:border-lag-red/50" onClick={close}>
             <Link to="/games">Browse all games</Link>
           </Button>
         </div>
@@ -211,12 +227,20 @@ function Group({
 }) {
   return (
     <section>
-      <h3 className="mb-2 flex items-center gap-2 px-1 text-[11px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-        <Icon className="h-3.5 w-3.5" aria-hidden />
+      <h3 className="mb-3 flex items-center gap-2 px-1 font-display text-xs font-bold tracking-widest text-foreground/60 uppercase">
+        <Icon className="h-4 w-4 text-lag-blue" aria-hidden />
         {title}
       </h3>
-      <div className="space-y-2">{children}</div>
+      <div className="space-y-3">{children}</div>
     </section>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded border border-lag-blue/30 bg-lag-blue/20 px-1.5 py-0.5 text-[9px] font-bold tracking-tighter text-lag-blue uppercase">
+      {children}
+    </span>
   );
 }
 
@@ -232,26 +256,28 @@ function FilterRow<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-      <span className="w-20 shrink-0 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+    <div>
+      <span className="mb-2 ml-1 block text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
         {label}
       </span>
-      {options.map((o) => (
-        <button
-          key={o}
-          type="button"
-          onClick={() => onChange(o)}
-          aria-pressed={value === o}
-          className={cn(
-            "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
-            value === o
-              ? "border-lag-red/50 bg-lag-red/15 text-lag-red"
-              : "border-border text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {o}
-        </button>
-      ))}
+      <div className="no-scrollbar flex gap-2 overflow-x-auto pb-0.5">
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            onClick={() => onChange(o)}
+            aria-pressed={value === o}
+            className={cn(
+              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold transition-all",
+              value === o
+                ? "pill-glow border border-lag-red bg-lag-red text-primary-foreground"
+                : "border border-border bg-surface-2/60 text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
