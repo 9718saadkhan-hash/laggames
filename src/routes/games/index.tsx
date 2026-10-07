@@ -36,7 +36,7 @@ export const Route = createFileRoute("/games/")({
 });
 
 const SORTS = [
-  { key: "featured", label: "Featured" },
+  { key: "featured", label: "Recommended" },
   { key: "new", label: "Newest" },
   { key: "low", label: "Price: low to high" },
   { key: "high", label: "Price: high to low" },
@@ -46,8 +46,6 @@ const SORTS = [
 const TAGS = [
   { key: "all", label: "All" },
   { key: "trending", label: "Trending" },
-  { key: "hot_deal", label: "Hot deals" },
-  { key: "new_release", label: "New releases" },
 ] as const;
 
 const PAGE_SIZE = 12;
@@ -81,8 +79,6 @@ function GamesPage() {
       if (platform !== "all" && g.platform !== platform) return false;
       if (genre !== "all" && g.genre !== genre) return false;
       if (tag === "trending" && !g.trending) return false;
-      if (tag === "hot_deal" && !g.hot_deal) return false;
-      if (tag === "new_release" && !g.new_release) return false;
       if (maxPrice && Number.isFinite(cap)) {
         const low = lowestGamePrice(g);
         if (low === null || low > cap) return false;
@@ -97,7 +93,7 @@ function GamesPage() {
         const pb = lowestGamePrice(b) ?? Number.MAX_SAFE_INTEGER;
         return sort === "low" ? pa - pb : pb - pa;
       }
-      return Number(b.featured) - Number(a.featured) || compareGameOrder(a, b);
+      return compareGameOrder(a, b);
     });
     return list;
   }, [visible, q, platform, genre, tag, maxPrice, sort]);

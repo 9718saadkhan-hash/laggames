@@ -537,16 +537,7 @@ function AdminGamesPage() {
                       <Switch checked={g.trending} onCheckedChange={() => toggleField(g, "trending")} /> Trending
                     </label>
                     <label className="flex items-center gap-1.5">
-                      <Switch checked={g.hot_deal} onCheckedChange={() => toggleField(g, "hot_deal")} /> Hot Deal
-                    </label>
-                    <label className="flex items-center gap-1.5">
-                      <Switch checked={g.new_release} onCheckedChange={() => toggleField(g, "new_release")} /> New
-                    </label>
-                    <label className="flex items-center gap-1.5">
                       <Switch checked={Boolean(g.pre_order)} onCheckedChange={() => toggleField(g, "pre_order")} /> Pre-Order
-                    </label>
-                    <label className="flex items-center gap-1.5">
-                      <Switch checked={g.featured} onCheckedChange={() => toggleField(g, "featured")} /> Featured
                     </label>
                   </div>
                 </div>
@@ -874,16 +865,7 @@ function AdminGamesPage() {
                   <Switch checked={form.visible} onCheckedChange={(v) => setForm((f) => ({ ...f, visible: v }))} /> Visible
                 </label>
                 <label className="flex items-center gap-2 text-sm font-semibold">
-                  <Switch checked={form.featured} onCheckedChange={(v) => setForm((f) => ({ ...f, featured: v }))} /> Featured
-                </label>
-                <label className="flex items-center gap-2 text-sm font-semibold">
                   <Switch checked={form.trending} onCheckedChange={(v) => setForm((f) => ({ ...f, trending: v }))} /> Trending
-                </label>
-                <label className="flex items-center gap-2 text-sm font-semibold">
-                  <Switch checked={form.hot_deal} onCheckedChange={(v) => setForm((f) => ({ ...f, hot_deal: v }))} /> Hot Deal
-                </label>
-                <label className="flex items-center gap-2 text-sm font-semibold">
-                  <Switch checked={form.new_release} onCheckedChange={(v) => setForm((f) => ({ ...f, new_release: v }))} /> New Release
                 </label>
                 <label className="flex items-center gap-2 text-sm font-semibold">
                   <Switch checked={form.pre_order} onCheckedChange={(v) => setForm((f) => ({ ...f, pre_order: v }))} /> Pre-Order
