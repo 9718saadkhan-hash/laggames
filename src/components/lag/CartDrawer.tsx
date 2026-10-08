@@ -40,6 +40,10 @@ export function CartDrawer() {
   async function applyCoupon() {
     const code = codeInput.trim();
     if (!code) return;
+    if (!user) {
+      toast.error("Create an account or sign in to use coupon codes.");
+      return;
+    }
     setChecking(true);
     try {
       const r = await check({ data: { code, subtotal: total } });
@@ -59,6 +63,10 @@ export function CartDrawer() {
 
   async function checkout() {
     if (items.length === 0) return;
+    if (!user) {
+      toast.error("Create an account or sign in to checkout.");
+      return;
+    }
     setPlacing(true);
     const orderCode = `LAG-${Date.now().toString(36).toUpperCase()}`;
     let saved = false;

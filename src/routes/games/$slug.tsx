@@ -375,7 +375,7 @@ function GameDetailPage() {
               variant="hero"
               size="lg"
               onClick={() => {
-                addItem({
+                if (!addItem({
                   key: `game:${game.id}:${activeEdition?.id ?? "std"}:${activeAccount}:${activeDuration}`,
                   name: activeEdition ? `${game.title} — ${activeEdition.name}` : game.title,
                   price,
@@ -383,7 +383,7 @@ function GameDetailPage() {
                   productType: "Game",
                   productId: game.id,
                   option: `${activeAccount === "primary" ? "Primary" : "Secondary"} account · ${DURATION_LABEL[activeDuration]}`,
-                });
+                })) return;
                 toast.success(`${game.title} added to cart.`);
               }}
             >

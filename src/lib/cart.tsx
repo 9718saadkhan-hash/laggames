@@ -1,3 +1,6 @@
+import { toast } from "sonner";
+
+import { useAuth } from "@/lib/auth";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export interface CartItem {
@@ -15,7 +18,8 @@ interface CartContextValue {
   items: CartItem[];
   count: number;
   total: number;
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  /** Returns false (and asks to sign in) when no one is signed in. */
+  addItem: (item: Omit<CartItem, "quantity">) => boolean;
   changeQuantity: (key: string, quantity: number) => void;
   removeItem: (key: string) => void;
   clear: () => void;
@@ -26,6 +30,7 @@ const STORAGE_KEY = "lag-shopping-cart";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     try {
@@ -44,12 +49,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     items,
     count: items.reduce((sum, item) => sum + item.quantity, 0),
     total: items.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0),
-    addItem: (next) => setItems((current) => {
-      const existing = current.find((item) => item.key === next.key);
-      return existing
-        ? current.map((item) => item.key === next.key ? { ...item, quantity: item.quantity + 1 } : item)
-        : [...current, { ...next, quantity: 1 }];
-    }),
+    addItem: (next) => {
+      if (!user) {
+        toast.error("Create an account or sign in to add items to your cart.", {
+          action: { label: "Sign up", onClick: () => { window.location.href = "/register"; } },
+        });
+        return false;
+      }
+      setItems((current) => {
+        const existing = current.find((item) => item.key === next.key);
+        return existing
+          ? current.map((item) => item.key === next.key ? { ...item, quantity: item.quantity + 1 } : item)
+          : [...current, { ...next, quantity: 1 }];
+      });
+      return true;
+    },
     changeQuantity: (key, quantity) => setItems((current) =>
       quantity < 1
         ? current.filter((item) => item.key !== key)
@@ -57,7 +71,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     ),
     removeItem: (key) => setItems((current) => current.filter((item) => item.key !== key)),
     clear: () => setItems([]),
-  }), [items]);
+  }), [items, user]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
