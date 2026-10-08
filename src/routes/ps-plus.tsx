@@ -363,7 +363,7 @@ function PsPlusPage() {
                   size="lg"
                   className="w-full uppercase tracking-wide"
                   onClick={() => {
-                    addItem({
+                    if (!addItem({
                       key: `psplus:${selected.id}:${duration}`,
                       name: `PS Plus ${tier}`,
                       price,
@@ -371,7 +371,7 @@ function PsPlusPage() {
                       productType: "PS Plus",
                       productId: selected.id,
                       option: `${durationLabel} · ${selected.region} · ${selected.platform}`,
-                    });
+                    })) return;
                     toast.success(`PS Plus ${tier} added to cart.`);
                   }}
                 >

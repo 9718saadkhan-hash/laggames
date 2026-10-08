@@ -136,7 +136,7 @@ function OttPage() {
                       variant="hero"
                       className="w-full"
                       onClick={() => {
-                        addItem({
+                        if (!addItem({
                           key: `ott:${p.id}`,
                           name: p.name,
                           price: p.price,
@@ -144,7 +144,7 @@ function OttPage() {
                           productType: "OTT",
                           productId: p.id,
                           option: `${p.plan} · ${p.duration}`,
-                        });
+                        })) return;
                         toast.success(`${p.name} added to cart.`);
                       }}
                     >

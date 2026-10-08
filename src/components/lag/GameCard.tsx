@@ -52,7 +52,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
       void queryClient.invalidateQueries({ queryKey: ["wishlist"] });
     },
     onError: (e) =>
-      toast.error(e.message === "auth" ? "Sign in to save games to your wishlist." : e.message),
+      toast.error(e.message === "auth" ? "Create an account or sign in to save games to your wishlist." : e.message),
   });
 
   return (
@@ -115,7 +115,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
             variant="hero"
             size="sm"
             onClick={() => {
-              addItem({
+              if (!addItem({
                 key: `game:${game.id}`,
                 name: game.title,
                 price: from,
@@ -123,7 +123,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
                 productType: "Game",
                 productId: game.id,
                 option: "Choose account and duration on WhatsApp",
-              });
+              })) return;
               toast.success(`${game.title} added to cart.`);
             }}
           >
