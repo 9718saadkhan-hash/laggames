@@ -133,7 +133,7 @@ function GameDetailPage() {
   const { data: editions = [] } = useQuery(gameEditionsQuery(game?.id));
   const [editionId, setEditionId] = useState<string | null>(null);
   const [duration, setDuration] = useState<DurationKey>("30");
-  const [account, setAccount] = useState<AccountKey>("primary");
+  const [account, setAccount] = useState<AccountKey>("secondary");
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [trailerPlaying, setTrailerPlaying] = useState(false);
 
@@ -176,7 +176,7 @@ function GameDetailPage() {
   const priceSource: PriceSource = activeEdition ?? game;
   const oldPrice = activeEdition ? activeEdition.old_price : game.old_price;
   const hasAccountToggle = game.primary_available && game.secondary_available;
-  const activeAccount = account === "primary" && !game.primary_available ? "secondary" : account;
+  const activeAccount = account === "secondary" && !game.secondary_available ? "primary" : account;
   const availableDurations = (["30", "60", "permanent"] as DurationKey[]).filter(
     (d) => priceFor(priceSource, d, activeAccount) !== null,
   );
