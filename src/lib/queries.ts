@@ -17,6 +17,7 @@ import {
   type Review,
   type CustomerActivity,
   type CustomerSession,
+  slugify,
 } from "@/lib/lag";
 import { describeDevice, sortGamesByOrder } from "@/lib/lag";
 import type { MediaItem } from "@/lib/media";
@@ -333,7 +334,11 @@ export const dealBySlugQuery = (slug: string) =>
     queryFn: async () => {
       const res = await supabase.from("deals").select("*").eq("slug", slug).maybeSingle();
       if (res.error) throw new Error(res.error.message);
-      return res.data as Deal | null;
+      if (res.data) return res.data as Deal;
+      // Deals saved before slugs existed: match by slugified title.
+      const all = await supabase.from("deals").select("*");
+      if (all.error) throw new Error(all.error.message);
+      return ((all.data ?? []) as Deal[]).find((d) => slugify(d.title) === slug) ?? null;
     },
   });
 
