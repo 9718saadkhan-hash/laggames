@@ -27,7 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { formatDate, type Deal } from "@/lib/lag";
+import { formatDate, slugify, type Deal } from "@/lib/lag";
 import { dealGamesQuery, dealsQuery, gamesQuery, logActivity } from "@/lib/queries";
 
 export const Route = createFileRoute("/admin/deals")({
@@ -103,6 +103,7 @@ function toPayload(f: F) {
   if (!f.title.trim()) throw new Error("Deal title is required.");
   return {
     title: f.title.trim(),
+    slug: slugify(f.title),
     subtitle: f.subtitle.trim() || null,
     description: f.description.trim() || null,
     image_url: f.image_url || null,
