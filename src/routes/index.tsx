@@ -531,6 +531,16 @@ function GameRow({
           ))}
         </div>
       )}
+      {!loading && games.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <Button asChild variant="hero" size="lg">
+            <Link to="/games">
+              View all games
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
