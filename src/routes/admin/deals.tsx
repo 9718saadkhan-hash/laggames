@@ -134,6 +134,7 @@ function AdminDealsPage() {
   const [form, setForm] = useState<F>(EMPTY);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [gameQuery, setGameQuery] = useState("");
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["deals"] });
@@ -438,11 +439,20 @@ function AdminDealsPage() {
 
               <div className="space-y-2">
                 <Label>Games in this deal</Label>
+                <Input
+                  value={gameQuery}
+                  onChange={(e) => setGameQuery(e.target.value)}
+                  placeholder="Search games…"
+                />
                 <div className="glass max-h-48 overflow-y-auto rounded-2xl p-3">
                   {games.length === 0 ? (
                     <p className="text-xs text-muted-foreground">No games in the catalogue yet.</p>
                   ) : (
-                    games.map((g) => {
+                    games
+                      .filter((g) =>
+                        g.title.toLowerCase().includes(gameQuery.trim().toLowerCase()),
+                      )
+                      .map((g) => {
                       const checked = form.gameIds.includes(g.id);
                       return (
                         <label
