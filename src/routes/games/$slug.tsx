@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { GameCard } from "@/components/lag/GameCard";
+import { ReleaseCountdown } from "@/components/lag/ReleaseCountdown";
 import { Badge, EmptyState, GlassIcon, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -252,6 +253,7 @@ function GameDetailPage() {
           <Badge>{game.availability}</Badge>
         </div>
         <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">{game.title}</h1>
+        {game.pre_order && <ReleaseCountdown releaseDate={game.release_date} />}
         {game.short_description && (
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">{game.short_description}</p>
         )}

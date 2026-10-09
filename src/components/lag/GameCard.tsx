@@ -5,6 +5,7 @@ import { createContext, memo, useContext, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ReleaseCountdown } from "@/components/lag/ReleaseCountdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -104,6 +105,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
         <h3 className="min-w-0 truncate font-display text-base font-bold">{game.title}</h3>
+        {game.pre_order && <ReleaseCountdown releaseDate={game.release_date} compact />}
         <span className="mt-1 font-display text-lg font-bold">{money(from)}</span>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Button asChild variant="glass" size="sm">

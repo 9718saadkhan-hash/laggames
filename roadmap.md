@@ -1,6 +1,7 @@
 # LAG upgrade roadmap
 
 ## Done
+- Live pre-order release countdowns on game cards and detail pages using saved release dates
 - Fixed the current SEO metadata, social preview, structured-data, and sitemap findings; Search Console setup follows publication
 - Added a real branded homepage loading gate that fetches only critical first-screen data, preloads its images, and reveals the page safely without affecting admin routes
 - Photo/video picking from device with crop + zoom editor, focal-point control
