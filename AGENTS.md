@@ -18,3 +18,4 @@
 - Throttle the automatic unused-media cleanup (30s debounce, at most every 10 minutes, never on admin page open) because its full-content scan can overload the database.
 - Load the admin games list without photos/descriptions and save only changed fields, so edits never re-send large images.
 - Validate and redeem coupons only through server functions calling admin-only database functions, so coupon codes can never be listed or edited by customers.
+- Use a shared client clock and a pure date helper for pre-order countdowns; keep release dates in lightweight card queries so timers need no extra requests.
