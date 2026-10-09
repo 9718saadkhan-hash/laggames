@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowRight,
   BadgeCheck,
   Check,
   Flame,
@@ -528,6 +529,16 @@ function GameRow({
           {games.map((g, index) => (
             <GameCard key={g.id} game={g} priority={index < 4} />
           ))}
+        </div>
+      )}
+      {!loading && games.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <Button asChild variant="hero" size="lg">
+            <Link to="/games">
+              View all games
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
         </div>
       )}
     </section>
