@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2, ImageIcon, RotateCcw, ArrowDownAZ } from "lucide-react";
+import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2, ImageIcon, RotateCcw, ArrowDownAZ, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -391,6 +391,27 @@ function AdminGamesPage() {
       toast.error(e instanceof Error ? e.message : "Could not sort games.");
     } finally {
       setSorting(false);
+    }
+  }
+
+  const [stocking, setStocking] = useState(false);
+
+  /** One click: mark every game as having both Primary and Secondary accounts in stock. */
+  async function setAllInStock() {
+    setStocking(true);
+    try {
+      const { data, error } = await supabase.rpc("set_all_games_in_stock");
+      if (error) throw error;
+      invalidate();
+      toast.success(
+        data && data > 0
+          ? `${data} game${data === 1 ? "" : "s"} updated — every game now has Primary and Secondary in stock.`
+          : "Every game already had Primary and Secondary in stock.",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update stock.");
+    } finally {
+      setStocking(false);
     }
   }
 
