@@ -212,7 +212,7 @@ export const DEFAULT_CONTACT = {
   tagline: "BEST GAMES. BEST SERVICE. BEST EXPERIENCE.",
   whatsapp: "919915882125",
   whatsapp_display: "+91 9915882125",
-  instagram: "lag_prince",
+  instagram: "thelaggames",
   whatsapp_group: "https://chat.whatsapp.com/FhEYxa03iI0GxJ3K2Ke6sL",
 };
 
