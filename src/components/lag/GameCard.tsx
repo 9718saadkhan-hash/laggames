@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { ReleaseCountdown } from "@/components/lag/ReleaseCountdown";
+import { TrailerLightbox } from "@/components/lag/TrailerLightbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -64,6 +65,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
       )}
     >
 
+      <div className="relative">
       <Link
         to="/games/$slug"
         params={{ slug: game.slug }}
@@ -92,6 +94,8 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
           </span>
         )}
       </Link>
+      <TrailerLightbox title={game.title} url={game.trailer_url} />
+      </div>
 
       <button
         type="button"
