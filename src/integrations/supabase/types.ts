@@ -1219,6 +1219,7 @@ export type Database = {
         }[]
       }
       reorder_games_alphabetical: { Args: never; Returns: number }
+      set_all_games_in_stock: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "customer"

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2, ImageIcon, RotateCcw, ArrowDownAZ } from "lucide-react";
+import { Plus, Pencil, Copy, Trash2, Gamepad2, Layers, Sparkles, Loader2, ImageIcon, RotateCcw, ArrowDownAZ, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -394,6 +394,27 @@ function AdminGamesPage() {
     }
   }
 
+  const [stocking, setStocking] = useState(false);
+
+  /** One click: mark every game as having both Primary and Secondary accounts in stock. */
+  async function setAllInStock() {
+    setStocking(true);
+    try {
+      const { data, error } = await supabase.rpc("set_all_games_in_stock");
+      if (error) throw error;
+      invalidate();
+      toast.success(
+        data && data > 0
+          ? `${data} game${data === 1 ? "" : "s"} updated — every game now has Primary and Secondary in stock.`
+          : "Every game already had Primary and Secondary in stock.",
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update stock.");
+    } finally {
+      setStocking(false);
+    }
+  }
+
   function openCreate() {
     setEditingId(null);
     setForm(EMPTY_FORM);
@@ -529,6 +550,27 @@ function AdminGamesPage() {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={sortAlphabetical}>Sort A–Z</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="glass" disabled={stocking}>
+                    {stocking ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageCheck className="h-4 w-4" />}
+                    All In Stock
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Mark every game in stock?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Every game will be set to In Stock with both Primary and Secondary accounts available. Games
+                      that are currently Primary-only or Secondary-only will offer both.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={setAllInStock}>Set all in stock</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
