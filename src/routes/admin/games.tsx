@@ -553,6 +553,27 @@ function AdminGamesPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="glass" disabled={stocking}>
+                    {stocking ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageCheck className="h-4 w-4" />}
+                    All In Stock
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Mark every game in stock?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Every game will be set to In Stock with both Primary and Secondary accounts available. Games
+                      that are currently Primary-only or Secondary-only will offer both.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={setAllInStock}>Set all in stock</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button variant="hero" onClick={openCreate}>
                 <Plus className="h-4 w-4" /> Add Game
               </Button>
