@@ -22,6 +22,13 @@
       "when": 1791669028436,
       "tag": "0002_guard_set_all_games_in_stock_admin_only",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791669044474,
+      "tag": "0003_fix_in_stock_label",
+      "breakpoints": true
     }
   ]
 }
