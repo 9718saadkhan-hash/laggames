@@ -30,7 +30,10 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
   const { addItem } = useCart();
   const queryClient = useQueryClient();
   const savedIds = useContext(WishlistContext);
-  const saved = savedIds?.has(game.id) ?? false;
+  // Fallback for cards rendered outside GameCardsWishlistProvider (home, deals,
+  // recommended): same query key, so it shares the cache and never double-fetches.
+  const { data: ownWishlist = [] } = useQuery({ ...wishlistQuery(user?.id), enabled: savedIds === null });
+  const saved = savedIds ? savedIds.has(game.id) : ownWishlist.some((item) => item.game_id === game.id);
   const from = lowestGamePrice(game);
 
   const toggle = useMutation({
