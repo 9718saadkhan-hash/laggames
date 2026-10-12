@@ -37,7 +37,7 @@ export function PsPlusComparison({ selectedTier, prices, available, durationLabe
             <tr className="border-b border-border bg-muted/30">
               <th scope="col" className="p-2 text-left font-medium text-muted-foreground sm:p-4">Benefits</th>
               {COMPARISON_TIERS.map((tier, index) => {
-                const Icon = icons[index];
+                const Icon = icons[index] ?? Sparkles;
                 return <th key={tier} scope="col" className={cn("px-1 py-4 sm:p-4", selectedTier === tier && selectedCells[index])}>
                   <Icon className={cn("mx-auto mb-2 h-5 w-5", accents[index])} aria-hidden />
                   <span className={cn("block font-display text-[11px] font-bold sm:text-base", accents[index])}>{tier}</span>
