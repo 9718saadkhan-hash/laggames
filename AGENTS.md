@@ -20,3 +20,4 @@
 - Validate and redeem coupons only through server functions calling admin-only database functions, so coupon codes can never be listed or edited by customers.
 - Use a shared client clock and a pure date helper for pre-order countdowns; keep release dates in lightweight card queries so timers need no extra requests.
 - Keep card trailer URLs in lightweight queries and mount supported video players only while their dialog is open, so browsing downloads no trailer media and closing stops playback.
+- Keep PS Plus comparison benefits in a tested browser-safe module and reuse the page's tier/duration state and prices, so comparison selection never creates a separate purchase state.

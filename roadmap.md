@@ -1,6 +1,7 @@
 # LAG upgrade roadmap
 
 ## Done
+- Interactive PS Plus tier comparison with differences filter, current-duration prices and membership selection
 - Quick trailer lightbox on game cards, with on-demand playback and no catalogue navigation
 - Live pre-order release countdowns on game cards and detail pages using saved release dates
 - Fixed the current SEO metadata, social preview, structured-data, and sitemap findings; Search Console setup follows publication

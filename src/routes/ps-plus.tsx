@@ -16,6 +16,7 @@ import { useCart } from "@/lib/cart";
 import { useMemo, useState, type ElementType } from "react";
 
 import { Badge, EmptyState, Reveal } from "@/components/lag/ui-bits";
+import { PsPlusComparison } from "@/components/lag/PsPlusComparison";
 import { Button } from "@/components/ui/button";
 import {
   PS_PLUS_DURATIONS,
@@ -248,7 +249,7 @@ function PsPlusPage() {
           </div>
 
           {selected && (
-            <div className="glass-strong relative mt-5 overflow-hidden rounded-[2rem] p-5 sm:p-7">
+            <div id="ps-plus-selection" className="glass-strong relative mt-5 scroll-mt-24 overflow-hidden rounded-[2rem] p-5 sm:p-7">
               {/* Accent light bleeding in from the corner. */}
               <div
                 aria-hidden
@@ -387,6 +388,16 @@ function PsPlusPage() {
               </div>
             </div>
           )}
+          <PsPlusComparison
+            selectedTier={tier}
+            durationLabel={durationLabel}
+            prices={{ Essential: money(priceFor(byTier.get("Essential") ?? null, duration)), Extra: money(priceFor(byTier.get("Extra") ?? null, duration)), Deluxe: money(priceFor(byTier.get("Deluxe") ?? null, duration)) }}
+            available={{ Essential: byTier.has("Essential"), Extra: byTier.has("Extra"), Deluxe: byTier.has("Deluxe") }}
+            onSelect={(value) => {
+              setTier(value);
+              document.getElementById("ps-plus-selection")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+            }}
+          />
         </>
       )}
     </div>
