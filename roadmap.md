@@ -1,9 +1,7 @@
 # LAG upgrade roadmap
 
-## In progress
-- Live PS Plus Extra / Deluxe monthly additions from verified Sony announcements, with month status, tier filters and safe unavailable states
-
 ## Done
+- Live PS Plus Extra / Deluxe monthly additions from verified Sony announcements, with month status, tier filters and safe unavailable states; tested live feed and desktop/phone views
 - Interactive PS Plus tier comparison with differences filter, current-duration prices and membership selection
 - Quick trailer lightbox on game cards, with on-demand playback and no catalogue navigation
 - Live pre-order release countdowns on game cards and detail pages using saved release dates

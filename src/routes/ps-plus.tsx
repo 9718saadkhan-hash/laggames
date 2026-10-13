@@ -17,6 +17,7 @@ import { useMemo, useState, type ElementType } from "react";
 
 import { Badge, EmptyState, Reveal } from "@/components/lag/ui-bits";
 import { PsPlusComparison } from "@/components/lag/PsPlusComparison";
+import { PsPlusMonthlyRoster } from "@/components/lag/PsPlusMonthlyRoster";
 import { Button } from "@/components/ui/button";
 import {
   PS_PLUS_DURATIONS,
@@ -39,12 +40,12 @@ export const Route = createFileRoute("/ps-plus")({
       {
         name: "description",
         content:
-          "Buy PlayStation Plus Essential, Extra and Deluxe memberships at LAG prices. Pick 1, 3 or 12 months and order on WhatsApp.",
+          "Compare PlayStation Plus memberships and discover verified monthly Extra and Deluxe game additions. Choose 1, 3 or 12 months at LAG prices.",
       },
       { property: "og:title", content: "PS Plus Subscriptions — LAG LIVE AS GAMERS" },
       {
         property: "og:description",
-        content: "Essential, Extra and Deluxe memberships for 1, 3 or 12 months — delivered fast over WhatsApp.",
+        content: "Compare Essential, Extra and Deluxe memberships, browse Sony’s monthly Game Catalog additions and order through LAG.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://thelaggames.com/ps-plus" },
@@ -400,6 +401,7 @@ function PsPlusPage() {
           />
         </>
       )}
+      <PsPlusMonthlyRoster />
     </div>
   );
 }
