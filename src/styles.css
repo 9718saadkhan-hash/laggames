@@ -499,3 +499,16 @@
     animation: none !important;
   }
 }
+
+/* Fixed ambient backdrop: own compositor layer, never triggers page layout/paint. */
+.backdrop-layer {
+  contain: strict;
+  transform: translateZ(0);
+}
+/* Touch devices: ambient motion is already off, so release its reserved GPU layers. */
+@media (hover: none) and (pointer: coarse) {
+  .ambient-orb,
+  .ambient-particles {
+    will-change: auto;
+  }
+}
