@@ -18,11 +18,16 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 
 import { FloatingWhatsApp } from "@/components/lag/FloatingWhatsApp";
 import { CartDrawer } from "@/components/lag/CartDrawer";
-import { SearchDialog } from "@/components/lag/SearchDialog";
+
+// Loaded on demand so the search UI stays out of the initial bundle.
+const SearchDialog = lazy(() =>
+  import("@/components/lag/SearchDialog").then((m) => ({ default: m.SearchDialog })),
+);
+const preloadSearchDialog = () => void import("@/components/lag/SearchDialog");
 import { Logo } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
 import {
@@ -137,6 +142,8 @@ function Header() {
               variant="nav"
               size="icon"
               aria-label="Search"
+              onPointerEnter={preloadSearchDialog}
+              onFocus={preloadSearchDialog}
               onClick={() => setSearchOpen(true)}
               className="h-9 w-9"
             >
@@ -261,7 +268,11 @@ function Header() {
         )}
       </header>
 
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+        </Suspense>
+      )}
     </>
   );
 }
