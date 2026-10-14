@@ -499,3 +499,20 @@
     animation: none !important;
   }
 }
+
+/* Fixed ambient backdrop: own compositor layer, never triggers page layout/paint. */
+.backdrop-layer {
+  contain: strict;
+  transform: translateZ(0);
+}
+/* Images decode off the main thread and never overflow their reserved box. */
+img {
+  content-visibility: auto;
+}
+/* Pause decorative ambient motion while the tab is hidden or the page is scrolled on low-power devices. */
+@media (hover: none) and (pointer: coarse) {
+  .ambient-orb,
+  .ambient-particles {
+    will-change: auto;
+  }
+}

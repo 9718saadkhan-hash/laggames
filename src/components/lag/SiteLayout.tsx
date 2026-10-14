@@ -74,7 +74,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
 function BackdropGlow() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div aria-hidden className="backdrop-layer pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div className="ambient-orb -top-40 -left-32 h-[26rem] w-[26rem] bg-lag-red/15" />
       <div className="ambient-orb top-1/3 -right-40 h-[30rem] w-[30rem] bg-lag-blue/15 [animation-delay:-12s]" />
       <div className="ambient-orb bottom-0 left-1/3 h-[22rem] w-[22rem] bg-lag-blue/10 [animation-delay:-6s]" />
@@ -90,10 +90,20 @@ function Header() {
   const { user, profile, isAdmin, signOut } = useAuth();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
-    onScroll();
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 16);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (
