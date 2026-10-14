@@ -505,11 +505,7 @@
   contain: strict;
   transform: translateZ(0);
 }
-/* Images decode off the main thread and never overflow their reserved box. */
-img {
-  content-visibility: auto;
-}
-/* Pause decorative ambient motion while the tab is hidden or the page is scrolled on low-power devices. */
+/* Touch devices: ambient motion is already off, so release its reserved GPU layers. */
 @media (hover: none) and (pointer: coarse) {
   .ambient-orb,
   .ambient-particles {
