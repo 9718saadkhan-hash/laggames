@@ -23,7 +23,8 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
+    // Keep preloaded routes fresh for a minute so repeated hovers don't refetch.
+    defaultPreloadStaleTime: 60_000,
   });
 
   return router;
