@@ -142,6 +142,8 @@ function Header() {
               variant="nav"
               size="icon"
               aria-label="Search"
+              onPointerEnter={preloadSearchDialog}
+              onFocus={preloadSearchDialog}
               onClick={() => setSearchOpen(true)}
               className="h-9 w-9"
             >
@@ -266,7 +268,11 @@ function Header() {
         )}
       </header>
 
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+        </Suspense>
+      )}
     </>
   );
 }
