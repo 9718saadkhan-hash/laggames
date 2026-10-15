@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { cardCoverSize } from "./card-cover";
+import { cardCoverEligible, cardCoverSize } from "./card-cover";
 
 test("shrinks a 1024x1536 cover to 360x540 keeping the ratio", () => {
   assert.deepEqual(cardCoverSize(1024, 1536), { width: 360, height: 540 });
