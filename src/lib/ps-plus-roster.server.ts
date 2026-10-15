@@ -32,7 +32,7 @@ async function refresh(): Promise<RosterResponse> {
     if (!roster && essential) roster = { month: essential.month, sourceUrl: essential.link || "https://blog.playstation.com/category/ps-plus/", publishedAt: now.toISOString(), availability: null, games: [] };
     if (!roster) throw new Error("No verified roster");
     if (essential && essential.month === roster.month) {
-      roster = { ...roster, games: [...essential.titles.map((title) => ({ title, platforms: "PS5, PS4", category: "essential" as const, note: null })), ...roster.games] };
+      roster = { ...roster, games: [...essential.titles.map((title) => ({ title, platforms: "", category: "essential" as const, note: null })), ...roster.games] };
     }
     const result: RosterResponse = { roster, checkedAt: now.toISOString(), stale: false };
     cache = { result, expiresAt: now.getTime() + 60 * 60_000 };
