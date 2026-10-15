@@ -128,10 +128,10 @@ function GamesPage() {
       new Promise<void>((resolve) => {
         const image = new Image();
         const finish = () => resolve();
-        image.onload = finish;
-        image.onerror = finish;
+        image.decoding = "async";
         image.src = src;
-        if (image.complete) finish();
+        // Decode before reveal so 12 covers don't decode on the main thread at once.
+        image.decode().then(finish, finish);
       });
 
     void Promise.all(covers.map(preload)).then(() => {
