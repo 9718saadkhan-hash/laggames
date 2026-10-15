@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Gamepad2, LoaderCircle, Search, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { GameCard, GameCardsWishlistProvider } from "@/components/lag/GameCard";
 import { EmptyState, SectionHeading } from "@/components/lag/ui-bits";
@@ -70,8 +70,10 @@ function GamesPage() {
     [visible],
   );
 
+  // Typing stays instant; the catalogue filter runs at lower priority.
+  const deferredQ = useDeferredValue(q);
   const results = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = deferredQ.trim().toLowerCase();
     const cap = Number(maxPrice);
     let list = visible.filter((g) => {
       if (needle && !`${g.title} ${g.genre ?? ""} ${g.publisher ?? ""}`.toLowerCase().includes(needle))
@@ -96,11 +98,11 @@ function GamesPage() {
       return compareGameOrder(a, b);
     });
     return list;
-  }, [visible, q, platform, genre, tag, maxPrice, sort]);
+  }, [visible, deferredQ, platform, genre, tag, maxPrice, sort]);
 
   useEffect(() => {
     setPage(1);
-  }, [q, platform, genre, tag, maxPrice, sort]);
+  }, [deferredQ, platform, genre, tag, maxPrice, sort]);
 
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);

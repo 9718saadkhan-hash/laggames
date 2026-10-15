@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Heart, ShoppingCart } from "lucide-react";
-import { createContext, memo, useContext, type ReactNode } from "react";
+import { createContext, memo, useContext, useMemo, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,8 @@ const WishlistContext = createContext<Set<string> | null>(null);
 export function GameCardsWishlistProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { data = [] } = useQuery(wishlistQuery(user?.id));
-  const savedIds = new Set(data.map((item) => item.game_id));
+  // Stable Set identity so memoised cards don't all re-render on unrelated parent renders.
+  const savedIds = useMemo(() => new Set(data.map((item) => item.game_id)), [data]);
   return <WishlistContext.Provider value={savedIds}>{children}</WishlistContext.Provider>;
 }
 
