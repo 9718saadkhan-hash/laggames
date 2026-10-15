@@ -162,10 +162,10 @@ function HomePage() {
           settled = true;
           resolve();
         };
-        image.onload = finish;
-        image.onerror = finish;
+        image.decoding = "async";
         image.src = src;
-        if (image.complete) finish();
+        // decode() finishes image decoding off the main thread before reveal, so cards paint without a hitch.
+        image.decode().then(finish, finish);
       });
       if (!cancelled) setLoadedImages((count) => count + 1);
     };

@@ -489,9 +489,6 @@
 .catalog-card {
   contain: layout paint style;
 }
-.catalog-card img {
-  transform: translateZ(0);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-orb,
