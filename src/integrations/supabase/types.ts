@@ -452,6 +452,7 @@ export type Database = {
           availability: string
           banner_position: string | null
           banner_url: string | null
+          card_cover_url: string | null
           cover_position: string | null
           cover_url: string | null
           created_at: string
@@ -499,6 +500,7 @@ export type Database = {
           availability?: string
           banner_position?: string | null
           banner_url?: string | null
+          card_cover_url?: string | null
           cover_position?: string | null
           cover_url?: string | null
           created_at?: string
@@ -546,6 +548,7 @@ export type Database = {
           availability?: string
           banner_position?: string | null
           banner_url?: string | null
+          card_cover_url?: string | null
           cover_position?: string | null
           cover_url?: string | null
           created_at?: string

@@ -21,6 +21,7 @@ import { ImageUploadField } from "@/components/lag/ImageUploadField";
 import { SectionHeading, EmptyState, Badge } from "@/components/lag/ui-bits";
 import { supabase } from "@/integrations/supabase/client";
 import { adminGamesListQuery, gameCoversQuery } from "@/lib/queries";
+import { makeCardCover } from "@/lib/card-cover";
 import { useMemo, useRef } from "react";
 
 function AdminCover({ id, chunk, title }: { id: string; chunk: string[]; title: string }) {
@@ -395,6 +396,39 @@ function AdminGamesPage() {
   }
 
   const [stocking, setStocking] = useState(false);
+  const [carding, setCarding] = useState(false);
+  const [cardProgress, setCardProgress] = useState("");
+
+  /** Builds light card copies (same shape, full picture) for every game cover, one at a time. */
+  async function makeAllCardCovers() {
+    setCarding(true);
+    let done = 0;
+    let failed = 0;
+    try {
+      const { data: ids, error } = await supabase.from("games").select("id").not("cover_url", "is", null);
+      if (error) throw error;
+      for (const { id } of ids ?? []) {
+        setCardProgress(`${done + failed + 1}/${ids!.length}`);
+        try {
+          const { data: row } = await supabase.from("games").select("cover_url").eq("id", id).single();
+          const card = row?.cover_url ? await makeCardCover(row.cover_url) : null;
+          if (!card) throw new Error();
+          const { error: upErr } = await supabase.from("games").update({ card_cover_url: card }).eq("id", id);
+          if (upErr) throw upErr;
+          done++;
+        } catch {
+          failed++;
+        }
+      }
+      invalidate();
+      toast.success(`${done} card pictures ready${failed ? `, ${failed} could not be made` : ""}.`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not make card pictures.");
+    } finally {
+      setCarding(false);
+      setCardProgress("");
+    }
+  }
 
   /** One click: mark every game as having both Primary and Secondary accounts in stock. */
   async function setAllInStock() {
@@ -458,12 +492,18 @@ function AdminGamesPage() {
           setOpen(false);
           return;
         }
+        if ("cover_url" in changes) {
+          (changes as Record<string, unknown>)["card_cover_url"] = payload.cover_url
+            ? await makeCardCover(payload.cover_url).catch(() => null)
+            : null;
+        }
         const { data, error } = await supabase.from("games").update(changes as typeof payload).eq("id", editingId).select("id");
         if (error) throw error;
         if (!data?.length) throw new Error("The game was not saved. Please sign in again as admin.");
         toast.success("Product updated successfully.");
       } else {
-        const { error } = await supabase.from("games").insert(payload);
+        const card_cover_url = payload.cover_url ? await makeCardCover(payload.cover_url).catch(() => null) : null;
+        const { error } = await supabase.from("games").insert({ ...payload, card_cover_url });
         if (error) throw error;
         toast.success("Game added successfully.");
       }
@@ -574,6 +614,10 @@ function AdminGamesPage() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <Button variant="glass" disabled={carding} onClick={makeAllCardCovers}>
+                {carding ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                {carding ? `Card pictures ${cardProgress}` : "Light Card Pictures"}
+              </Button>
               <Button variant="hero" onClick={openCreate}>
                 <Plus className="h-4 w-4" /> Add Game
               </Button>
