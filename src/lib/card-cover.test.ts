@@ -10,13 +10,14 @@ test("never enlarges a small cover", () => {
   assert.deepEqual(cardCoverSize(300, 450), { width: 300, height: 450 });
 });
 
-test("covers up to 720p are eligible for a light card copy", () => {
+test("covers up to 1080p are eligible for a light card copy", () => {
+  assert.equal(cardCoverEligible(1080, 1920), true);
   assert.equal(cardCoverEligible(720, 1280), true);
   assert.equal(cardCoverEligible(720, 720), true);
   assert.equal(cardCoverEligible(360, 540), true);
 });
 
-test("covers larger than 720p are skipped", () => {
-  assert.equal(cardCoverEligible(1024, 1536), false);
-  assert.equal(cardCoverEligible(721, 100), false);
+test("covers larger than 1080p are skipped", () => {
+  assert.equal(cardCoverEligible(1536, 2048), false);
+  assert.equal(cardCoverEligible(1081, 100), false);
 });
