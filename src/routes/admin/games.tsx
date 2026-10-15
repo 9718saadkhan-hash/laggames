@@ -493,7 +493,7 @@ function AdminGamesPage() {
           return;
         }
         if ("cover_url" in changes) {
-          (changes as Record<string, unknown>).card_cover_url = payload.cover_url
+          (changes as Record<string, unknown>)["card_cover_url"] = payload.cover_url
             ? await makeCardCover(payload.cover_url).catch(() => null)
             : null;
         }
