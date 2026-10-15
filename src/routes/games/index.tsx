@@ -214,7 +214,7 @@ function GamesPage() {
         </div>
 
         {showFilters && (
-          <div className="mt-5 grid gap-4 border-t border-border pt-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="animate-in fade-in slide-in-from-top-2 mt-5 grid gap-4 border-t border-border pt-5 duration-200 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Label htmlFor="f-platform">Platform</Label>
               <select

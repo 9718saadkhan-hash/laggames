@@ -64,7 +64,7 @@ function GameCardBase({ game, className, priority = false }: { game: Game; class
   return (
     <article
       className={cn(
-        "glass catalog-card hover-lift card-perf group relative flex flex-col overflow-hidden rounded-2xl",
+        "glass catalog-card hover-lift group relative flex flex-col overflow-hidden rounded-2xl",
         className,
       )}
     >
