@@ -4,9 +4,9 @@ export const CARD_COVER_WIDTH = 360;
 /** The light-card option only applies to covers up to 720p; larger covers are skipped. */
 export const CARD_COVER_MAX_SOURCE = 720;
 
-/** True when a cover qualifies for a light card copy (longest edge up to 720px). */
-export function cardCoverEligible(width: number, height: number, max = CARD_COVER_MAX_SOURCE) {
-  return Math.max(width, height) <= max;
+/** True when a cover qualifies for a light card copy (cover width up to 720px, i.e. 720p). */
+export function cardCoverEligible(width: number, _height: number, max = CARD_COVER_MAX_SOURCE) {
+  return width <= max;
 }
 
 /** Width/height for the light copy — never enlarges, keeps the exact ratio. */
