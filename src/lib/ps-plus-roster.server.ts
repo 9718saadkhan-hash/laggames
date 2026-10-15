@@ -1,5 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
-import { parseRosterPost, SONY_PLUS_FEED, type RosterResponse } from "./ps-plus-roster";
+import { parseEssentialPost, parseRosterPost, SONY_PLUS_FEED, type RosterResponse } from "./ps-plus-roster";
 
 let cache: { result: RosterResponse; expiresAt: number } | null = null;
 let pending: Promise<RosterResponse> | null = null;
@@ -7,7 +7,7 @@ let pending: Promise<RosterResponse> | null = null;
 async function refresh(): Promise<RosterResponse> {
   const now = new Date();
   try {
-    const response = await fetch(SONY_PLUS_FEED, { signal: AbortSignal.timeout(6000), headers: { Accept: "application/rss+xml, application/xml, text/xml" }, redirect: "error" });
+    const response = await fetch(SONY_PLUS_FEED, { signal: AbortSignal.timeout(10000), headers: { "User-Agent": "Mozilla/5.0 (compatible; LAGGamesBot/1.0; +https://thelaggames.com)", Accept: "application/rss+xml, application/xml, text/xml" }, redirect: "follow" });
     if (!response.ok) throw new Error("Feed unavailable");
     const xml = await response.text();
     if (xml.length > 2_000_000) throw new Error("Feed too large");
@@ -21,8 +21,20 @@ async function refresh(): Promise<RosterResponse> {
       const roster = parseRosterPost({ title: String(row['title']), link: String(row['link']), pubDate: String(row['pubDate']), content: String(row['content:encoded']) }, now);
       return roster ? [roster] : [];
     }).sort((a, b) => b.month.localeCompare(a.month) || b.publishedAt.localeCompare(a.publishedAt));
-    if (!rosters[0]) throw new Error("No verified roster");
-    const result: RosterResponse = { roster: rosters[0], checkedAt: now.toISOString(), stale: false };
+    const essentials = items.flatMap((item) => {
+      const row = (item ?? {}) as Record<string, unknown>;
+      if (typeof row['title'] !== "string" || typeof row['pubDate'] !== "string") return [];
+      const e = parseEssentialPost({ title: row['title'], pubDate: row['pubDate'] }, now);
+      return e ? [{ ...e, link: typeof row['link'] === "string" ? row['link'] : "" }] : [];
+    }).sort((a, b) => b.month.localeCompare(a.month));
+    let roster = rosters[0] ?? null;
+    const essential = essentials.find((e) => !roster || e.month === roster.month) ?? null;
+    if (!roster && essential) roster = { month: essential.month, sourceUrl: essential.link || "https://blog.playstation.com/category/ps-plus/", publishedAt: now.toISOString(), availability: null, games: [] };
+    if (!roster) throw new Error("No verified roster");
+    if (essential && essential.month === roster.month) {
+      roster = { ...roster, games: [...essential.titles.map((title) => ({ title, platforms: "PS5, PS4", category: "essential" as const, note: null })), ...roster.games] };
+    }
+    const result: RosterResponse = { roster, checkedAt: now.toISOString(), stale: false };
     cache = { result, expiresAt: now.getTime() + 60 * 60_000 };
     return result;
   } catch {

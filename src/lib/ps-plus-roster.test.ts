@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { currentRosterMonth, parseRosterPost, rosterGames } from "./ps-plus-roster";
+import { currentRosterMonth, parseEssentialPost, parseRosterPost, rosterGames } from "./ps-plus-roster";
 
 const now = new Date("2026-10-12T19:13:00Z");
 const post = {
@@ -33,4 +33,7 @@ test("retains specific release exceptions and labels September as September, not
 test("only official HTTPS Sony posts, published by now, can populate roster", () => {
   assert.equal(parseRosterPost({ ...post, link: "https://example.com/" }, now), null);
   assert.equal(parseRosterPost({ ...post, pubDate: "Wed, 14 Oct 2026 15:30:00 +0000" }, now), null);
+});test("Essential games are read from Sony's Monthly Games headline and show in every tier", () => {
+  const e = parseEssentialPost({ title: "PlayStation Plus Monthly Games for October: F1 25, Hunt: Showdown 1896, Earth Defense Force: World Brothers 2", pubDate: "Tue, 29 Sep 2026 15:00:00 +0000" }, now);
+  assert.deepEqual(e, { month: "2026-10", titles: ["F1 25", "Hunt: Showdown 1896", "Earth Defense Force: World Brothers 2"] });
 });
