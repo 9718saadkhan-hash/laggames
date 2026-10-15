@@ -1,7 +1,7 @@
 export type RosterGame = {
   title: string;
   platforms: string;
-  category: "catalogue" | "classics";
+  category: "essential" | "catalogue" | "classics";
   note: string | null;
 };
 export type MonthlyRoster = {
@@ -67,6 +67,20 @@ export function parseRosterPost(post: { title: string; link: string; pubDate: st
   return { month, sourceUrl: url.href, publishedAt: published.toISOString(), availability, games };
 }
 
-export function rosterGames(roster: MonthlyRoster, filter: "all" | "extra" | "deluxe"): RosterGame[] {
-  return roster.games.filter((game) => filter === "all" || filter === "deluxe" || game.category === "catalogue");
+/** Essential Monthly Games: titles come from Sony's post headline ("…Monthly Games for October: A, B, C"). */
+export function parseEssentialPost(post: { title: string; pubDate: string }, now: Date): { month: string; titles: string[] } | null {
+  const title = plainText(post.title);
+  const match = title.match(/PlayStation Plus Monthly Games for\s+(\w+)\s*[:–—-]\s*(.+)$/i);
+  const index = months.findIndex((m) => m.toLowerCase() === match?.[1]?.toLowerCase());
+  const published = new Date(post.pubDate);
+  if (!match || index < 0 || !Number.isFinite(published.getTime()) || published > now) return null;
+  const year = published.getUTCFullYear() + (index === 0 && published.getUTCMonth() === 11 ? 1 : 0);
+  const titles = (match[2] ?? "").split(/,\s*/).map((t) => t.replace(/\s+and more$/i, "").trim()).filter(Boolean);
+  return titles.length ? { month: `${year}-${String(index + 1).padStart(2, "0")}`, titles } : null;
+}
+
+/** Essential games are in every tier; Extra adds the catalogue; Deluxe adds classics. */
+export function rosterGames(roster: MonthlyRoster, filter: "all" | "essential" | "extra" | "deluxe"): RosterGame[] {
+  return roster.games.filter((game) =>
+    filter === "all" || filter === "deluxe" || game.category === "essential" || (filter === "extra" && game.category === "catalogue"));
 }
