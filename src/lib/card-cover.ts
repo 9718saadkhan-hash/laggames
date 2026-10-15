@@ -1,6 +1,14 @@
 /** Card covers: a light copy of the full cover, same shape, nothing cropped. */
 export const CARD_COVER_WIDTH = 360;
 
+/** The light-card option only applies to covers up to 720p; larger covers are skipped. */
+export const CARD_COVER_MAX_SOURCE = 720;
+
+/** True when a cover qualifies for a light card copy (cover width up to 720px, i.e. 720p). */
+export function cardCoverEligible(width: number, _height: number, max = CARD_COVER_MAX_SOURCE) {
+  return width <= max;
+}
+
 /** Width/height for the light copy — never enlarges, keeps the exact ratio. */
 export function cardCoverSize(width: number, height: number, max = CARD_COVER_WIDTH) {
   if (width <= max) return { width, height };
@@ -12,6 +20,10 @@ export async function makeCardCover(src: string): Promise<string | null> {
   if (!src) return null;
   const blob = await (await fetch(src)).blob();
   const bitmap = await createImageBitmap(blob);
+  if (!cardCoverEligible(bitmap.width, bitmap.height)) {
+    bitmap.close();
+    return null;
+  }
   const { width, height } = cardCoverSize(bitmap.width, bitmap.height);
   const canvas = document.createElement("canvas");
   canvas.width = width;
