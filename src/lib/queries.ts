@@ -104,10 +104,19 @@ export const gameCoversQuery = (ids: string[]) =>
     queryKey: ["games", "covers", ids],
     enabled: ids.length > 0,
     queryFn: async () => {
-      const rows = unwrap<{ id: string; cover_url: string | null }[]>(
-        (await supabase.from("games").select("id,cover_url").in("id", ids)) as never,
+      // Prefer the light card copy; fall back to the full cover only for games without one.
+      const light = unwrap<{ id: string; card_cover_url: string | null }[]>(
+        (await supabase.from("games").select("id,card_cover_url").in("id", ids)) as never,
       );
-      return Object.fromEntries(rows.map((r) => [r.id, r.cover_url])) as Record<string, string | null>;
+      const map = Object.fromEntries(light.map((r) => [r.id, r.card_cover_url])) as Record<string, string | null>;
+      const missing = ids.filter((id) => !map[id]);
+      if (missing.length) {
+        const full = unwrap<{ id: string; cover_url: string | null }[]>(
+          (await supabase.from("games").select("id,cover_url").in("id", missing)) as never,
+        );
+        for (const r of full) map[r.id] = r.cover_url;
+      }
+      return map;
     },
   });
 
