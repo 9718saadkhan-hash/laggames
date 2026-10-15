@@ -100,14 +100,25 @@ function Header() {
       frame = 0;
       setScrolled(window.scrollY > 16);
     };
+    // Pause card hover effects while scrolling; restore 150ms after scrolling stops.
+    let idle: ReturnType<typeof setTimeout> | undefined;
+    const root = document.documentElement;
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
+      if (!idle) root.classList.add("is-scrolling");
+      else clearTimeout(idle);
+      idle = setTimeout(() => {
+        idle = undefined;
+        root.classList.remove("is-scrolling");
+      }, 150);
     };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       if (frame) cancelAnimationFrame(frame);
+      if (idle) clearTimeout(idle);
+      root.classList.remove("is-scrolling");
     };
   }, []);
 

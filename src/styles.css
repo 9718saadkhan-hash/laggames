@@ -489,6 +489,18 @@
 .catalog-card {
   contain: layout paint style;
 }
+/* Every screen: catalogue cards keep their translucent surface without live blur (cheap scrolling). */
+.catalog-card,
+.catalog-card .glass {
+  backdrop-filter: none;
+}
+.catalog-card .glass {
+  background: color-mix(in oklab, var(--background) 60%, transparent);
+}
+/* While scrolling, skip hover lift/zoom so cards under the pointer don't animate. */
+.is-scrolling .catalog-card {
+  pointer-events: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-orb,
