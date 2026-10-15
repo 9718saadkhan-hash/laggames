@@ -20,6 +20,10 @@ export async function makeCardCover(src: string): Promise<string | null> {
   if (!src) return null;
   const blob = await (await fetch(src)).blob();
   const bitmap = await createImageBitmap(blob);
+  if (!cardCoverEligible(bitmap.width, bitmap.height)) {
+    bitmap.close();
+    return null;
+  }
   const { width, height } = cardCoverSize(bitmap.width, bitmap.height);
   const canvas = document.createElement("canvas");
   canvas.width = width;
