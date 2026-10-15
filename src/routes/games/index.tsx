@@ -70,8 +70,10 @@ function GamesPage() {
     [visible],
   );
 
+  // Typing stays instant; the catalogue filter runs at lower priority.
+  const deferredQ = useDeferredValue(q);
   const results = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = deferredQ.trim().toLowerCase();
     const cap = Number(maxPrice);
     let list = visible.filter((g) => {
       if (needle && !`${g.title} ${g.genre ?? ""} ${g.publisher ?? ""}`.toLowerCase().includes(needle))
