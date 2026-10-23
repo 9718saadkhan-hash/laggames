@@ -64,16 +64,20 @@ export const adminGamesListQuery = () =>
 export const gamesCatalogQuery = () =>
   queryOptions({
     queryKey: ["games", "catalog"],
-    queryFn: async () =>
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    queryFn: async ({ signal }) =>
       sortGamesByOrder(
         unwrap<Game[]>(
           (await supabase
             .from("games")
             .select(
-              "id,slug,title,trailer_url,cover_position,platform,genre,publisher,release_date,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,pre_order,visible,display_order,created_at",
+              "id,slug,title,trailer_url,cover_position,platform,genre,developer,publisher,release_date,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,pre_order,visible,display_order,created_at",
             )
+            .eq("visible", true)
             .order("display_order", { ascending: true, nullsFirst: false })
-            .order("title", { ascending: true })) as never,
+            .order("title", { ascending: true })
+            .abortSignal(signal)) as never,
         ),
       ).map((g) => ({ ...g, cover_url: null })),
   });
@@ -147,6 +151,27 @@ export const ottQuery = queryOptions({
     unwrap<OttPlan[]>(
       (await supabase.from("ott_plans").select("*").order("display_order", { ascending: true })) as never,
     ),
+});
+
+/** Search plans without their full-size logos, features or descriptions. */
+export const psPlusSearchQuery = queryOptions({
+  queryKey: ["ps_plus_plans", "search"],
+  refetchOnMount: true,
+  queryFn: async ({ signal }) => unwrap<PsPlusPlan[]>(
+    (await supabase.from("ps_plus_plans")
+      .select("id,name,tier,duration,region,platform,price,visible,display_order")
+      .eq("visible", true).order("display_order").abortSignal(signal)) as never,
+  ),
+});
+
+export const ottSearchQuery = queryOptions({
+  queryKey: ["ott_plans", "search"],
+  refetchOnMount: true,
+  queryFn: async ({ signal }) => unwrap<OttPlan[]>(
+    (await supabase.from("ott_plans")
+      .select("id,name,plan,duration,quality,price,visible,display_order")
+      .eq("visible", true).order("display_order").abortSignal(signal)) as never,
+  ),
 });
 
 export const heroQuery = queryOptions({
