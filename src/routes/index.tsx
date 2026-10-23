@@ -42,17 +42,17 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PlayStation Game Rentals & Subscriptions — LAG LIVE AS GAMERS" },
+      { title: "PS4 & PS5 Game Rentals in India | LAG LIVE AS GAMERS" },
       {
         name: "description",
         content:
-          "Rent or own PS4 & PS5 games from 30 days to permanent, grab PS Plus and OTT subscriptions, and order instantly on WhatsApp.",
+          "Explore PS4 and PS5 account-access rentals in India for 30 or 60 days, permanent access options, PS Plus and OTT subscriptions. Order on WhatsApp.",
       },
-      { property: "og:title", content: "LAG LIVE AS GAMERS — Your Game. Your Way." },
+      { property: "og:title", content: "PS4 & PS5 Game Rentals in India | LAG LIVE AS GAMERS" },
       {
         property: "og:description",
         content:
-          "Premium PlayStation game rentals, PS Plus memberships and OTT subscriptions with instant WhatsApp delivery.",
+          "PlayStation account-access rentals in India, PS Plus memberships and OTT subscriptions. Confirm your option and availability on WhatsApp.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://thelaggames.com/" },
@@ -64,9 +64,9 @@ export const Route = createFileRoute("/")({
 });
 
 const WHY = [
-  { icon: Zap, title: "Instant delivery", body: "Most orders are delivered within minutes over WhatsApp." },
-  { icon: ShieldCheck, title: "100% safe accounts", body: "Genuine accounts, clear instructions, zero risk of bans." },
-  { icon: BadgeCheck, title: "Best prices", body: "Rentals from 30 days keep your gaming budget under control." },
+  { icon: Zap, title: "WhatsApp delivery", body: "Confirm availability, payment and delivery timing with us on WhatsApp." },
+  { icon: ShieldCheck, title: "Account setup support", body: "Get account access instructions and contact us for help with setup." },
+  { icon: BadgeCheck, title: "Flexible durations", body: "Compare 30-day, 60-day and permanent account access options." },
   { icon: Headphones, title: "Real human support", body: "Chat with a gamer, not a bot, before and after your order." },
 ];
 
@@ -221,7 +221,7 @@ function HomePage() {
         <SectionHeading
           eyebrow="Browse gaming"
           title="Pick a category"
-          subtitle="Games, PlayStation Plus and OTT subscriptions — all delivered over WhatsApp."
+          subtitle="PS4 & PS5 account-access rentals in India, PlayStation Plus and OTT subscriptions — order on WhatsApp."
         />
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {[

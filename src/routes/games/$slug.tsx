@@ -39,22 +39,19 @@ import { safePosition } from "@/lib/media";
 import { contactFrom, gameEditionsQuery, gameQuery, gamesQuery, settingsQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { BannerImage } from "@/components/lag/BannerImage";
+import { gameSearchOffers, priceFor, type GamePriceSource as PriceSource } from "@/lib/game-offers";
 
 export const Route = createFileRoute("/games/$slug")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(gameQuery(params.slug)),
   head: ({ params, loaderData: game }) => {
     const gameName = game?.title ?? params.slug.replace(/-/g, " ");
-    const title = `${gameName} for PS4 & PS5 — LAG LIVE AS GAMERS`;
+    const title = `${gameName} — ${game?.platform ?? "PlayStation"} Rental India | LAG`;
     const description =
       game?.short_description?.trim() ||
-      `View ${gameName} pricing, availability and rental options for PlayStation at LAG LIVE AS GAMERS.`;
+      `View ${gameName} PlayStation account-access rental options in India. Choose your duration and confirm availability on WhatsApp with LAG LIVE AS GAMERS.`;
     const url = `https://thelaggames.com/games/${params.slug}`;
     const shareImage = [game?.banner_url, game?.cover_url].find((image) => image?.startsWith("https://"));
-    const prices = game
-      ? [game.price_30, game.price_60, game.price_permanent].filter(
-          (value): value is number => typeof value === "number" && value > 0,
-        )
-      : [];
+    const offers = game ? gameSearchOffers(game, url) : [];
     const product = game
       ? {
           "@context": "https://schema.org",
@@ -62,18 +59,8 @@ export const Route = createFileRoute("/games/$slug")({
           name: game.title,
           description,
           ...(shareImage ? { image: [shareImage] } : {}),
-          brand: { "@type": "Brand", name: "LAG LIVE AS GAMERS" },
           category: game.genre ?? "PlayStation game",
-          offers: {
-            "@type": "Offer",
-            url,
-            priceCurrency: "INR",
-            ...(prices.length ? { price: Math.min(...prices) } : {}),
-            availability:
-              game.availability.toLowerCase().includes("unavailable")
-                ? "https://schema.org/OutOfStock"
-                : "https://schema.org/InStock",
-          },
+          ...(offers.length ? { offers } : {}),
         }
       : null;
     return {
@@ -98,29 +85,6 @@ export const Route = createFileRoute("/games/$slug")({
   },
   component: GameDetailPage,
 });
-
-type PriceSource = Pick<
-  Game,
-  | "price_30"
-  | "price_60"
-  | "price_permanent"
-  | "price_30_secondary"
-  | "price_60_secondary"
-  | "price_permanent_secondary"
->;
-
-function priceFor(source: PriceSource, d: DurationKey, account: AccountKey = "primary") {
-  const primary = d === "30" ? source.price_30 : d === "60" ? source.price_60 : source.price_permanent;
-  if (account === "primary") return primary;
-  const secondary =
-    d === "30"
-      ? source.price_30_secondary
-      : d === "60"
-        ? source.price_60_secondary
-        : source.price_permanent_secondary;
-  return secondary ?? primary;
-}
-
 
 function GameDetailPage() {
   const { slug } = Route.useParams();
@@ -405,7 +369,7 @@ function GameDetailPage() {
             </Button>
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            No checkout needed — we confirm availability and payment on WhatsApp.
+            PlayStation account access — we confirm availability and payment on WhatsApp.
           </p>
 
           {!user && (

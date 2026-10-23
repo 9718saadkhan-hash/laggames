@@ -1,6 +1,10 @@
 # LAG upgrade roadmap
 
+## Current review
+- Google indexing and measured rankings need an accessible verified Search Console property; the accessible account returned no properties.
+
 ## Done
+- Reviewed Google/AI search foundations; clarified India account-access descriptions, removed unsupported homepage guarantees, corrected standard-edition offer prices with shared account/duration logic, and evaluated India keyword targets. Twelve tests pass; public HTML and browser metadata/offer checks pass. Changes await publication.
 - Fixed homepage and Games search using shared normalized matching, lightweight cached data, clean filter layouts and retry states; verified Spider-Man/GTA results, filters and game selection on phone and desktop.
 - Live PS Plus Extra / Deluxe monthly additions from verified Sony announcements, with month status, tier filters and safe unavailable states; tested live feed and desktop/phone views
 - Interactive PS Plus tier comparison with differences filter, current-duration prices and membership selection
