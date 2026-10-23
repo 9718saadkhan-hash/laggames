@@ -22,3 +22,4 @@
 - Keep card trailer URLs in lightweight queries and mount supported video players only while their dialog is open, so browsing downloads no trailer media and closing stops playback.
 - Keep PS Plus comparison benefits in a tested browser-safe module and reuse the page's tier/duration state and prices, so comparison selection never creates a separate purchase state.
 - Fetch monthly PS Plus rosters from Sony's fixed official RSS source in a cached public server function; keep parsing tested, distinguish Essential from catalogue additions, and disclose regional Premium/Deluxe differences to avoid misleading availability.
+- Select current-month Essential announcements independently of catalogue announcements using the tested browser-safe roster selector, so mid-month catalogue timing never hides current Essential titles or substitutes expired ones.

@@ -79,6 +79,30 @@ export function parseEssentialPost(post: { title: string; pubDate: string }, now
   return titles.length ? { month: `${year}-${String(index + 1).padStart(2, "0")}`, titles } : null;
 }
 
+/** Select each announcement independently; never substitute expired Essential games. */
+export function selectMonthlyRoster(
+  rosters: MonthlyRoster[],
+  essentials: { month: string; titles: string[]; link: string }[],
+  now: Date,
+): MonthlyRoster | null {
+  const currentMonth = currentRosterMonth(now);
+  const catalogue = rosters.filter((r) => r.month <= currentMonth)
+    .sort((a, b) => b.month.localeCompare(a.month) || b.publishedAt.localeCompare(a.publishedAt))[0];
+  const essential = essentials.find((e) => e.month === currentMonth);
+  if (!essential) return catalogue ? { ...catalogue, games: catalogue.games.filter((g) => g.category !== "essential") } : null;
+  const roster: MonthlyRoster = catalogue?.month === currentMonth ? catalogue : {
+    month: currentMonth,
+    sourceUrl: essential.link || "https://blog.playstation.com/category/ps-plus/",
+    publishedAt: now.toISOString(),
+    availability: null,
+    games: [],
+  };
+  return { ...roster, games: [
+    ...essential.titles.map((title) => ({ title, platforms: "", category: "essential" as const, note: null })),
+    ...roster.games.filter((g) => g.category !== "essential"),
+  ] };
+}
+
 /** Essential games are in every tier; Extra adds the catalogue; Deluxe adds classics. */
 export function rosterGames(roster: MonthlyRoster, filter: "all" | "essential" | "extra" | "deluxe"): RosterGame[] {
   return roster.games.filter((game) =>

@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { currentRosterMonth, parseEssentialPost, parseRosterPost, rosterGames } from "./ps-plus-roster";
+import { currentRosterMonth, parseEssentialPost, parseRosterPost, rosterGames, selectMonthlyRoster } from "./ps-plus-roster";
 
 const now = new Date("2026-10-12T19:13:00Z");
 const post = {
@@ -36,4 +36,33 @@ test("only official HTTPS Sony posts, published by now, can populate roster", ()
 });test("Essential games are read from Sony's Monthly Games headline and show in every tier", () => {
   const e = parseEssentialPost({ title: "PlayStation Plus Monthly Games for October: F1 25, Hunt: Showdown 1896, Earth Defense Force: World Brothers 2", pubDate: "Tue, 29 Sep 2026 15:00:00 +0000" }, now);
   assert.deepEqual(e, { month: "2026-10", titles: ["F1 25", "Hunt: Showdown 1896", "Earth Defense Force: World Brothers 2"] });
+});
+
+const octoberEssential = { month: "2026-10", titles: ["F1 25"], link: "https://blog.playstation.com/2026/09/29/october-monthly-games/" };
+test("early October shows October Essential independently of September catalogue", () => {
+  const catalogue = parseRosterPost(post, now);
+  assert.ok(catalogue);
+  const roster = selectMonthlyRoster([catalogue], [
+    { ...octoberEssential, month: "2026-09", titles: ["Expired September game"] }, octoberEssential,
+  ], now);
+  assert.equal(roster?.month, "2026-10");
+  assert.equal(roster?.sourceUrl, octoberEssential.link);
+  assert.deepEqual(roster?.games.map((g) => g.title), ["F1 25"]);
+});
+test("current catalogue merges with current Essential once announced", () => {
+  const catalogue = parseRosterPost(post, now);
+  assert.ok(catalogue);
+  const roster = selectMonthlyRoster([{ ...catalogue, month: "2026-10" }], [octoberEssential], now);
+  assert.deepEqual(roster?.games.map((g) => g.title), ["F1 25", "RuneScape: Dragonwilds", "Ball x Pit", "Mega Man X Command Mission"]);
+});
+test("a pre-announced November Essential lineup cannot replace October", () => {
+  const roster = selectMonthlyRoster([], [{ ...octoberEssential, month: "2026-11", titles: ["Future game"] }, octoberEssential], now);
+  assert.deepEqual(roster?.games.map((g) => g.title), ["F1 25"]);
+});
+test("old Essential titles are never used when the current announcement is missing", () => {
+  const catalogue = parseRosterPost(post, now);
+  assert.ok(catalogue);
+  const roster = selectMonthlyRoster([catalogue], [{ ...octoberEssential, month: "2026-09", titles: ["Expired September game"] }], now);
+  assert.equal(roster?.month, "2026-09");
+  assert.equal(roster?.games.some((g) => g.category === "essential"), false);
 });
