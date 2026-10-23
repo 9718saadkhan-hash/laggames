@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/lag-logo.jpg.asset.json";
 import { buildOrderMessage, formatDate, instagramUrl, whatsappLink, type CollabVideo, type Game } from "@/lib/lag";
 import { safePosition } from "@/lib/media";
+import { getCollabPlaybackUrl } from "@/lib/collab-playback.functions";
 import {
   collabsQuery,
   contactFrom,
@@ -547,6 +549,23 @@ function GameRow({
 
 function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
   const [playing, setPlaying] = useState<string | null>(null);
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
+  const [loadingVideo, setLoadingVideo] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState<{ id: string; message: string } | null>(null);
+  const getPlaybackUrl = useServerFn(getCollabPlaybackUrl);
+  async function playCollab(collab: CollabVideo) {
+    setLoadingVideo(collab.id);
+    setVideoError(null);
+    try {
+      const url = await getPlaybackUrl({ data: { id: collab.id } });
+      setPlaybackUrl(url);
+      setPlaying(collab.id);
+    } catch {
+      setVideoError({ id: collab.id, message: "Video could not load. Please try again." });
+    } finally {
+      setLoadingVideo(null);
+    }
+  }
   if (collabs.length === 0) return null;
 
   return (
@@ -558,7 +577,7 @@ function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
       />
       <div className="rail no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
         {collabs.map((c) => {
-          const isUpload = Boolean(c.storage_path) && Boolean(c.url);
+          const isUpload = Boolean(c.storage_path);
           const active = playing === c.id;
           return (
             <article
@@ -568,12 +587,13 @@ function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
               <div className="relative aspect-video bg-surface-2">
                 {isUpload && active ? (
                   <video
-                    src={c.url ?? undefined}
+                    src={playbackUrl ?? undefined}
                     poster={c.thumbnail_url ?? undefined}
                     controls
                     autoPlay
                     playsInline
                     preload="none"
+                    onError={() => setVideoError({ id: c.id, message: "Your browser could not play this video." })}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -592,14 +612,17 @@ function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
                       </div>
                     )}
                     {isUpload ? (
-                      <button
+                      <Button
+                        variant="ghost"
                         type="button"
-                        onClick={() => setPlaying(c.id)}
+                        disabled={loadingVideo !== null}
+                        onClick={() => void playCollab(c)}
                         aria-label={`Play ${c.title}`}
-                        className="absolute inset-0 grid place-items-center bg-background/25 transition-opacity hover:bg-background/40"
+                        aria-busy={loadingVideo === c.id}
+                        className="absolute inset-0 grid h-full w-full place-items-center rounded-none bg-background/25 p-0 transition-opacity hover:bg-background/40"
                       >
                         <GlassIcon icon={Play} tone="red" size="lg" />
-                      </button>
+                      </Button>
                     ) : (
                       <a
                         href={c.url ?? "#"}
@@ -615,6 +638,7 @@ function CollabRail({ collabs }: { collabs: CollabVideo[] }) {
                 )}
               </div>
               <div className="p-4">
+                {videoError?.id === c.id && <p role="alert" className="mb-2 text-xs text-lag-red">{videoError.message}</p>}
                 <Badge tone="blue">{c.platform}</Badge>
                 <h3 className="mt-2 font-display text-base font-bold">{c.title}</h3>
                 {c.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>}
