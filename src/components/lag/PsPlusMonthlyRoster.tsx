@@ -16,6 +16,7 @@ export function PsPlusMonthlyRoster() {
   const roster = data?.roster;
   const currentMonth = currentRosterMonth(new Date(data?.checkedAt ?? Date.now()));
   const outdated = roster && roster.month < currentMonth;
+  const cataloguePending = roster && (outdated || !roster.games.some((game) => game.category !== "essential"));
   const games = roster ? rosterGames(roster, filter) : [];
 
   return <section aria-labelledby="ps-plus-roster-title" className="mt-10 border-t border-border pt-8">
@@ -30,7 +31,7 @@ export function PsPlusMonthlyRoster() {
       </div>
     </div>
 
-    {outdated && <p role="status" className="mt-4 border-l-2 border-lag-blue bg-lag-blue/10 px-4 py-3 text-xs leading-relaxed">{monthLabel(currentMonth)}’s Extra / Deluxe lineup is awaiting Sony’s full announcement. Latest verified lineup below.</p>}
+    {cataloguePending && <p role="status" className="mt-4 border-l-2 border-lag-blue bg-lag-blue/10 px-4 py-3 text-xs leading-relaxed">{monthLabel(currentMonth)}’s Extra / Deluxe lineup is awaiting Sony’s full announcement. {outdated ? "Latest verified catalogue lineup below." : "Current Essential games below."}</p>}
     {data?.stale && roster && <p role="status" className="mt-3 text-xs text-muted-foreground">Sony’s latest update could not be checked. Showing the last verified announcement.</p>}
     {isPending ? <div aria-label="Loading monthly PS Plus games" className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }, (_, i) => <div key={i} className="h-32 animate-pulse rounded-lg border border-border bg-muted/30 motion-reduce:animate-none" />)}</div> : !roster ? <div className="mt-5 border-y border-border py-8 text-sm text-muted-foreground"><p>Monthly additions are temporarily unavailable.</p><a href="https://blog.playstation.com/category/ps-plus/" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-lag-blue underline underline-offset-4">View Sony’s announcements <ArrowUpRight className="h-4 w-4" aria-hidden /></a></div> : <>
       <div aria-label="Monthly game membership filter" className="mt-5 flex flex-wrap gap-2">

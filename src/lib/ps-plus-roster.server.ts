@@ -1,5 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
-import { parseEssentialPost, parseRosterPost, SONY_PLUS_FEED, type RosterResponse } from "./ps-plus-roster";
+import { parseEssentialPost, parseRosterPost, selectMonthlyRoster, SONY_PLUS_FEED, type RosterResponse } from "./ps-plus-roster";
 
 let cache: { result: RosterResponse; expiresAt: number } | null = null;
 let pending: Promise<RosterResponse> | null = null;
@@ -27,13 +27,8 @@ async function refresh(): Promise<RosterResponse> {
       const e = parseEssentialPost({ title: row['title'], pubDate: row['pubDate'] }, now);
       return e ? [{ ...e, link: typeof row['link'] === "string" ? row['link'] : "" }] : [];
     }).sort((a, b) => b.month.localeCompare(a.month));
-    let roster = rosters[0] ?? null;
-    const essential = essentials.find((e) => !roster || e.month === roster.month) ?? null;
-    if (!roster && essential) roster = { month: essential.month, sourceUrl: essential.link || "https://blog.playstation.com/category/ps-plus/", publishedAt: now.toISOString(), availability: null, games: [] };
+    const roster = selectMonthlyRoster(rosters, essentials, now);
     if (!roster) throw new Error("No verified roster");
-    if (essential && essential.month === roster.month) {
-      roster = { ...roster, games: [...essential.titles.map((title) => ({ title, platforms: "", category: "essential" as const, note: null })), ...roster.games] };
-    }
     const result: RosterResponse = { roster, checkedAt: now.toISOString(), stale: false };
     cache = { result, expiresAt: now.getTime() + 60 * 60_000 };
     return result;
