@@ -16,16 +16,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/games/")({
   head: () => ({
     meta: [
-      { title: "PS4 & PS5 Games — Rent or Own | LAG LIVE AS GAMERS" },
+      { title: "Browse PS4 & PS5 Game Rentals in India | LAG LIVE AS GAMERS" },
       {
         name: "description",
         content:
-          "Browse the full LAG catalog of PS4 and PS5 games. Rent for 30 or 60 days or buy permanent access, with instant WhatsApp delivery.",
+          "Browse PS4 and PS5 account-access rentals in India. Compare 30-day, 60-day and permanent access options, then confirm availability on WhatsApp.",
       },
-      { property: "og:title", content: "PS4 & PS5 Games — LAG LIVE AS GAMERS" },
+      { property: "og:title", content: "Browse PS4 & PS5 Game Rentals in India | LAG LIVE AS GAMERS" },
       {
         property: "og:description",
-        content: "Filter by platform, genre and price, then order your game on WhatsApp in seconds.",
+        content: "Compare PlayStation account-access options in India by platform, genre and price. Confirm availability and order on WhatsApp.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://thelaggames.com/games" },
@@ -166,7 +166,7 @@ function GamesPage() {
       <SectionHeading
         eyebrow="Catalog"
         title="PS4 & PS5 Games"
-        subtitle="Rent for 30 or 60 days, or own it permanently. Every order is completed on WhatsApp."
+        subtitle="Choose 30-day, 60-day or permanent PlayStation account access. Confirm availability and order on WhatsApp."
         action={
           <Button variant="glass" size="sm" onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
             <SlidersHorizontal className="h-4 w-4" aria-hidden />
