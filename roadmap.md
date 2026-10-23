@@ -1,5 +1,9 @@
 # LAG upgrade roadmap
 
+## Current review
+- Review current Google and AI search foundations, correct verified search-facing inaccuracies, and evaluate realistic India keyword targets.
+- Google indexing and measured rankings need an accessible verified Search Console property; the accessible account returned no properties.
+
 ## Done
 - Fixed homepage and Games search using shared normalized matching, lightweight cached data, clean filter layouts and retry states; verified Spider-Man/GTA results, filters and game selection on phone and desktop.
 - Live PS Plus Extra / Deluxe monthly additions from verified Sony announcements, with month status, tier filters and safe unavailable states; tested live feed and desktop/phone views
