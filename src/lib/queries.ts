@@ -64,16 +64,18 @@ export const adminGamesListQuery = () =>
 export const gamesCatalogQuery = () =>
   queryOptions({
     queryKey: ["games", "catalog"],
-    queryFn: async () =>
+    queryFn: async ({ signal }) =>
       sortGamesByOrder(
         unwrap<Game[]>(
           (await supabase
             .from("games")
             .select(
-              "id,slug,title,trailer_url,cover_position,platform,genre,publisher,release_date,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,pre_order,visible,display_order,created_at",
+              "id,slug,title,trailer_url,cover_position,platform,genre,developer,publisher,release_date,primary_available,secondary_available,price_30,price_60,price_permanent,price_30_secondary,price_60_secondary,price_permanent_secondary,old_price,featured,trending,hot_deal,new_release,pre_order,visible,display_order,created_at",
             )
+            .eq("visible", true)
             .order("display_order", { ascending: true, nullsFirst: false })
-            .order("title", { ascending: true })) as never,
+            .order("title", { ascending: true })
+            .abortSignal(signal)) as never,
         ),
       ).map((g) => ({ ...g, cover_url: null })),
   });

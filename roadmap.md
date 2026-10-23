@@ -1,5 +1,8 @@
 # LAG upgrade roadmap
 
+## Current
+- Fix matching, loading states and layout for homepage search and Games search; verify real searches on both screens.
+
 ## Done
 - Live PS Plus Extra / Deluxe monthly additions from verified Sony announcements, with month status, tier filters and safe unavailable states; tested live feed and desktop/phone views
 - Interactive PS Plus tier comparison with differences filter, current-duration prices and membership selection

@@ -24,3 +24,4 @@
 - Fetch monthly PS Plus rosters from Sony's fixed official RSS source in a cached public server function; keep parsing tested, distinguish Essential from catalogue additions, and disclose regional Premium/Deluxe differences to avoid misleading availability.
 - Select current-month Essential announcements independently of catalogue announcements using the tested browser-safe roster selector, so mid-month catalogue timing never hides current Essential titles or substitutes expired ones.
 - Resolve Collab playback links on demand in a public server function that verifies record visibility with a publishable client before signing its stored file path; this repairs missing/expired links without exposing arbitrary private storage.
+- Share a normalized, precomputed game-search index across public search screens and use the slim catalogue with covers fetched only for displayed results, so typing never downloads full game records.
