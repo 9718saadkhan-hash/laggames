@@ -73,7 +73,6 @@ export function MediaCarousel({
           ref={trackRef}
           onScroll={handleScroll}
           className="scroll-px-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-1 sm:scroll-px-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ marginInline: "calc(-1 * var(--section-pad, 0px))" }}
         >
           {hasTrailer && (
             <div className="w-[88%] shrink-0 snap-start sm:w-[70%]">
