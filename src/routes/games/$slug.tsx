@@ -27,6 +27,7 @@ import {
   discountPercent,
   DURATION_LABEL,
   formatDate,
+  formatGameSize,
   money,
   whatsappLink,
   type AccountKey,
