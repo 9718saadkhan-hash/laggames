@@ -440,78 +440,26 @@ function GameDetailPage() {
           </section>
         )}
 
-        {/* Screenshots */}
-        {gallery.length > 0 && (
-          <section className="mt-8">
-            <h2 className="font-display text-xl font-bold">Screenshots</h2>
-            <Dialog open={!!lightbox} onOpenChange={(open) => !open && setLightbox(null)}>
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {gallery.map((src, i) => (
-                  <DialogTrigger key={src + i} asChild>
-                    <button
-                      type="button"
-                      onClick={() => setLightbox(src)}
-                      aria-label={`Enlarge screenshot ${i + 1}`}
-                      className="aspect-16/9 overflow-hidden rounded-2xl border border-border/60 bg-surface-2"
-                    >
-                      <img
-                        src={src}
-                        alt={`${game.title} screenshot ${i + 1}`}
-                        loading="lazy"
-                        className="h-full w-full object-contain transition-transform duration-500 hover:scale-105"
-                      />
-                    </button>
-                  </DialogTrigger>
-                ))}
-              </div>
-              <DialogContent className="max-w-4xl border-none bg-transparent p-0 shadow-none">
-                {lightbox && (
-                  <img
-                    src={lightbox}
-                    alt={`${game.title} screenshot enlarged`}
-                    className="max-h-[85vh] w-full rounded-2xl object-contain"
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
-          </section>
-        )}
-
-        {/* Trailer */}
-        {game.trailer_url && (
-          <section className="mt-8">
-            <h2 className="font-display text-xl font-bold">Trailer</h2>
-            <div className="mt-3 aspect-16/9 overflow-hidden rounded-2xl">
-              {trailerPlaying ? (
-                <iframe
-                  src={toEmbeddableUrl(game.trailer_url)}
-                  title={`${game.title} trailer`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="h-full w-full"
-                />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setTrailerPlaying(true)}
-                  aria-label="Play trailer"
-                  className="relative h-full w-full"
-                >
-                  <img
-                    src={game.banner_url ?? game.cover_url ?? ""}
-                    alt=""
-                    style={{ objectPosition: heroPosition }}
-                    className="h-full w-full object-cover"
-                  />
-                  <span aria-hidden className="overlay-fade absolute inset-0" />
-                  <span className="absolute inset-0 grid place-items-center">
-                    <GlassIcon icon={Play} tone="red" size="lg" />
-                  </span>
-                </button>
-              )}
-            </div>
-          </section>
-        )}
+        {/* Trailer + screenshots — swipeable media reel, trailer first */}
+        <MediaCarousel
+          title={game.title}
+          trailerUrl={game.trailer_url}
+          trailerPoster={heroImage}
+          trailerPosterPosition={heroPosition}
+          screenshots={gallery}
+          onScreenshot={setLightbox}
+        />
+        <Dialog open={!!lightbox} onOpenChange={(open) => !open && setLightbox(null)}>
+          <DialogContent className="max-w-4xl border-none bg-transparent p-0 shadow-none">
+            {lightbox && (
+              <img
+                src={lightbox}
+                alt={`${game.title} screenshot enlarged`}
+                className="max-h-[85vh] w-full rounded-2xl object-contain"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       {related.length > 0 && (
@@ -526,13 +474,6 @@ function GameDetailPage() {
       )}
     </div>
   );
-}
-
-/** Best-effort conversion of common trailer links into embeddable iframe URLs. */
-function toEmbeddableUrl(url: string): string {
-  const youtube = url.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
-  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}?autoplay=1`;
-  return url;
 }
 
 function Meta({
