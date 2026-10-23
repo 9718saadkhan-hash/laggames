@@ -6,8 +6,8 @@ import { z } from "zod";
 export const getCollabPlaybackUrl = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
-    const key = process.env['SUPABASE_PUBLISHABLE_KEY'] ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    const url = process.env['SUPABASE_URL'] ?? import.meta.env.VITE_SUPABASE_URL;
+    const key = process.env['SUPABASE_PUBLISHABLE_KEY'] ?? import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
+    const url = process.env['SUPABASE_URL'] ?? import.meta.env['VITE_SUPABASE_URL'];
     const publicClient = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
       global: { fetch: (input, init) => {
@@ -27,7 +27,7 @@ export const getCollabPlaybackUrl = createServerFn({ method: "GET" })
     const signed = await supabaseAdmin.storage.from("media").createSignedUrl(collab.storage_path, 60 * 60);
     if (signed.error || !signed.data?.signedUrl) throw new Error("Could not load this video. Please try again.");
     const playback = new URL(signed.data.signedUrl);
-    const browserOrigin = new URL(import.meta.env.VITE_SUPABASE_URL);
+    const browserOrigin = new URL(import.meta.env['VITE_SUPABASE_URL']);
     playback.protocol = browserOrigin.protocol;
     playback.host = browserOrigin.host;
     return playback.href;
