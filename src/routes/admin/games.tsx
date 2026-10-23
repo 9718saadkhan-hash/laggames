@@ -571,7 +571,7 @@ function AdminGamesPage() {
           title="Manage Games"
           subtitle="Add, edit and organize PlayStation game listings."
           action={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="glass" disabled={sorting}>
