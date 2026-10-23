@@ -119,7 +119,7 @@ export function SectionHeading({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-7 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+    <div className="mb-7 grid grid-cols-1 items-end gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0">
         {eyebrow && (
           <p className="mb-2 text-[11px] font-bold tracking-[0.24em] text-lag-red">{eyebrow}</p>
@@ -127,7 +127,9 @@ export function SectionHeading({
         <h2 className="font-display text-2xl font-bold sm:text-3xl">{title}</h2>
         {subtitle && <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      {action}
+      {action && (
+        <div className="flex flex-wrap items-center gap-2">{action}</div>
+      )}
     </div>
   );
 }
