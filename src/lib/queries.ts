@@ -64,6 +64,8 @@ export const adminGamesListQuery = () =>
 export const gamesCatalogQuery = () =>
   queryOptions({
     queryKey: ["games", "catalog"],
+    refetchOnMount: true,
+    refetchOnReconnect: true,
     queryFn: async ({ signal }) =>
       sortGamesByOrder(
         unwrap<Game[]>(
@@ -149,6 +151,27 @@ export const ottQuery = queryOptions({
     unwrap<OttPlan[]>(
       (await supabase.from("ott_plans").select("*").order("display_order", { ascending: true })) as never,
     ),
+});
+
+/** Search plans without their full-size logos, features or descriptions. */
+export const psPlusSearchQuery = queryOptions({
+  queryKey: ["ps_plus_plans", "search"],
+  refetchOnMount: true,
+  queryFn: async ({ signal }) => unwrap<PsPlusPlan[]>(
+    (await supabase.from("ps_plus_plans")
+      .select("id,name,tier,duration,region,platform,price,visible,display_order")
+      .eq("visible", true).order("display_order").abortSignal(signal)) as never,
+  ),
+});
+
+export const ottSearchQuery = queryOptions({
+  queryKey: ["ott_plans", "search"],
+  refetchOnMount: true,
+  queryFn: async ({ signal }) => unwrap<OttPlan[]>(
+    (await supabase.from("ott_plans")
+      .select("id,name,plan,duration,quality,price,visible,display_order")
+      .eq("visible", true).order("display_order").abortSignal(signal)) as never,
+  ),
 });
 
 export const heroQuery = queryOptions({

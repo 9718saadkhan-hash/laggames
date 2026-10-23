@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { formatDate, lowestGamePrice, money } from "@/lib/lag";
-import { gameCoversQuery, gamesCatalogQuery, ottQuery, psPlusQuery } from "@/lib/queries";
+import { gameCoversQuery, gamesCatalogQuery, ottSearchQuery, psPlusSearchQuery } from "@/lib/queries";
 import { buildGameSearchIndex, matchesGamePlatform, normalizeSearch, searchGames } from "@/lib/game-search";
 import { cn } from "@/lib/utils";
 
@@ -23,8 +23,8 @@ export function SearchDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   const [showFilters, setShowFilters] = useState(false);
 
   const gamesState = useQuery({ ...gamesCatalogQuery(), enabled: open });
-  const plusState = useQuery({ ...psPlusQuery, enabled: open && (category === "All" || category === "PS Plus") });
-  const ottState = useQuery({ ...ottQuery, enabled: open && (category === "All" || category === "OTT") });
+  const plusState = useQuery({ ...psPlusSearchQuery, enabled: open && (category === "All" || category === "PS Plus") });
+  const ottState = useQuery({ ...ottSearchQuery, enabled: open && (category === "All" || category === "OTT") });
   const { data: games = [] } = gamesState;
   const { data: psPlus = [] } = plusState;
   const { data: ott = [] } = ottState;
