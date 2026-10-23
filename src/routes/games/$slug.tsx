@@ -423,7 +423,7 @@ function GameDetailPage() {
           <h2 className="font-display text-xl font-bold">Game information</h2>
           <dl className="glass mt-3 grid gap-4 rounded-3xl p-5 sm:grid-cols-2">
             <Meta icon={CalendarDays} label="Release date" value={formatDate(game.release_date)} />
-            <Meta icon={HardDrive} label="Game size" value={game.game_size ?? "Ask on WhatsApp"} />
+            <Meta icon={HardDrive} label="Game size" value={formatGameSize(game.game_size)} />
             <Meta icon={Users} label="Developer" value={game.developer ?? "—"} />
             <Meta icon={ShieldCheck} label="Publisher" value={game.publisher ?? "—"} />
             <Meta icon={Gamepad2} label="Availability" value={game.availability} />
