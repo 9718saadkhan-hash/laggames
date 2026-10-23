@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { compareGameOrder, lowestGamePrice, PLATFORMS } from "@/lib/lag";
 import { gameCoversQuery, gamesCatalogQuery } from "@/lib/queries";
+import { buildGameSearchIndex, matchesGamePlatform, searchGames } from "@/lib/game-search";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/games/")({
@@ -51,7 +52,7 @@ const TAGS = [
 const PAGE_SIZE = 12;
 
 function GamesPage() {
-  const { data: games = [], isLoading, isError, error } = useQuery(gamesCatalogQuery());
+  const { data: games = [], isLoading, isError, refetch } = useQuery(gamesCatalogQuery());
   const [q, setQ] = useState("");
   const [platform, setPlatform] = useState<string>("all");
   const [genre, setGenre] = useState<string>("all");
@@ -72,13 +73,11 @@ function GamesPage() {
 
   // Typing stays instant; the catalogue filter runs at lower priority.
   const deferredQ = useDeferredValue(q);
+  const searchIndex = useMemo(() => buildGameSearchIndex(visible), [visible]);
   const results = useMemo(() => {
-    const needle = deferredQ.trim().toLowerCase();
     const cap = Number(maxPrice);
-    let list = visible.filter((g) => {
-      if (needle && !`${g.title} ${g.genre ?? ""} ${g.publisher ?? ""}`.toLowerCase().includes(needle))
-        return false;
-      if (platform !== "all" && g.platform !== platform) return false;
+    let list = searchGames(searchIndex, deferredQ).filter((g) => {
+      if (!matchesGamePlatform(g.platform, platform)) return false;
       if (genre !== "all" && g.genre !== genre) return false;
       if (tag === "trending" && !g.trending) return false;
       if (maxPrice && Number.isFinite(cap)) {
@@ -95,10 +94,10 @@ function GamesPage() {
         const pb = lowestGamePrice(b) ?? Number.MAX_SAFE_INTEGER;
         return sort === "low" ? pa - pb : pb - pa;
       }
-      return compareGameOrder(a, b);
+      return deferredQ.trim() ? 0 : compareGameOrder(a, b);
     });
     return list;
-  }, [visible, deferredQ, platform, genre, tag, maxPrice, sort]);
+  }, [searchIndex, deferredQ, platform, genre, tag, maxPrice, sort]);
 
   useEffect(() => {
     setPage(1);
@@ -106,12 +105,12 @@ function GamesPage() {
 
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
-  const pageGames = results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const pageIds = useMemo(() => pageGames.map((g) => g.id), [pageGames.map((g) => g.id).join(",")]);
+  const pageGames = useMemo(() => results.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE), [results, currentPage]);
+  const pageIds = useMemo(() => pageGames.map((g) => g.id), [pageGames]);
   const covers = useQuery(gameCoversQuery(pageIds));
   const renderedResults = useMemo(
     () => (covers.data ? pageGames.map((g) => ({ ...g, cover_url: covers.data[g.id] ?? null })) : []),
-    [covers.data, pageIds],
+    [covers.data, pageGames],
   );
   const pageKey = `${currentPage}:${renderedResults.map((game) => `${game.id}:${game.cover_url ?? ""}`).join("|")}`;
   const pageIsReady = readyPageKey === pageKey && renderedResults.length > 0;
@@ -134,12 +133,16 @@ function GamesPage() {
         image.decode().then(finish, finish);
       });
 
-    void Promise.all(covers.map(preload)).then(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const safety = new Promise<void>((resolve) => { timer = setTimeout(resolve, 4000); });
+    void Promise.race([Promise.all(covers.map(preload)), safety]).then(() => {
+      if (timer) clearTimeout(timer);
       if (!cancelled && run === preloadRunRef.current) setReadyPageKey(pageKey);
     });
 
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
   }, [isLoading, pageKey]);
 
@@ -172,45 +175,50 @@ function GamesPage() {
         }
       />
 
-      <div className="glass rounded-3xl p-4 sm:p-5">
+      <div className="border-y border-border py-5">
         <div className="relative flex items-center">
           <Search className="pointer-events-none absolute left-4 h-5 w-5 -translate-y-1/2 top-1/2 text-lag-red" aria-hidden />
           <Input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => { setQ(e.target.value); setPage(1); }}
             placeholder="Search games, genres, publishers…"
             aria-label="Search games"
-            className="h-14 rounded-2xl border-input bg-background/40 pl-12 pr-11 text-sm transition-shadow focus-visible:ring-lag-red/40"
+            className="h-12 rounded-md border-input bg-surface pl-12 pr-12 text-base focus-visible:ring-lag-red/40"
           />
           {q && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               type="button"
               onClick={() => setQ("")}
               aria-label="Clear search"
               className="absolute right-3 rounded-full p-1 text-muted-foreground opacity-60 transition-opacity hover:opacity-100 hover:text-foreground"
             >
               <X className="h-5 w-5" aria-hidden />
-            </button>
+            </Button>
           )}
         </div>
 
-        <div className="no-scrollbar mt-4 flex gap-2.5 overflow-x-auto">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           {TAGS.map((t) => (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               key={t.key}
               type="button"
               onClick={() => setTag(t.key)}
               aria-pressed={tag === t.key}
               className={cn(
-                "shrink-0 rounded-xl px-6 py-2 font-display text-[10px] font-bold uppercase tracking-widest transition-all",
+                "h-8 shrink-0 rounded-md px-4 font-display text-xs font-bold transition-colors",
                 tag === t.key
-                  ? "pill-glow bg-lag-red text-primary-foreground"
+                  ? "bg-lag-red text-primary-foreground hover:bg-lag-red/90 hover:text-primary-foreground"
                   : "border border-border bg-surface-2/60 text-muted-foreground hover:text-foreground",
               )}
             >
               {t.label}
-            </button>
+            </Button>
           ))}
+          {(platform !== "all" || genre !== "all" || maxPrice) && <Button variant="ghost" size="sm" onClick={reset}><X className="h-3 w-3" />Reset filters</Button>}
         </div>
 
         {showFilters && (
@@ -283,12 +291,12 @@ function GamesPage() {
       </div>
 
       <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
-        {isLoading ? "Loading games…" : `${results.length} game${results.length === 1 ? "" : "s"} found`}
+        {isLoading ? "Loading games…" : isError ? "Games unavailable" : q !== deferredQ ? "Searching…" : `${results.length} game${results.length === 1 ? "" : "s"} found`}
       </p>
 
       {isError ? (
         <div className="mt-4">
-          <EmptyState icon={Gamepad2} title="Couldn't load games" body={(error as Error).message} />
+          <EmptyState icon={Gamepad2} title="Couldn't load games" body="Please try again." action={<Button variant="glass" onClick={() => void refetch()}>Retry</Button>} />
         </div>
       ) : isLoading ? (
         <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -301,7 +309,7 @@ function GamesPage() {
           <EmptyState
             icon={Gamepad2}
             title="No games match your filters"
-            body="Try a different platform, genre or price range."
+            body={q.trim() ? `No results for “${q.trim()}”. Try another title or reset your filters.` : "Try a different platform, genre or price range."}
             action={
               <Button variant="hero" onClick={reset}>
                 Reset filters
@@ -309,6 +317,8 @@ function GamesPage() {
             }
           />
         </div>
+      ) : covers.isError ? (
+        <div className="mt-4"><EmptyState icon={Gamepad2} title="Couldn't load game pictures" body="Please try again." action={<Button variant="glass" onClick={() => void covers.refetch()}>Retry</Button>} /></div>
       ) : !pageIsReady ? (
         <div
           ref={gridTopRef}
