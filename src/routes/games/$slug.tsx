@@ -6,7 +6,6 @@ import {
   HardDrive,
   Heart,
   MessageCircle,
-  Play,
   ShieldCheck,
   ShoppingCart,
   Users,
@@ -15,10 +14,11 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { GameCard } from "@/components/lag/GameCard";
+import { MediaCarousel } from "@/components/lag/MediaCarousel";
 import { ReleaseCountdown } from "@/components/lag/ReleaseCountdown";
 import { Badge, EmptyState, GlassIcon, SectionHeading, StarRating } from "@/components/lag/ui-bits";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
@@ -136,7 +136,6 @@ function GameDetailPage() {
   const [duration, setDuration] = useState<DurationKey>("30");
   const [account, setAccount] = useState<AccountKey>("secondary");
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [trailerPlaying, setTrailerPlaying] = useState(false);
 
   // Four random visible games, re-shuffled on every visit to the page.
   const related = useMemo(() => {
