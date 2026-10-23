@@ -1,9 +1,7 @@
 # LAG upgrade roadmap
 
-## Current
-- Fix matching, loading states and layout for homepage search and Games search; verify real searches on both screens.
-
 ## Done
+- Fixed homepage and Games search using shared normalized matching, lightweight cached data, clean filter layouts and retry states; verified Spider-Man/GTA results, filters and game selection on phone and desktop.
 - Live PS Plus Extra / Deluxe monthly additions from verified Sony announcements, with month status, tier filters and safe unavailable states; tested live feed and desktop/phone views
 - Interactive PS Plus tier comparison with differences filter, current-duration prices and membership selection
 - Quick trailer lightbox on game cards, with on-demand playback and no catalogue navigation
