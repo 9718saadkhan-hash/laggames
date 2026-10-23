@@ -902,7 +902,7 @@ function AdminGamesPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="g-size">Game Size</Label>
-                  <Input id="g-size" value={form.game_size} onChange={(e) => setForm((f) => ({ ...f, game_size: e.target.value }))} />
+                  <Input id="g-size" value={form.game_size} onChange={(e) => setForm((f) => ({ ...f, game_size: e.target.value }))} placeholder="e.g. 160 — GB is added automatically" />
                 </div>
               </div>
 

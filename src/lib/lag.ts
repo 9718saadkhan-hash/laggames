@@ -313,6 +313,15 @@ export function formatDate(value?: string | null): string {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+/** Game sizes are always shown in GB: a bare number gets the "GB" unit appended. */
+export function formatGameSize(size?: string | null): string {
+  const v = (size ?? "").trim();
+  if (!v) return "Ask on WhatsApp";
+  if (/gb/i.test(v)) return v;
+  if (/^\d+(\.\d+)?$/.test(v)) return `${v} GB`;
+  return v;
+}
+
 export function lowestGamePrice(game: Pick<Game, "price_30" | "price_60" | "price_permanent">) {
   const prices = [game.price_30, game.price_60, game.price_permanent].filter(
     (p): p is number => typeof p === "number",
